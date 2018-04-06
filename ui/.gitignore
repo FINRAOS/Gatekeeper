@@ -1,0 +1,11 @@
+/gatekeeper-ui.iml
+/node_modules
+/test/unit.html
+/dist
+/npm-debug.log
+/coverage
+/.idea
+# Created by .ignore support plugin (hsz.mobi)
+/test/junit/
+/received-emails/
+/dist/

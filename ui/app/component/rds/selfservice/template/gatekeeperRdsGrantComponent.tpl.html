@@ -1,0 +1,94 @@
+<!--
+  ~
+  ~ Copyright 2018. Gatekeeper Contributors
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<md-card layout-padding layout-fill>
+    <div id="containerADSearch">
+        <div layout="row">
+            <h1 class=".md-display-1">You are requesting the following</h1>
+        </div>
+        <h3 class=".md-display-3">Grant Access for the following people</h3>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.usersTable.selected.length === 0">
+            You have no selected grantees
+        </p>
+        <md-chips class="gk-selected-item" ng-if="gkSelfServiceCtrl.usersTable.selected.length > 0" ng-model="gkSelfServiceCtrl.usersTable.selected" md-on-remove="gkSelfServiceCtrl.isSelectedUserCurrentUser($chip)" readonly="false">
+            <md-chip-template>
+                <strong>{{$chip.name}}</strong>
+                <em>({{$chip.email}})</em>
+            </md-chip-template>
+        </md-chips>
+        <h3 ng-if="gkSelfServiceCtrl.awsTable.selected.length > 0" class=".md-display-3">To the following databases (Click on each item below to see what schemas/tables you have access to)</h3>
+        <h3 ng-if="gkSelfServiceCtrl.awsTable.selected.length === 0" class=".md-display-3">To the following databases</h3>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.awsTable.selected.length === 0">
+            You have no selected instances
+        </p>
+        <md-chips class="gk-selected-item"  ng-if="gkSelfServiceCtrl.awsTable.selected.length > 0" ng-model="gkSelfServiceCtrl.awsTable.selected" md-on-select="gkSelfServiceCtrl.showSchemas($chip)" readonly="false">
+            <md-chip-template>
+                <strong>{{$chip.name}}</strong>
+                <em>({{$chip.engine}})</em>
+            </md-chip-template>
+        </md-chips>
+        <h3 class=".md-display-3">With the following roles</h3>
+        <form name="gkSelfServiceCtrl.grantForm" layout="column">
+            <div layout="row">
+                <md-checkbox ng-model="gkSelfServiceCtrl.grantForm.selectedRoles.readonly" aria-label="Read Only">
+                    Read Only
+                </md-checkbox>
+                <md-checkbox ng-model="gkSelfServiceCtrl.grantForm.selectedRoles.datafix" aria-label="Datafix">
+                    Datafix
+                </md-checkbox>
+                <md-checkbox ng-model="gkSelfServiceCtrl.grantForm.selectedRoles.dba" aria-label="DBA">
+                    DBA
+                </md-checkbox>
+            </div>
+            <div layout="row">
+                <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
+                <md-input-container id="containerGkInputGrant" layout-align="end end" layout="column" flex="none">
+                    <input id="gkInputGrant" aria-label="Days" class=".md-display-1" min="1" max="{{gkSelfServiceCtrl.getMaximumDays()}}" type="number" ng-model="gkSelfServiceCtrl.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
+                </md-input-container>
+                <p  layout-align="end start" layout="column" class="md-title" flex="initial">Days.</p>
+                <div layout="column" layout-align="end start" >
+                    <div layout="row">
+                        <div layout="column" layout-align="center center">
+                            <button class="gk-grant-btn md-raised md-primary" ng-disabled="gkSelfServiceCtrl.isFormValid()" md-button
+                                type="submit" class="gk-grant-button md-raised md-primary" ng-click="gkSelfServiceCtrl.grantAccess()"> Request Access </button>
+                        </div>
+                        <div layout="column" layout-align="center center" ng-if="!gkSelfServiceCtrl.isFormValid() && !gkSelfServiceCtrl.dialogOpened">
+                            <div layout="row" ng-if="!gkSelfServiceCtrl.checkIfApprovalNeeded()" layout-align="center center">
+                                <md-icon layout="column" class="gk-grant-icon md-accent md-avatar" md-svg-src="action:check_circle"></md-icon>
+                                <span layout="column">This request does not need approval for time less than {{ gkSelfServiceCtrl.getApprovalBounds() }} days</span>
+                            </div>
+                            <div layout="row" ng-if="gkSelfServiceCtrl.checkIfApprovalNeeded()" layout-align="center center">
+                                <md-icon layout="column" class="gk-grant-icon md-primary md-avatar" md-svg-src="action:supervisor_account"></md-icon>
+                                <span layout="column">This request will require approval</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="gk-error" ng-if="gkSelfServiceCtrl.error.request">
+            <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+        </div>
+        <div class="gk-error" ng-if="gkSelfServiceCtrl.error.databases">
+            <span class="gk-error-text" layout="row">For the following Databases, these users need to be cleaned up before you can use gatekeeper to access them</span>
+            <div ng-repeat="(db, users) in gkSelfServiceCtrl.error.databases">
+                <br/>
+                <span><b>{{db}}</b> - {{users}}</span>
+            </div>
+        </div>
+    </div>
+</md-card>

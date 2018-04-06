@@ -1,0 +1,25 @@
+#
+# Copyright 2018. Gatekeeper Contributors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+FROM gatekeeper/java:latest
+MAINTAINER  Gatekeeper Contributors
+
+ARG jar_file
+ADD config/application.yml /usr/share/gatekeeper/config/application.yml
+ADD target/${jar_file} /usr/share/gatekeeper/app.jar
+RUN ls -ltr /usr/share/gatekeeper
+ENV JAVA_OPTS=""
+ENTRYPOINT ["java", "-Dspring.config.location=/usr/share/gatekeeper/config/application.yml",  "-Djava.security.egd=file:/dev/./urandom","-Dspring.profiles.active=container","-jar","/usr/share/gatekeeper/app.jar"]

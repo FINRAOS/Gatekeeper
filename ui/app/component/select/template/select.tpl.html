@@ -1,0 +1,38 @@
+<!--
+  ~
+  ~ Copyright 2018. Gatekeeper Contributors
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div layout="row" style="height:20%"></div>
+<md-content layout-padding>
+    <div layout="row" class="md-display-2" layout-align="center" >
+        <span>Welcome to Gatekeeper!</span>
+    </div>
+    <div layout="row" class="md-display-2" layout-align="center" >
+        <span>Please choose what you need access to</span>
+    </div>
+    <div layout="column" layout-align="center" class="gk-select-mode-btn-container">
+        <div layout="row" layout-align="center center" >
+            <a ui-sref="gk.ec2" class="hvr-pulse-grow">
+                <div  gatekeeper-select-button svg-label="EC2" svg-image="./assets/Compute_AmazonEC2.svg"></div>
+            </a>
+            <div flex="15"></div>
+            <a ui-sref="gk.rds"  class="hvr-pulse-grow">
+                <div  gatekeeper-select-button svg-label="RDS" svg-image="./assets/Database_AmazonRDS.svg"></div>
+            </a>
+        </div>
+    </div>
+</md-content>
+<div layout="row" style="height:25%"></div>

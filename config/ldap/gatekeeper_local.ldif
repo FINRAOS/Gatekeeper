@@ -1,0 +1,145 @@
+version: 1
+
+dn: ou=users,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=David Bryan,ou=users,dc=example,dc=org
+objectClass: extensibleObject
+objectClass: posixAccount
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: David Bryan
+gidNumber: 100
+homeDirectory: /home/bryand
+sn: David Bryan
+uid: bryand
+uidNumber: 20001
+email: DBryan@gk.com
+givenName: David Bryan
+
+dn: cn=Henry Wells,ou=users,dc=example,dc=org
+objectClass: posixAccount
+objectClass: extensibleObject
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Henry Wells
+gidNumber: 100
+homeDirectory: /home/wellsh
+sn: Henry Wells
+uid: wellsh
+uidNumber: 10005
+email: henry.wells@gatekeeper.com
+givenName: Henry Wells
+
+dn: cn=Katrina Hope,ou=users,dc=example,dc=org
+objectClass: extensibleObject
+objectClass: posixAccount
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Katrina Hope
+gidNumber: 100
+homeDirectory: /home/hopek
+sn: Katrina Hope
+uid: hopek
+uidNumber: 20005
+email: KHope@gk.com
+givenName: Katrina Hope
+
+dn: cn=William Mesa,ou=users,dc=example,dc=org
+objectClass: extensibleObject
+objectClass: posixAccount
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: William Mesa
+gidNumber: 100
+homeDirectory: /home/mesaw
+sn: William Mesa
+uid: mesaw
+uidNumber: 20003
+email: WMesa@gk.com
+givenName: William Mesa
+
+dn: cn=Violeta Hudson,ou=users,dc=example,dc=org
+objectClass: extensibleObject
+objectClass: posixAccount
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Violeta Hudson
+gidNumber: 100
+homeDirectory: /home/hudsonv
+sn: Violeta Hudson
+uid: hudsonv
+uidNumber: 20004
+email: VHudson@gk.com
+givenName: Violeta Hudson
+
+dn: cn=Jeffery Anderson,ou=users,dc=example,dc=org
+objectClass: extensibleObject
+objectClass: posixAccount
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Jeffery Anderson
+gidNumber: 100
+homeDirectory: /home/anderj
+sn: Jeffery Anderson
+uid: AnderJ
+uidNumber: 20002
+email: JAnderson@gk.com
+givenName: Jeffery Anderson
+
+dn: cn=gatekeeper_support,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: gatekeeper_support
+uniqueMember: cn=David Bryan,ou=users,dc=example,dc=org
+
+
+dn: cn=gatekeeper_approver,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: gatekeeper_approver
+uniqueMember: cn=Henry Wells,ou=users,dc=example,dc=org
+
+dn: cn=developer_testapp_qa,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: developer_testapp_qa
+uniqueMember: cn=Jeffery Anderson,ou=users,dc=example,dc=org
+
+dn: cn=developer_testapp_dba,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: developer_testapp_dba
+uniqueMember: cn=Violeta Hudson,ou=users,dc=example,dc=org
+
+dn: cn=developer_testapp_dev,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: developer_testapp_dev
+uniqueMember: cn=Jeffery Anderson,ou=users,dc=example,dc=org
+uniqueMember: cn=William Mesa,ou=users,dc=example,dc=org
+
+dn: cn=developer_testapp_ops,ou=groups,dc=example,dc=org
+objectClass: top
+objectClass: groupOfUniqueNames
+cn: developer_testapp_ops
+uniqueMember: cn=Katrina Hope,ou=users,dc=example,dc=org

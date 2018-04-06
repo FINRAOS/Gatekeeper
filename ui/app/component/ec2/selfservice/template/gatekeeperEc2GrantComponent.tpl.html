@@ -1,0 +1,74 @@
+<!--
+  ~
+  ~ Copyright 2018. Gatekeeper Contributors
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<md-card layout-padding layout-fill>
+    <div id="containerADSearch">
+        <div layout="row">
+            <h1 class=".md-display-1">You are requesting the following</h1>
+        </div>
+        <h3 class=".md-display-3">Grant Access for the following people</h3>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.usersTable.selected.length === 0">
+            You have no selected grantees
+        </p>
+        <md-chips class="gk-selected-item" ng-if="gkSelfServiceCtrl.usersTable.selected.length > 0" ng-model="gkSelfServiceCtrl.usersTable.selected" md-on-remove="gkSelfServiceCtrl.isSelectedUserCurrentUser($chip)" readonly="false">
+            <md-chip-template>
+                <strong>{{$chip.name}}</strong>
+                <em>({{$chip.email}})</em>
+            </md-chip-template>
+        </md-chips>
+        <h3 class=".md-display-3">To the following resources</h3>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.awsTable.selected.length === 0">
+            You have no selected instances
+        </p>
+        <md-chips class="gk-selected-item"  ng-if="gkSelfServiceCtrl.awsTable.selected.length > 0" ng-model="gkSelfServiceCtrl.awsTable.selected" readonly="false">
+            <md-chip-template>
+                <strong>{{$chip.instanceId}}</strong>
+                <em>({{$chip.name}})</em>
+            </md-chip-template>
+        </md-chips>
+        <form name="gkSelfServiceCtrl.grantForm" layout="column">
+            <div layout="row">
+                <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
+                <md-input-container id="containerGkInputGrant" layout-align="end end" layout="column" flex="none">
+                    <input id="gkInputGrant" aria-label="Hours" class=".md-display-1" min="1" max="168" type="number" ng-model="gkSelfServiceCtrl.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
+                </md-input-container>
+                <p  layout-align="end start" layout="column" class="md-title" flex="initial">Hours.</p>
+                <div layout="column" layout-align="end start" >
+                    <div layout="row">
+                        <div layout="column" layout-align="center center">
+                            <button class="gk-grant-btn md-raised md-primary" ng-disabled="gkSelfServiceCtrl.usersTable.selected.length === 0 || gkSelfServiceCtrl.awsTable.selected.length === 0" md-button
+                                type="submit" class="gk-grant-button md-raised md-primary" ng-click="gkSelfServiceCtrl.grantAccess()"> Request Access </button>
+                        </div>
+                        <div layout="column" layout-align="center center" ng-if="gkSelfServiceCtrl.grantForm.grantValue">
+                            <div layout="row" ng-if="!gkSelfServiceCtrl.approvalRequired" layout-align="center center">
+                                <md-icon layout="column" class="gk-grant-icon md-accent md-avatar" md-svg-src="action:check_circle"></md-icon>
+                                <span layout="column">This request does not need approval</span>
+                            </div>
+                            <div layout="row" ng-if="gkSelfServiceCtrl.approvalRequired" layout-align="center center">
+                                <md-icon layout="column" class="gk-grant-icon md-primary md-avatar" md-svg-src="action:supervisor_account"></md-icon>
+                                <span layout="column" ng-if="gkSelfServiceCtrl.approvalRequired">This request will require approval</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="gk-error" ng-if="gkSelfServiceCtrl.error.request">
+            <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+        </div>
+    </div>
+</md-card>

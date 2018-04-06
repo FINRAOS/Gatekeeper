@@ -20,3 +20,14 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+/.idea/
+/services/ec2/logs/
+/services/gatekeeper-parent.iml
+/services/common/gatekeeper-common.iml
+/services/common/target/
+/services/target/
+/ui/dist/
+/demo-services/fake-sso/.idea/
+/demo-services/fake-account-service/target/
+/demo-services/fake-account-service/.idea/

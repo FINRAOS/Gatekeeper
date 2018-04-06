@@ -1,0 +1,55 @@
+accounts:
+  -
+    accountId: 635262737231
+    name: dev-account
+    sdlc: dev
+    alias: Dev
+    regions:
+      -
+        name: us-east-1
+      -
+        name: us-east-2
+  -
+    accountId: 645378392965
+    name: int-account
+    sdlc: dev
+    alias: INT
+    regions:
+      -
+        name: us-east-1
+      -
+        name: us-east-2
+  -
+    accountId: 876523451928
+    name: qa-account
+    sdlc: qa
+    alias: QA
+    regions:
+      -
+        name: us-east-1
+      -
+        name: us-east-2
+  -
+    accountId: 918282926574
+    name: prod-account
+    sdlc: prod
+    alias: PROD
+    regions:
+      -
+        name: us-east-1
+      -
+        name: us-east-2
+      -
+        name: us-west-1
+  -
+    accountId: 847262839203
+    name: tools-account
+    sdlc: prod
+    alias: TOOLS
+    regions:
+      -
+        name: us-east-1
+      -
+        name: us-east-2
+      -
+        name: us-west-1
