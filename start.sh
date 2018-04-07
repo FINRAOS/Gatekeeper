@@ -12,7 +12,6 @@ if [[ -z "${AWS_DIRECTORY}" ]]; then
     exit 1;
 fi
 
-chmod 600 certs/*
 pushd containers
 echo "Building base gatekeeper containers"
 docker-compose build
