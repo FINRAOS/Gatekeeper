@@ -2,10 +2,6 @@
   "name": "gatekeeper-ui",
   "version": "1.0.0",
   "description": "The base UI project for all projects",
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@stash.finra.org:7999/pet/gatekeeper-ui.git"
-  },
   "main": "app/index.js",
   "author": "",
   "license": "ISC",
@@ -67,9 +63,6 @@
     "webpack-core": "^0.6.8",
     "webpack-dev-server": "1.14.0"
   },
-  "publishConfig": {
-    "registry": "http://artifactory.finra.org/artifactory/api/npm/npm-internal/"
-  },
   "files": [
     "app/**/!(app).js",
     "app/**/*.tpl.html",
@@ -82,10 +75,10 @@
     "angular-mocks": "1.5.5",
     "angular-animate": "1.5.5",
     "angular-aria": "1.5.5",
-    "angular-messages":"1.5.5",
+    "angular-messages": "1.5.5",
     "angular-material": "1.1.1",
     "angular-material-data-table": "0.10.9",
-    "angular-resource":"1.5.5",
+    "angular-resource": "1.5.5",
     "angular-ui-router": "0.2.18",
     "material-design-icons": "2.2.3",
     "hover.css": "^2.0.2",

@@ -421,7 +421,3 @@ You can see the format for these properties below:
 | gatekeeper.approvalThreshold.dba.dba.<environment>| The threshold in which dbas can request readonly access before requiring approval | integer
 | gatekeeper.overridePolicy.maxDays | The maximum amount of time a user can request temporary access for | integer
 | gatekeeper.overridePolicy.<user_role>.<db_role>.<environment> | for a given user role, db role and environment, this Overrides the maximum amount of days a user can request temporary access for | integer
-
-## Why are there certs?
-
-We provide 2 self-signed certs [here](certs) as a convienience that are used for local development, these are primarily consumed by the containerized Postgres database that we set up in local-docker-compose.yml and are not actually to be used in a real environment.
