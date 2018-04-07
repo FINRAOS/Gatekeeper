@@ -49,7 +49,9 @@ Currently we provide a shell script that builds all of the app code / containers
 Once you have these set, simply run **start.sh** and the script will build all the gatekeeper code/containers + bring up gatekeeper locally.
 
 https://localhost:443 => Regular User
+
 https://localhost:444 => Ops/Support User
+
 https://localhost:445 => Approver
 
 ### Windows 10 users
