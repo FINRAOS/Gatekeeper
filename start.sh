@@ -32,8 +32,4 @@ popd
 echo "Building gatekeeper containers"
 docker-compose -f local-docker-compose.yml build
 echo "Starting gatekeeper local environment"
-docker-compose -f local-docker-compose.yml up -d
-echo "Gatekeeper local environment is running, to stop it simply run stop.sh"
-echo "https://localhost:443 => Regular User"
-echo "https://localhost:444 => Ops/Support User"
-echo "https://localhost:445 => Approver"
+docker-compose -f local-docker-compose.yml up
