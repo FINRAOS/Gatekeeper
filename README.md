@@ -48,6 +48,8 @@ Currently we provide a shell script that builds all of the app code / containers
 
 Once you have these set, simply run **start.sh** and the script will build all the gatekeeper code/containers + bring up gatekeeper locally.
 
+Hit gatekeeper at the following locations to see the different User/Roles in action:
+
 https://localhost:443 => Regular User
 
 https://localhost:444 => Ops/Support User
@@ -69,21 +71,24 @@ Run the following commands:
 #cd to containers folder and build the base containers
 docker-compose build
 #cd to demo-services and build the fake-account-service
-mvn clean package
+mvn clean install
 #cd to services directory and build the gatekeeper backend services
-mvn clean package
+mvn clean install
 #cd to the ui directory and build the gatekeeper UI code
 npm run build
 #cd to the main directory and build the gatekeeper containers
 docker-compose -f local-docker-compose.yml build
 #bring the gatekeeper up with the following command
 docker-compose -f local-docker-compose.yml up -d
-
-# Hit gatekeeper at the following locations to see the different User/Roles in action
-#"https://localhost:443 => Regular User"
-#"https://localhost:444 => Ops/Support User"
-#"https://localhost:445 => Approver"
 ```
+Hit gatekeeper at the following locations to see the different User/Roles in action:
+
+https://localhost:443 => Regular User
+
+https://localhost:444 => Ops/Support User
+
+https://localhost:445 => Approver
+
 
 ## Setting your AWS environment up for Gatekeeper
 
