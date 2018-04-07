@@ -1,10 +1,8 @@
 {
   "name": "gatekeeper-ui",
   "version": "1.0.0",
-  "description": "The base UI project for all projects",
+  "description": "The UI for Gatekeeper",
   "main": "app/index.js",
-  "author": "",
-  "license": "ISC",
   "scripts": {
     "prestart": "npm install",
     "start": "node node_modules/webpack-dev-server/bin/webpack-dev-server.js --hot --color --content-base app/ --port 9000",
