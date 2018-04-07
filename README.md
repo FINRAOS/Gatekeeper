@@ -79,7 +79,7 @@ npm run win-build
 #cd to the main directory and build the gatekeeper containers
 docker-compose -f local-docker-compose.yml build
 #bring the gatekeeper up with the following command
-docker-compose -f local-docker-compose.yml up -d
+docker-compose -f local-docker-compose.yml up
 ```
 Hit gatekeeper at the following locations to see the different User/Roles in action:
 
