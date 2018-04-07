@@ -1,4 +1,5 @@
-var isProd = process.env.NODE_ENV === 'production';
+var isProd = process.env.NODE_ENV.trim() === 'production';
+
 var webpack = require('webpack');
 var WebpackDevServer = require("webpack-dev-server");
 var path = require('path');
@@ -34,18 +35,6 @@ module.exports = {
     //for local dev against a backend
     devServer: {
         proxy: [
-            //{
-            //    path:"/api/register/*",
-            //    target: "https://petstore-register.pet.finra.org",
-            //    rewrite: function(req){
-            //        var apiRegex = /^\/api\/\w+\/(.*)/;
-            //        var match = apiRegex.exec(req.url);
-            //        console.info(req.url);
-            //        req.url = "/"+match[1];
-            //        console.info(req.url);
-            //    },
-            //    headers: { "samaccountname": "tst_pet_gatekeeper" }
-            //},
             {
                 path:"/api/gatekeeper-ec2/*",
                 target: "http://localhost:8080",
@@ -55,7 +44,7 @@ module.exports = {
                     path.url = "/"+match[1];
                     console.info(path.url);
                 },
-                headers: { "samaccountname": "meles" }
+                headers: { "account": "sm" }
             }
             ,{
                 path:"/api/gatekeeper-rds/*",
@@ -66,7 +55,7 @@ module.exports = {
                     path.url = "/"+match[1];
                     console.info(path.url);
                 },
-                headers: { "samaccountname": "meles" }
+                headers: { "account": "sm" }
             }
         ]
     },

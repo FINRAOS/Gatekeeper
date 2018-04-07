@@ -24,7 +24,7 @@ services:
       SMARTHOST_PORT: 25
   gkdb:
     container_name: gatekeeper_local_postgres
-    image: nimbustech/postgres-ssl:9.5
+    image: postgres:9.5
     restart: always
     mem_limit: 50m
     ports:
@@ -33,19 +33,20 @@ services:
       POSTGRES_DB: gatekeeper
       POSTGRES_USER: gatekeeper_app
       POSTGRES_PASSWORD: l0ca1t3st
-    volumes:
-      - ./certs/:/var/ssl
+
   gkaccounts:
-      build:
-        context: ./demo-services/fake-account-service
-        args:
-          jar_file: fake-account-service-1.0.jar
-      mem_limit: 500m
-      ports:
-        - "8080:8080"
-      volumes:
-        - ./config/accounts-service/application.yml:/usr/share/gatekeeper/config/application.yml
+    build:
+      context: ./demo-services/fake-account-service
+      args:
+        jar_file: fake-account-service-1.0.jar
+    mem_limit: 500m
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/accounts-service/application.yml:/usr/share/gatekeeper/config/application.yml
   gatekeeper-ec2-service:
+    depends_on:
+      - gkdb
     build:
       context: ./services/ec2
       args:
@@ -65,6 +66,8 @@ services:
       - "gkldap"
       - "gkaccounts"
   gatekeeper-rds-service:
+    depends_on:
+      - gkdb
     build:
       context: ./services/rds
       args:
@@ -103,8 +106,6 @@ services:
       - "443:443"
     links:
       - "gatekeeper-ui"
-    volumes:
-      - ./certs:/usr/local/apache2/certs
   gatekeeper-support:
     image: gatekeeper/local-proxy
     mem_limit: 50m
@@ -114,8 +115,6 @@ services:
       - "444:443"
     links:
       - "gatekeeper-ui"
-    volumes:
-      - ./certs:/usr/local/apache2/certs
   gatekeeper-approver:
     image: gatekeeper/local-proxy
     mem_limit: 50m
@@ -125,9 +124,3 @@ services:
       - "445:443"
     links:
       - "gatekeeper-ui"
-    volumes:
-      - ./certs:/usr/local/apache2/certs
-
-
-
-

@@ -10,8 +10,9 @@ services:
     environment:
       SMARTHOST_ADDRESS: imailgw.finra.org
       SMARTHOST_PORT: 25
-  local_gkdb:
-    image: nimbustech/postgres-ssl:9.5
+  gkdb:
+    container_name: gatekeeper_local_postgres
+    image: postgres:9.5
     restart: always
     mem_limit: 50m
     ports:
@@ -20,8 +21,6 @@ services:
       POSTGRES_DB: gatekeeper
       POSTGRES_USER: gatekeeper_app
       POSTGRES_PASSWORD: l0ca1t3st
-    volumes:
-      - ./certs/:/var/ssl
   local_gkldap:
     image: osixia/openldap:1.2.0
     command: --copy-service
