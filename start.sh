@@ -19,11 +19,11 @@ docker-compose build
 popd
 pushd demo-services/fake-account-service
 echo "Building gatekeeper demo services"
-mvn clean package
+mvn clean install
 popd
 pushd services
 echo "Building gatekeeper ec2 + rds services"
-mvn clean package
+mvn clean install
 popd
 pushd ui
 echo "Building gatekeeper ui"
