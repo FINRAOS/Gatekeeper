@@ -1,4 +1,5 @@
-var isProd = process.env.NODE_ENV === 'production';
+var isProd = process.env.NODE_ENV.trim() === 'production';
+
 var webpack = require('webpack');
 var WebpackDevServer = require("webpack-dev-server");
 var path = require('path');

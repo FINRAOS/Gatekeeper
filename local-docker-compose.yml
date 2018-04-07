@@ -106,8 +106,6 @@ services:
       - "443:443"
     links:
       - "gatekeeper-ui"
-    volumes:
-      - ./certs:/usr/local/apache2/certs
   gatekeeper-support:
     image: gatekeeper/local-proxy
     mem_limit: 50m
@@ -117,8 +115,6 @@ services:
       - "444:443"
     links:
       - "gatekeeper-ui"
-    volumes:
-      - ./certs:/usr/local/apache2/certs
   gatekeeper-approver:
     image: gatekeeper/local-proxy
     mem_limit: 50m
@@ -128,9 +124,3 @@ services:
       - "445:443"
     links:
       - "gatekeeper-ui"
-    volumes:
-      - ./certs:/usr/local/apache2/certs
-
-
-
-

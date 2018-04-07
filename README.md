@@ -67,7 +67,7 @@ mvn clean package
 #cd to services directory and build the gatekeeper backend services
 mvn clean package
 #cd to the ui directory and build the gatekeeper UI code
-npm run build
+npm run win-build
 #cd to the main directory and build the gatekeeper containers
 docker-compose -f local-docker-compose.yml build
 #bring the gatekeeper up with the following command
