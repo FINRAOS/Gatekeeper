@@ -173,6 +173,8 @@ Currently Gatekeeper only supports authorization through LDAP, the application e
 #### AWS
 |Property | Description | Type |
 |---------|-------------|------|
+| gatekeeper.accountInfoEndpoint | The Endpoint gatekeeper calls to fetch the account data for all of your aws accounts | string
+| gatekeeper.accountInfoUri | The URI where gatekeeper can call your account Info service. (Defaults to "accounts") | string
 | gatekeeper.aws.proxyHost | (Optional) The Proxy Host. If you are not behind a proxy you can ignore this | string
 | gatekeeper.aws.proxyPort | (Optional) The Proxy Port. If you are not behind a proxy you can ignore this | integer
 | gatekeeper.aws.roleToAssume | The AWS IAM role that Gatekeeper will assume to interact with AWS (e.g. Xacnt_APP_GATEKEEPER)   | string 

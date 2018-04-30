@@ -22,6 +22,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.backend2backend.Backend2BackendService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -37,8 +39,12 @@ import java.util.stream.Collectors;
 @Component
 public class AccountInformationService {
 
+    private final Logger logger = LoggerFactory.getLogger(AccountInformationService.class);
     @Value("${gatekeeper.accountInfoEndpoint}")
-    private String accountInformationUrl;
+    private String accountInforUrl;
+
+    @Value("${gatekeeper.accountInfoUri}")
+    private String accountInfoUri;
 
     private final Backend2BackendService backend2backendService;
 
@@ -46,9 +52,6 @@ public class AccountInformationService {
     public AccountInformationService(Backend2BackendService backend2BackendService){
         this.backend2backendService = backend2BackendService;
     }
-
-
-    private final String ACCOUNT_STR = "accounts";
 
     /* Accounts -> Account Details Cache, do not want to hit Account Information API every time. */
     private final LoadingCache<String, List<Account>> accountCache = CacheBuilder.newBuilder()
@@ -63,11 +66,11 @@ public class AccountInformationService {
             });
 
     public List<Account> getAccounts(){
-        return accountCache.getUnchecked(ACCOUNT_STR);
+        return accountCache.getUnchecked(accountInfoUri);
     }
 
     public Account getAccountByAlias(String alias){
-        List<Account> result =  accountCache.getUnchecked(ACCOUNT_STR)
+        List<Account> result =  accountCache.getUnchecked(accountInfoUri)
                 .stream()
                 .filter(account -> account.getAlias().equalsIgnoreCase(alias))
                 .collect(Collectors.toList());
@@ -76,7 +79,8 @@ public class AccountInformationService {
     }
 
     private List<Account> loadAccounts(){
-        return Arrays.asList(backend2backendService.makeGetCall(accountInformationUrl, ACCOUNT_STR, true, Account[].class));
+        logger.info("Getting Account information from " + accountInforUrl + accountInfoUri);
+        return Arrays.asList(backend2backendService.makeGetCall(accountInforUrl, accountInfoUri, true, Account[].class));
     }
 
 }

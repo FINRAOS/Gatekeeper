@@ -69,6 +69,7 @@ gatekeeper:
         waitInterval: 1000
 
   accountInfoEndpoint: account-info.mycompany.com
+  accountInfoUri: accounts
 
 
 

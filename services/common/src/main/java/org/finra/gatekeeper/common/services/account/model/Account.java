@@ -29,14 +29,14 @@ import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Account {
-    private Long accountId;
+    private String accountId;
     private String name;
     private String sdlc;
     private String alias;
     private List<Region> regions;
 
     public Account(){}
-    public Account(Long accountId, String name, String sdlc, String alias, List<Region> regions){
+    public Account(String accountId, String name, String sdlc, String alias, List<Region> regions){
         this.accountId = accountId;
         this.name = name;
         this.sdlc = sdlc;
@@ -45,11 +45,11 @@ public class Account {
     }
 
 
-    public Long getAccountId() {
+    public String getAccountId() {
         return accountId;
     }
 
-    public Account setAccountId(Long accountId) {
+    public Account setAccountId(String accountId) {
         this.accountId = accountId;
         return this;
     }

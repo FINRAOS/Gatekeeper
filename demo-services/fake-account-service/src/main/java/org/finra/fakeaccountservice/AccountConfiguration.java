@@ -19,11 +19,9 @@ package org.finra.fakeaccountservice;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Objects;
 
 @Component
 @ConfigurationProperties(prefix = "")
@@ -49,17 +47,17 @@ public class AccountConfiguration {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Account {
-        private Long accountId;
+        private String accountId;
         private String name;
         private String sdlc;
         private String alias;
         private List<Region> regions;
 
-        public Long getAccountId() {
+        public String getAccountId() {
             return accountId;
         }
 
-        public Account setAccountId(Long accountId) {
+        public Account setAccountId(String accountId) {
             this.accountId = accountId;
             return this;
         }

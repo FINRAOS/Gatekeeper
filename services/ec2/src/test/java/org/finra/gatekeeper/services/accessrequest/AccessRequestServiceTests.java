@@ -168,7 +168,7 @@ public class AccessRequestServiceTests {
         mockValues.put("support", mockSupp);
 
         Region[] regions = new Region[]{ new Region("us-east-1") };
-        Account mockAccount = new Account(1234L, "Dev Test", "dev", "dev-test", Arrays.asList(regions));
+        Account mockAccount = new Account("1234", "Dev Test", "dev", "dev-test", Arrays.asList(regions));
 
         when(approvalPolicy.getApprovalPolicy(GatekeeperRole.DEV)).thenReturn(mockDev);
         when(approvalPolicy.getApprovalPolicy(GatekeeperRole.OPS)).thenReturn(mockOps);
