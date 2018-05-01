@@ -24,6 +24,7 @@ gatekeeper:
     sessionTimeout: 3480000
     sessionTimeoutPad: 120000
   accountInfoEndpoint: account-info.company.com
+  accountInfoUri: accounts
   requiredSecurityGroup: RDS-support
   appIdentityTag: APP
   # These numbers hold if the user has the valid SDLC + Application membership for the databases on the environment they are trying to request for. (Dev/Ops roles)

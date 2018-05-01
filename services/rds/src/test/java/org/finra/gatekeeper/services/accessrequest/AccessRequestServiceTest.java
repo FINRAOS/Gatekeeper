@@ -164,7 +164,7 @@ public class AccessRequestServiceTest {
         mockDev.put("datafix", mockDba);
 
         Region[] regions = new Region[]{ new Region("us-east-1") };
-        Account mockAccount = new Account(1234L, "Dev Test", "dev", "dev-test", Arrays.asList(regions));
+        Account mockAccount = new Account("1234", "Dev Test", "dev", "dev-test", Arrays.asList(regions));
 
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.DEV)).thenReturn(mockDev);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.OPS)).thenReturn(mockDev);

@@ -104,7 +104,7 @@ public class AwsSessionServiceTests {
         regions.add(testRegion1);
         regions.add(testRegion2);
         Account fakeAccount = new Account();
-        fakeAccount.setAccountId(123L);
+        fakeAccount.setAccountId("123");
         fakeAccount.setAlias("hello");
         fakeAccount.setRegions(regions);
         fakeAccount.setSdlc("Test");
