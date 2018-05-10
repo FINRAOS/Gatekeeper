@@ -37,6 +37,8 @@ public class AccessRequest {
     private String account;
     private String region;
     private String approverComments;
+    private String approverUserId;
+    private String approverUserName;
     private String requestReason;
     private String platform;
     private Integer hours;
@@ -197,34 +199,48 @@ public class AccessRequest {
         return this;
     }
 
-    @Override
-    public boolean equals(Object o){
-        if (this == o) {
-            return true;
-        }
+    public String getApproverUserId() {
+        return approverUserId;
+    }
 
-        if (o == null || !getClass().equals(o.getClass())) {
-            return false;
-        }
+    public AccessRequest setApproverUserId(String approverUserId) {
+        this.approverUserId = approverUserId;
+        return this;
+    }
 
-        AccessRequest that = (AccessRequest) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(requestorId, that.requestorId)
-                && Objects.equals(requestorName, that.requestorName)
-                && Objects.equals(requestorEmail, that.requestorEmail)
-                && Objects.equals(account, that.account)
-                && Objects.equals(region, that.region)
-                && Objects.equals(hours, that.hours)
-                && Objects.equals(users, that.users)
-                && Objects.equals(instances, that.instances)
-                && Objects.equals(requestReason, that.requestReason)
-                && Objects.equals(approverComments, that.approverComments)
-                && Objects.equals(platform, that.platform);
+    public String getApproverUserName() {
+        return approverUserName;
+    }
+
+    public AccessRequest setApproverUserName(String approverUserName) {
+        this.approverUserName = approverUserName;
+        return this;
     }
 
     @Override
-    public int hashCode(){
-        return Objects.hash(id, requestorId, requestorName, requestorEmail, account, region, hours, users, instances, requestReason, approverComments, platform);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccessRequest that = (AccessRequest) o;
+        return com.google.common.base.Objects.equal(id, that.id) &&
+                com.google.common.base.Objects.equal(requestorId, that.requestorId) &&
+                com.google.common.base.Objects.equal(requestorName, that.requestorName) &&
+                com.google.common.base.Objects.equal(requestorEmail, that.requestorEmail) &&
+                com.google.common.base.Objects.equal(account, that.account) &&
+                com.google.common.base.Objects.equal(region, that.region) &&
+                com.google.common.base.Objects.equal(approverComments, that.approverComments) &&
+                com.google.common.base.Objects.equal(approverUserId, that.approverUserId) &&
+                com.google.common.base.Objects.equal(approverUserName, that.approverUserName) &&
+                com.google.common.base.Objects.equal(requestReason, that.requestReason) &&
+                com.google.common.base.Objects.equal(platform, that.platform) &&
+                com.google.common.base.Objects.equal(hours, that.hours) &&
+                com.google.common.base.Objects.equal(users, that.users) &&
+                com.google.common.base.Objects.equal(instances, that.instances);
+    }
+
+    @Override
+    public int hashCode() {
+        return com.google.common.base.Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, approverComments, approverUserId, approverUserName, requestReason, platform, hours, users, instances);
     }
 
     @Override
@@ -241,6 +257,8 @@ public class AccessRequest {
                 .add("Instances", instances)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
+                .add("Approver ID", approverUserId)
+                .add("Approver Name", approverUserName)
                 .add("Platform", platform)
                 .toString();
     }
@@ -251,7 +269,19 @@ public class AccessRequest {
 
     public AccessRequest() {}
 
-    public AccessRequest(Integer hours, String account, String region, String requestorId, String requestorName, String requestorEmail, List<User> users, List<AWSInstance> instances, String requestReason, String approverComments, String platform) {
+    public AccessRequest(Integer hours,
+                         String account,
+                         String region,
+                         String requestorId,
+                         String requestorName,
+                         String requestorEmail,
+                         List<User> users,
+                         List<AWSInstance> instances,
+                         String requestReason,
+                         String approverComments,
+                         String approverUserId,
+                         String approverUserName,
+                         String platform) {
         this.hours = hours;
         this.region = region;
         this.account = account;
@@ -262,6 +292,8 @@ public class AccessRequest {
         this.instances = instances;
         this.requestReason = requestReason;
         this.approverComments = approverComments;
+        this.approverUserId = approverUserId;
+        this.approverUserName = approverUserName;
         this.platform = platform;
     }
 

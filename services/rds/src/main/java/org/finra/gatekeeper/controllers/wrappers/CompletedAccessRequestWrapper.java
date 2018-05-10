@@ -54,9 +54,29 @@ public class CompletedAccessRequestWrapper extends ActiveAccessRequestWrapper {
         return this;
     }
 
+    public String getApproverUserId() {
+        return approverUserId;
+    }
+
+    public CompletedAccessRequestWrapper setApproverUserId(String approverUserId) {
+        this.approverUserId = approverUserId;
+        return this;
+    }
+
+    public String getApproverUserName() {
+        return approverUserName;
+    }
+
+    public CompletedAccessRequestWrapper setApproverUserName(String approverUserName) {
+        this.approverUserName = approverUserName;
+        return this;
+    }
+
     private Date updated;
     private Integer attempts;
     private RequestStatus status;
+    private String approverUserId;
+    private String approverUserName;
 
     public CompletedAccessRequestWrapper(AccessRequest accessRequest){
         super(accessRequest);

@@ -64,6 +64,9 @@ public class AccessRequestService {
     private final GatekeeperApprovalProperties approvalPolicy;
     private final AccountInformationService accountInformationService;
     private final SsmService ssmService;
+    private final String REJECTED = "REJECTED";
+    private final String APPROVED = "APPROVED";
+
 
     @Autowired
     public AccessRequestService(TaskService taskService,
@@ -227,7 +230,9 @@ public class AccessRequestService {
             CompletedAccessRequestWrapper wrapper = new CompletedAccessRequestWrapper(request)
                     .setUpdated(updated)
                     .setAttempts((Integer) varMap.get("attempts"))
-                    .setStatus(status);
+                    .setStatus(status)
+                    .setApproverUserId(request.getApproverUserId())
+                    .setApproverUserName(request.getApproverUserName());
 
             wrapper.setCreated(created);
 
@@ -260,22 +265,27 @@ public class AccessRequestService {
      * @param requestId
      * @param approverComments
      */
-    private void updateRequestApproverComments(Long requestId, String approverComments){
+    private void updateRequestApproveDetails(Long requestId, String approverComments, String action){
         AccessRequest accessRequest = accessRequestRepository.findOne(requestId);
         accessRequest.setApproverComments(approverComments);
+        GatekeeperUserEntry approver = gatekeeperRoleService.getUserProfile();
+        accessRequest.setApproverUserId(approver.getUserId());
+        accessRequest.setApproverUserName(approver.getName());
         accessRequestRepository.save(accessRequest);
+        logger.info("Access Request " + accessRequest.getId() + " was " + action +" by " + approver.getName() + " (" + approver.getUserId() +"). ");
+
     }
 
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
     public List<ActiveAccessRequestWrapper> approveRequest(String taskId, Long requestId, String approverComments ) {
-        updateRequestApproverComments(requestId, approverComments);
+        updateRequestApproveDetails(requestId, approverComments, APPROVED);
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.APPROVAL_GRANTED);
         return getActiveRequests();
     }
 
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
     public List<ActiveAccessRequestWrapper> rejectRequest(String taskId, Long requestId, String approverComments) {
-        updateRequestApproverComments(requestId, approverComments);
+        updateRequestApproveDetails(requestId, approverComments, REJECTED);
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.APPROVAL_REJECTED);
         return getActiveRequests();
     }
@@ -292,7 +302,7 @@ public class AccessRequestService {
 
     private List<? extends AccessRequestWrapper> filterResults(List<? extends AccessRequestWrapper> results) {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRole.APPROVER)
-                || gatekeeperRoleService.getUserProfile().getName().equalsIgnoreCase(AccessRequestWrapper.getRequestorId()))
+                || gatekeeperRoleService.getUserProfile().getUserId().equalsIgnoreCase(AccessRequestWrapper.getRequestorId()))
                 .collect(Collectors.toList());
     }
 }

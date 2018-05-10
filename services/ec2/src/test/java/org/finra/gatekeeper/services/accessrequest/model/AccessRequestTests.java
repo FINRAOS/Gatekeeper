@@ -42,11 +42,13 @@ public class AccessRequestTests {
         String requestorEmail = "Test@email.com";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
+        String approverName = "Test Approver";
+        String approverId = "TestA";
         String platform = "Test platform";
         List<User> users = Arrays.asList(new User("theguy", "thatguy", "thatguy@email.com"));
         List<AWSInstance> instances = Arrays.asList(new AWSInstance("The dude", "TST", "i-tst", "127.0.0.1","Another state", "Platform1"));
 
-        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances, requestReason, approverComments,platform);
+        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances, requestReason, approverComments, approverId, approverName, platform);
 
         Assert.assertEquals("Test Hours: ", hours, accessRequest.getHours());
         Assert.assertEquals("Test Account:", account, accessRequest.getAccount());
@@ -58,6 +60,8 @@ public class AccessRequestTests {
         Assert.assertEquals("Test Instances", instances, accessRequest.getInstances());
         Assert.assertEquals("Test Request Reason:", requestReason, accessRequest.getRequestReason());
         Assert.assertEquals("Test Approver Comments:", approverComments, accessRequest.getApproverComments());
+        Assert.assertEquals("Test Approver ID: ", approverId, accessRequest.getApproverUserId());
+        Assert.assertEquals("Test Approver Name: ", approverName, accessRequest.getApproverUserName());
         Assert.assertEquals("Test Platform:", platform, accessRequest.getPlatform());
 
     }
@@ -73,6 +77,8 @@ public class AccessRequestTests {
         String requestorEmail = "Test@email.com";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
+        String approverName = "Test Approver";
+        String approverId = "TestA";
         String platform = "Test platform";
         List<User> users = Arrays.asList(new User("theguy","thatguy", "thatguy@email.com"));
         List<AWSInstance> instances = Arrays.asList(new AWSInstance("The dude", "TST", "i-tst", "127.0.0.1","Another state", "Platform1"));
@@ -89,6 +95,8 @@ public class AccessRequestTests {
                 .setInstances(instances)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
+                .setApproverUserId(approverId)
+                .setApproverUserName(approverName)
                 .setPlatform(platform);
 
         Assert.assertEquals("Test Id: ", id, accessRequest.getId());
@@ -102,6 +110,8 @@ public class AccessRequestTests {
         Assert.assertEquals("Test Instances", instances, accessRequest.getInstances());
         Assert.assertEquals("Test Request Reason:", requestReason, accessRequest.getRequestReason());
         Assert.assertEquals("Test Approver Comments:", approverComments, accessRequest.getApproverComments());
+        Assert.assertEquals("Test Approver ID: ", approverId, accessRequest.getApproverUserId());
+        Assert.assertEquals("Test Approver Name: ", approverName, accessRequest.getApproverUserName());
         Assert.assertEquals("Test Platform:", platform, accessRequest.getPlatform());
 
     }
@@ -117,6 +127,8 @@ public class AccessRequestTests {
         String requestorEmail = "Test@email.com";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
+        String approverName = "Test Approver";
+        String approverId = "TestA";
         String platform = "Test platform";
 
 
@@ -126,10 +138,10 @@ public class AccessRequestTests {
         List<AWSInstance> instances = Arrays.asList(new AWSInstance("The dude", "TST", "i-tst", "127.0.0.1","Another state","Platform1"));
         List<AWSInstance> instances2 = Arrays.asList(new AWSInstance("The dude2", "TST2", "i2-tst", "127.0.0.2","Different state","Platform2"));
 
-        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,platform);
+        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,approverId, approverName,platform);
         accessRequest.setId(id);
         AccessRequest accessRequest2 = accessRequest;
-        AccessRequest accessRequest3 = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,platform);
+        AccessRequest accessRequest3 = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,approverId, approverName,platform);
         accessRequest3.setId(id);
         Assert.assertEquals("Same address space", accessRequest, accessRequest2);
         Assert.assertEquals("Different Objects same values", accessRequest, accessRequest3);
@@ -157,6 +169,10 @@ public class AccessRequestTests {
         accessRequest.setRequestReason(requestReason);
         Assert.assertNotEquals("Different Comments", accessRequest.setApproverComments("Different Comment"), accessRequest3);
         accessRequest.setApproverComments(approverComments);
+        Assert.assertNotEquals("Different Approver Id", accessRequest.setApproverUserId("Test B"), accessRequest3);
+        accessRequest.setApproverUserId(approverId);
+        Assert.assertNotEquals("Different Approver Name", accessRequest.setApproverUserName("TestB"), accessRequest3);
+        accessRequest.setApproverUserId(approverName);
         Assert.assertNotEquals("Different Platforms", accessRequest.setPlatform("Different Platform"), accessRequest3);
         accessRequest.setPlatform(platform);
 
@@ -175,6 +191,8 @@ public class AccessRequestTests {
         String requestorEmail = "Test@email.com";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
+        String approverName = "Test Approver";
+        String approverId = "TestA";
         String platform = "Test platform";
 
 
@@ -193,9 +211,11 @@ public class AccessRequestTests {
                 .setInstances(instances)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
+                .setApproverUserId(approverId)
+                .setApproverUserName(approverName)
                 .setPlatform(platform);
 
-        Assert.assertEquals("Testing hashCode()", Objects.hash(id, requestorId, requestorName, requestorEmail, account, region, hours, users, instances,requestReason, approverComments, platform), accessRequest.hashCode());
+        Assert.assertEquals("Testing hashCode()", Objects.hash(id, requestorId, requestorName, requestorEmail, account, region, hours, users, instances,requestReason, approverComments, approverId, approverName, platform), accessRequest.hashCode());
 
     }
 
@@ -210,6 +230,8 @@ public class AccessRequestTests {
         String requestorEmail = "Test@email.com";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
+        String approverName = "Test Approver";
+        String approverId = "TestA";
         String platform = "Test platform";
 
 
@@ -228,6 +250,8 @@ public class AccessRequestTests {
                 .setInstances(instances)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
+                .setApproverUserId(approverId)
+                .setApproverUserName(approverName)
                 .setPlatform(platform);
 
         String exp = MoreObjects.toStringHelper(AccessRequest.class)
@@ -242,6 +266,8 @@ public class AccessRequestTests {
                 .add("Instances", instances)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
+                .add("Approver ID", approverId)
+                .add("Approver Name", approverName)
                 .add("Platform", platform)
                 .toString();
 

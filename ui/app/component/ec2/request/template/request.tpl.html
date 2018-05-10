@@ -96,6 +96,10 @@
                 <tr>
                     <td colspan="2"><hr></td>
                 </tr>
+                <tr layout-padding ng-if="dialogCtrl.row.approverUserId">
+                    <td><span class="md-body-2">Actioned By: </span></td>
+                    <td layout-padding><span>{{::dialogCtrl.row.approverUserName}} ({{::dialogCtrl.row.approverUserId}}) </span></td>
+                </tr>
                 <tr layout-padding>
                     <td valign="top"><span class="md-body-2">Approver Comments:</span></td>
                 </tr>
