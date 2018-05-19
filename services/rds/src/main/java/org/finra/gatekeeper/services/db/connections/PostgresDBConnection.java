@@ -46,6 +46,7 @@ public class PostgresDBConnection implements DBConnection {
     private final String EXPIRATION_TIMESTAMP = "yyyy-MM-dd HH:mm:ss";
     private final String getSchemas = "SELECT distinct table_schema||'.'||table_name FROM information_schema.role_table_grants "
     + "where grantee = ? order by table_schema||'.'||table_name";
+    private final String getUsers = "select rolname from pg_roles where rolcanlogin = true";
 
     private final String gkUserName;
     private final String gkUserPassword;
@@ -232,6 +233,22 @@ public class PostgresDBConnection implements DBConnection {
                 dataSource.close();
             }
         }
+    }
+
+    public List<String> getUsers(String address) throws SQLException{
+        PGPoolingDataSource dataSource = connect(address);
+        JdbcTemplate conn = new JdbcTemplate(dataSource);
+        List<String> results;
+        logger.info("Getting available schema information for " + address);
+        try {
+            results = conn.queryForList(getUsers, String.class);
+            logger.info("Retrieved users for database " + address);
+        } catch (Exception ex) {
+            logger.error("Could not retrieve list of users for database " + address, ex);
+            results = Collections.emptyList();
+        }
+        dataSource.close();
+        return results;
     }
 
     private boolean revokeUser(JdbcTemplate conn, String user){

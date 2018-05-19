@@ -107,6 +107,10 @@ public class DatabaseConnectionService {
         return issues.stream().collect(Collectors.joining(","));
     }
 
+    public List<String> getUsersForDb(GatekeeperRDSInstance database) throws Exception {
+        return databaseConnectionFactory.getConnection(database.getEngine()).getUsers(getAddress(database.getEndpoint(), database.getDbName()));
+    }
+
     /**
      * Check to see if the users in the request exist in the databases and have some kind of dependency constraint that could cause
      * gatekeeper to fail

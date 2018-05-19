@@ -203,6 +203,19 @@ public class MySQLDBConnection implements DBConnection {
         return issues;
     }
 
+    public List<String> getUsers(String address) throws SQLException {
+        String getUsers = "select user from mysql.user";
+        List<String> users = new ArrayList<>();
+        try {
+            JdbcTemplate template = connect(address);
+            users = template.queryForList(getUsers, String.class);
+        }catch(SQLException e){
+            logger.error("Error retrieving users from DB", e);
+        }
+
+        return users;
+    }
+
     public List<String> checkIfUsersHasTables(String address, List<String> users){
         return Collections.emptyList();
     }

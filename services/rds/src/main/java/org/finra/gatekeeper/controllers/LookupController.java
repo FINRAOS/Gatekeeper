@@ -61,4 +61,12 @@ class LookupController {
                                                            @RequestParam("instanceId") String instanceId) throws Exception{
         return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId);
     }
+
+    @RequestMapping(value="/getUsers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<String> getUsersForInstance(@RequestParam("account") String account,
+                                            @RequestParam("region") String region,
+                                            @RequestParam("instanceId") String instanceId) throws Exception{
+        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId);
+
+    }
 }

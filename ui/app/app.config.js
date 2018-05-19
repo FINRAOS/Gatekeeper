@@ -206,7 +206,6 @@ function configureRouting($stateProvider, $urlRouterProvider){
         }
     );
 
-
     $stateProvider.state('gk.rds.selfservice',
         {
             url: '/selfservice',
@@ -218,6 +217,22 @@ function configureRouting($stateProvider, $urlRouterProvider){
                 'user':'unknown',
                 'memberships':[],
                 'approvalThreshold':[],
+                'role':'unauthorized',
+                'email':'unknown'
+            },
+            onEnter:confirmAccess
+        }
+    );
+
+    $stateProvider.state('gk.rds.admin',
+        {
+            url: '/admin',
+            template: require('./component/rds/admin/template/rdsAdmin.tpl.html'),
+            controller: 'gkRdsAdminController',
+            controllerAs: 'gkAppCtrl',
+            params: {
+                'userId':'unknown',
+                'user':'unknown',
                 'role':'unauthorized',
                 'email':'unknown'
             },

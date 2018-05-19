@@ -15,12 +15,9 @@
  * limitations under the License.
  */
 
-const AD = Symbol();
 const DIALOG = Symbol();
 const TOAST = Symbol();
-const RDS = Symbol();
 const GRANT = Symbol();
-let STATE = Symbol();
 
 //need this to deal with callbacks
 let vm;
@@ -28,69 +25,15 @@ let vm;
 import GatekeeperSelfServiceController from '../../shared/selfservice/GatekeeperSelfServiceController';
 
 class RdsSelfServiceController extends GatekeeperSelfServiceController {
-    constructor($mdDialog, $mdToast, gkADService, gkRDSService, gkRdsGrantService, gkAccountService,$scope,$state,$rootScope){
+    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService,$scope,$state,$rootScope){
         super($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
 
         vm = this;
-        this[RDS] = gkRDSService;
         this[GRANT] = gkRdsGrantService;
         this[TOAST] = $mdToast;
         this[DIALOG] = $mdDialog;
-
-        gkAccountService.fetch().then((response) =>{
-            this.awsAccounts = response.data;
-        }).catch(()=>{
-            throw new Error('Error fetching accounts');
-        });
-
-        this.rdsInstanceFilter = {
-            onlineOnly:false
-        };
-
-        this.awsAccounts = [];
-
-        this.fetching.rds = false;
-
-        this.awsTable = {
-            selection: 'multiple',
-            selectionId: 'instanceId',
-            toolbar: {
-                header: "Available Databases",
-                inlineFilter: true,
-                checkboxFilters: [
-                    {
-                        label: "Available Only",
-                        filterFn: this.filterOnline
-                    },
-                    {
-                        label: "Unavailable Only",
-                        filterFn: this.filterOffline
-                    }
-                ]
-            },
-            onSelect: this.checkIfApprovalNeeded,
-            onDeselect: this.checkIfApprovalNeeded,
-            headers: [
-                {dataType: 'string', display: 'Instance Name', value: 'name'},
-                {dataType: 'string', display: 'Database Name', value: 'dbName'},
-                {dataType: 'string', display: 'Engine',        value: 'engine'},
-                {dataType: 'string', display: 'Instance ID',   value: 'instanceId'},
-                {dataType: 'string', display: 'Status',        value: 'status'}
-            ],
-            data: [],
-            selected: [],
-            query: {
-                order: 'name',
-                limit: 5,
-                page: 1
-            },
-            pagination: {
-                pageSelect: true,
-                limitOptions: [5, 10]
-            },
-            disableRow: this.disableRow,
-            disableBackgroundColor: 'rgba(0,0,0,0.12)'
-        };
+        vm.selectedItems = [];
+        vm.rdsInstances = [];
     }
 
     /**
@@ -106,7 +49,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             vm.dialogOpened = true;
             vm.spawnConfirmDialog(title, message)
                 .then(() => {
-                    vm.awsTable.selected = [];
+                    vm.selectedItems = [];
                     vm.awsTable.data = [];
                     if(vm.awsInstanceForm.selectedAccount !== vm.lastSelectedAccount){
                         delete vm.awsInstanceForm.selectedRegion;
@@ -121,7 +64,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                     vm.awsInstanceForm.selectedPlatform = vm.lastSelectedPlatform;
                 }).finally(() => {
                     vm.dialogOpened = false;
-            })
+            });
         }else{
             vm.lastSelectedAccount = vm.awsInstanceForm.selectedAccount;
             vm.lastSelectedRegion = vm.awsInstanceForm.selectedRegion;
@@ -130,40 +73,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             vm.checkIfApprovalNeeded();
         }
 
-    }
-
-    disableRow(row){
-        return row.status !== 'available';
-    }
-
-    filterOnline(row){
-        return row.status === 'available';
-    }
-
-    filterOffline(row){
-        return !vm.filterOnline(row);
-    }
-
-    searchRDSInstances(){
-        if(this.awsInstanceForm.$valid) {
-            delete this.error.aws;
-            this.fetching.rds = true;
-            this.awsTable.data = [];
-            this.awsTable.promise = this[RDS].search(
-                {
-                    account: this.awsInstanceForm.selectedAccount.alias.toLowerCase(),
-                    region: this.awsInstanceForm.selectedRegion.name,
-                    searchText:this.awsInstanceForm.searchText,
-                });
-
-            this.awsTable.promise.then((response) => {
-                this.awsTable.data = response.data;
-            }).catch((error) =>{
-                this.error.aws = error;
-            }).finally(() =>{
-                this.fetching.rds = false;
-            });
-        }
     }
 
     isFormValid(){
@@ -177,7 +86,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             });
         }
 
-        return vm.usersTable.selected.length === 0 || vm.awsTable.selected.length === 0 || !valueChecked
+        return vm.usersTable.selected.length === 0 || vm.selectedItems.length === 0 || !valueChecked
     }
 
     checkIfApprovalNeeded(){
@@ -188,13 +97,13 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     getApprovalBounds(){
 
         //approvers don't need approval
-        if(vm.global.userInfo.role.toLowerCase() == 'approver'){
+        if(vm.global.userInfo.role.toLowerCase() === 'approver'){
             return 180;
         }
 
         let approvalRequired = true;
         //first lets make sure they are members of what they are requesting for
-        vm.awsTable.selected.forEach((item) => {
+        vm.selectedItems.forEach((item) => {
             let resource = vm.global.userInfo.memberships[item.application];
             approvalRequired = !resource || resource.indexOf(vm.awsInstanceForm.selectedAccount.sdlc.toUpperCase()) === -1;
         });
@@ -236,7 +145,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     getMaximumDays(){
 
         let max = 180;
-        if(vm.awsInstanceForm.selectedAccount) {
+        if(vm.awsInstanceForm && vm.awsInstanceForm.selectedAccount) {
             if (vm.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('dba') !== -1) {
                 max = 7;
             }
@@ -275,7 +184,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 .then((explanation) => {
                     this.fetching.grant = true;
                     let roles = [];
-                    vm[GRANT].post(vm.getSelectedRoles(), vm.grantForm.grantValue, vm.usersTable.selected, vm.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.awsInstanceForm.selectedRegion.name, vm.awsTable.selected, explanation, vm.awsInstanceForm.selectedPlatform)
+                    vm[GRANT].post(vm.getSelectedRoles(), vm.grantForm.grantValue, vm.usersTable.selected, vm.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.awsInstanceForm.selectedRegion.name, vm.selectedItems, explanation, vm.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             var msg;
@@ -294,7 +203,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                             );
                             if(response.data.outcome === 'CREATED') {
                                 //deselect all users and instances
-                                vm.awsTable.selected = [];
+                                vm.selectedItems = [];
                                 vm.usersTable.selected = [];
                                 vm.selfService = false;
                                 delete vm.grantForm.grantValue;

@@ -65,4 +65,12 @@ public interface DBConnection {
     List<String> checkDb(String address) throws GKUnsupportedDBException;
 
     List<String> checkIfUsersHasTables(String address, List<String> users) throws SQLException;
+
+    /**
+     * Connects to the DB and gets all of the Users currently on the RDS instance
+     * @param address
+     * @return List of all of the users on the instance
+     */
+    List<String> getUsers(String address) throws SQLException;
+
 }

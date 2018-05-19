@@ -30,12 +30,12 @@
                 <em>({{$chip.email}})</em>
             </md-chip-template>
         </md-chips>
-        <h3 ng-if="gkSelfServiceCtrl.awsTable.selected.length > 0" class=".md-display-3">To the following databases (Click on each item below to see what schemas/tables you have access to)</h3>
-        <h3 ng-if="gkSelfServiceCtrl.awsTable.selected.length === 0" class=".md-display-3">To the following databases</h3>
-        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.awsTable.selected.length === 0">
+        <h3 ng-if="gkSelfServiceCtrl.selectedItems.length > 0" class=".md-display-3">To the following databases (Click on each item below to see what schemas/tables you have access to)</h3>
+        <h3 ng-if="gkSelfServiceCtrl.selectedItems.length === 0" class=".md-display-3">To the following databases</h3>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.selectedItems.length === 0">
             You have no selected instances
         </p>
-        <md-chips class="gk-selected-item"  ng-if="gkSelfServiceCtrl.awsTable.selected.length > 0" ng-model="gkSelfServiceCtrl.awsTable.selected" md-on-select="gkSelfServiceCtrl.showSchemas($chip)" readonly="false">
+        <md-chips class="gk-selected-item"  ng-if="gkSelfServiceCtrl.selectedItems.length > 0" ng-model="gkSelfServiceCtrl.selectedItems" md-on-select="gkSelfServiceCtrl.showSchemas($chip)" readonly="false">
             <md-chip-template>
                 <strong>{{$chip.name}}</strong>
                 <em>({{$chip.engine}})</em>

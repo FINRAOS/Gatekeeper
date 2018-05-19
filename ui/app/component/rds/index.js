@@ -18,9 +18,11 @@
 import md from 'angular-material';
 import gkUtil from '../shared/index';
 import gkRdsCtrl from './GatekeeperRdsController';
-import gkRdsSelfServiceCtrl from './selfservice/RdsSelfServiceController'
+import gkRdsSelfServiceCtrl from './selfservice/RdsSelfServiceController';
+import gkRdsAdminCtrl from './admin/RdsAdminController';
 import util from '../shared/generic/DirectiveUtils';
 import Directive from '../shared/generic/BaseDirective';
+import GkRdsSearch from './selfservice/GkRdsSearch';
 
 import gkRdsSchemaDialogController from './selfservice/RdsSchemaDialogController';
 import gkRdsRequestCtrl from './request/RdsRequestController';
@@ -33,7 +35,8 @@ gateKeeperModule.controller('gkRdsController', gkRdsCtrl)
     .controller('gkRdsRequestController', gkRdsRequestCtrl)
     .controller('gkRdsRequestHistoryController', gkRdsHistoryRequestCtrl)
     .controller('gkRdsSchemaDialogController', gkRdsSchemaDialogController)
-    .directive('gatekeeperRdsComponent',   util.newDirective(new Directive(require('./selfservice/template/gatekeeperAWSRdsComponent.tpl.html'))))
+    .controller('gkRdsAdminController', gkRdsAdminCtrl)
+    .directive('gatekeeperRdsComponent',   util.newDirective(new GkRdsSearch(require('./selfservice/template/gatekeeperAWSRdsComponent.tpl.html'))))
     .directive('gatekeeperRdsGrantComponent', util.newDirective(new Directive(require('./selfservice/template/gatekeeperRdsGrantComponent.tpl.html'))));
 
 
