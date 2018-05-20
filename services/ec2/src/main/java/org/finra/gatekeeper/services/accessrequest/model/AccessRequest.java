@@ -18,10 +18,10 @@ package org.finra.gatekeeper.services.accessrequest.model;
 
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * The Domain Model object for an Access Request
@@ -37,8 +37,8 @@ public class AccessRequest {
     private String account;
     private String region;
     private String approverComments;
-    private String approverUserId;
-    private String approverUserName;
+    private String actionedByUserId;
+    private String actionedByUserName;
     private String requestReason;
     private String platform;
     private Integer hours;
@@ -199,21 +199,21 @@ public class AccessRequest {
         return this;
     }
 
-    public String getApproverUserId() {
-        return approverUserId;
+    public String getActionedByUserId() {
+        return actionedByUserId;
     }
 
-    public AccessRequest setApproverUserId(String approverUserId) {
-        this.approverUserId = approverUserId;
+    public AccessRequest setActionedByUserId(String actionedByUserId) {
+        this.actionedByUserId = actionedByUserId;
         return this;
     }
 
-    public String getApproverUserName() {
-        return approverUserName;
+    public String getActionedByUserName() {
+        return actionedByUserName;
     }
 
-    public AccessRequest setApproverUserName(String approverUserName) {
-        this.approverUserName = approverUserName;
+    public AccessRequest setActionedByUserName(String actionedByUserName) {
+        this.actionedByUserName = actionedByUserName;
         return this;
     }
 
@@ -222,25 +222,29 @@ public class AccessRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AccessRequest that = (AccessRequest) o;
-        return com.google.common.base.Objects.equal(id, that.id) &&
-                com.google.common.base.Objects.equal(requestorId, that.requestorId) &&
-                com.google.common.base.Objects.equal(requestorName, that.requestorName) &&
-                com.google.common.base.Objects.equal(requestorEmail, that.requestorEmail) &&
-                com.google.common.base.Objects.equal(account, that.account) &&
-                com.google.common.base.Objects.equal(region, that.region) &&
-                com.google.common.base.Objects.equal(approverComments, that.approverComments) &&
-                com.google.common.base.Objects.equal(approverUserId, that.approverUserId) &&
-                com.google.common.base.Objects.equal(approverUserName, that.approverUserName) &&
-                com.google.common.base.Objects.equal(requestReason, that.requestReason) &&
-                com.google.common.base.Objects.equal(platform, that.platform) &&
-                com.google.common.base.Objects.equal(hours, that.hours) &&
-                com.google.common.base.Objects.equal(users, that.users) &&
-                com.google.common.base.Objects.equal(instances, that.instances);
+        return Objects.equal(id, that.id) &&
+                Objects.equal(requestorId, that.requestorId) &&
+                Objects.equal(requestorName, that.requestorName) &&
+                Objects.equal(requestorEmail, that.requestorEmail) &&
+                Objects.equal(account, that.account) &&
+                Objects.equal(region, that.region) &&
+                Objects.equal(approverComments, that.approverComments) &&
+                Objects.equal(actionedByUserId, that.actionedByUserId) &&
+                Objects.equal(actionedByUserName, that.actionedByUserName) &&
+                Objects.equal(requestReason, that.requestReason) &&
+                Objects.equal(platform, that.platform) &&
+                Objects.equal(hours, that.hours) &&
+                Objects.equal(users, that.users) &&
+                Objects.equal(instances, that.instances);
     }
 
     @Override
     public int hashCode() {
-        return com.google.common.base.Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, approverComments, approverUserId, approverUserName, requestReason, platform, hours, users, instances);
+        return Objects.hashCode(id,
+                requestorId,
+                requestorName,
+                requestorEmail,
+                account, region, approverComments, actionedByUserId, actionedByUserName, requestReason, platform, hours, users, instances);
     }
 
     @Override
@@ -257,8 +261,8 @@ public class AccessRequest {
                 .add("Instances", instances)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
-                .add("Approver ID", approverUserId)
-                .add("Approver Name", approverUserName)
+                .add("Actioned By Id", actionedByUserId)
+                .add("Actioned By Name", actionedByUserName)
                 .add("Platform", platform)
                 .toString();
     }
@@ -279,8 +283,8 @@ public class AccessRequest {
                          List<AWSInstance> instances,
                          String requestReason,
                          String approverComments,
-                         String approverUserId,
-                         String approverUserName,
+                         String actionedByUserId,
+                         String actionedByUserName,
                          String platform) {
         this.hours = hours;
         this.region = region;
@@ -292,8 +296,8 @@ public class AccessRequest {
         this.instances = instances;
         this.requestReason = requestReason;
         this.approverComments = approverComments;
-        this.approverUserId = approverUserId;
-        this.approverUserName = approverUserName;
+        this.actionedByUserId = actionedByUserId;
+        this.actionedByUserName = actionedByUserName;
         this.platform = platform;
     }
 

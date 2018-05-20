@@ -68,6 +68,7 @@ public class AccessRequestService {
     private final DatabaseConnectionService databaseConnectionService;
     private final String REJECTED = "REJECTED";
     private final String APPROVED = "APPROVED";
+    private final String CANCELED = "CANCELED";
 
     @Autowired
     public AccessRequestService(TaskService taskService,
@@ -276,8 +277,8 @@ public class AccessRequestService {
                     .setUpdated(updated)
                     .setAttempts((Integer) varMap.get("attempts"))
                     .setStatus(status)
-                    .setApproverUserId(request.getApproverUserId())
-                    .setApproverUserName(request.getApproverUserName());;
+                    .setActionedByUserId(request.getActionedByUserId())
+                    .setActionedByUserName(request.getActionedByUserName());;
 
             wrapper.setCreated(created);
 
@@ -288,41 +289,58 @@ public class AccessRequestService {
     }
 
     /**
-     * Updates the request comments for the access request
+     * Helper function to update the request comments / actionedBy fields for the access request
      *
-     * @param requestId - the request ID
-     * @param approverComments - The Comments from the approver
+     * @param requestId - the access request ID
+     * @param approverComments - the comments from the approver
+     * @param action - the action taken on the request
      */
-    private void updateRequestApproverDetails(Long requestId, String approverComments, String action){
+    private void updateRequestDetails(Long requestId, String approverComments, String action){
         AccessRequest accessRequest = accessRequestRepository.findOne(requestId);
         accessRequest.setApproverComments(approverComments);
-        GatekeeperUserEntry approver = gatekeeperRoleService.getUserProfile();
-        accessRequest.setApproverUserId(approver.getUserId());
-        accessRequest.setApproverUserName(approver.getName());
+        GatekeeperUserEntry user = gatekeeperRoleService.getUserProfile();
+        accessRequest.setActionedByUserId(user.getUserId());
+        accessRequest.setActionedByUserName(user.getName());
         accessRequestRepository.save(accessRequest);
-        logger.info("Access Request " + accessRequest.getId() + " was " + action +" by " + approver.getName() + " (" + approver.getUserId() +"). ");
+        logger.info("Access Request " + accessRequest.getId() + " was " + action +" by " + user.getName() + " (" + user.getUserId() +"). ");
     }
 
+    /**
+     * Approves the Request
+     * @param taskId - the activiti task id
+     * @param requestId - the AccessRequest object id
+     * @param approverComments - The comments from the approver
+     * @return - The updated list of Active Access Requests
+     */
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
     public List<ActiveAccessRequestWrapper> approveRequest(String taskId, Long requestId, String approverComments ) {
-        updateRequestApproverDetails(requestId, approverComments, APPROVED);
+        updateRequestDetails(requestId, approverComments, APPROVED);
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.APPROVAL_GRANTED);
         return getActiveRequests();
     }
 
+    /**
+     * Rejects the request
+     * @param taskId - the activiti task id
+     * @param requestId - the AccessRequest object id
+     * @param approverComments - The comments from the approver
+     * @return - The updated list of Active Access Requests
+     */
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
     public List<ActiveAccessRequestWrapper> rejectRequest(String taskId, Long requestId, String approverComments) {
-        updateRequestApproverDetails(requestId, approverComments, REJECTED);
+        updateRequestDetails(requestId, approverComments, REJECTED);
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.APPROVAL_REJECTED);
         return getActiveRequests();
     }
 
     /**
      * Cancels the request
-     * @param taskId - the request task
-     * @return the list of active requests
+     * @param taskId - the activiti task id
+     * @param requestId - the AccessRequest object ID
+     * @return - The list of active access requests
      */
-    public List<ActiveAccessRequestWrapper> cancelRequest(String taskId){
+    public List<ActiveAccessRequestWrapper> cancelRequest(String taskId, Long requestId){
+        updateRequestDetails(requestId, "This request was canceled", CANCELED);
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.CANCELED);
         return getActiveRequests();
     }
