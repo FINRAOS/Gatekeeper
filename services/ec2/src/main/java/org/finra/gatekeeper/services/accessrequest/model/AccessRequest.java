@@ -18,10 +18,10 @@ package org.finra.gatekeeper.services.accessrequest.model;
 
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * The Domain Model object for an Access Request
@@ -37,6 +37,8 @@ public class AccessRequest {
     private String account;
     private String region;
     private String approverComments;
+    private String actionedByUserId;
+    private String actionedByUserName;
     private String requestReason;
     private String platform;
     private Integer hours;
@@ -197,34 +199,52 @@ public class AccessRequest {
         return this;
     }
 
-    @Override
-    public boolean equals(Object o){
-        if (this == o) {
-            return true;
-        }
+    public String getActionedByUserId() {
+        return actionedByUserId;
+    }
 
-        if (o == null || !getClass().equals(o.getClass())) {
-            return false;
-        }
+    public AccessRequest setActionedByUserId(String actionedByUserId) {
+        this.actionedByUserId = actionedByUserId;
+        return this;
+    }
 
-        AccessRequest that = (AccessRequest) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(requestorId, that.requestorId)
-                && Objects.equals(requestorName, that.requestorName)
-                && Objects.equals(requestorEmail, that.requestorEmail)
-                && Objects.equals(account, that.account)
-                && Objects.equals(region, that.region)
-                && Objects.equals(hours, that.hours)
-                && Objects.equals(users, that.users)
-                && Objects.equals(instances, that.instances)
-                && Objects.equals(requestReason, that.requestReason)
-                && Objects.equals(approverComments, that.approverComments)
-                && Objects.equals(platform, that.platform);
+    public String getActionedByUserName() {
+        return actionedByUserName;
+    }
+
+    public AccessRequest setActionedByUserName(String actionedByUserName) {
+        this.actionedByUserName = actionedByUserName;
+        return this;
     }
 
     @Override
-    public int hashCode(){
-        return Objects.hash(id, requestorId, requestorName, requestorEmail, account, region, hours, users, instances, requestReason, approverComments, platform);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AccessRequest that = (AccessRequest) o;
+        return Objects.equal(id, that.id) &&
+                Objects.equal(requestorId, that.requestorId) &&
+                Objects.equal(requestorName, that.requestorName) &&
+                Objects.equal(requestorEmail, that.requestorEmail) &&
+                Objects.equal(account, that.account) &&
+                Objects.equal(region, that.region) &&
+                Objects.equal(approverComments, that.approverComments) &&
+                Objects.equal(actionedByUserId, that.actionedByUserId) &&
+                Objects.equal(actionedByUserName, that.actionedByUserName) &&
+                Objects.equal(requestReason, that.requestReason) &&
+                Objects.equal(platform, that.platform) &&
+                Objects.equal(hours, that.hours) &&
+                Objects.equal(users, that.users) &&
+                Objects.equal(instances, that.instances);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id,
+                requestorId,
+                requestorName,
+                requestorEmail,
+                account, region, approverComments, actionedByUserId, actionedByUserName, requestReason, platform, hours, users, instances);
     }
 
     @Override
@@ -241,6 +261,8 @@ public class AccessRequest {
                 .add("Instances", instances)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
+                .add("Actioned By Id", actionedByUserId)
+                .add("Actioned By Name", actionedByUserName)
                 .add("Platform", platform)
                 .toString();
     }
@@ -251,7 +273,19 @@ public class AccessRequest {
 
     public AccessRequest() {}
 
-    public AccessRequest(Integer hours, String account, String region, String requestorId, String requestorName, String requestorEmail, List<User> users, List<AWSInstance> instances, String requestReason, String approverComments, String platform) {
+    public AccessRequest(Integer hours,
+                         String account,
+                         String region,
+                         String requestorId,
+                         String requestorName,
+                         String requestorEmail,
+                         List<User> users,
+                         List<AWSInstance> instances,
+                         String requestReason,
+                         String approverComments,
+                         String actionedByUserId,
+                         String actionedByUserName,
+                         String platform) {
         this.hours = hours;
         this.region = region;
         this.account = account;
@@ -262,6 +296,8 @@ public class AccessRequest {
         this.instances = instances;
         this.requestReason = requestReason;
         this.approverComments = approverComments;
+        this.actionedByUserId = actionedByUserId;
+        this.actionedByUserName = actionedByUserName;
         this.platform = platform;
     }
 

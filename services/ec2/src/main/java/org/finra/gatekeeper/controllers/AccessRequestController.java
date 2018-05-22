@@ -84,7 +84,7 @@ public class AccessRequestController {
 
     @RequestMapping(value = "/cancelRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object cancelRequest(@RequestBody ActiveAccessRequestWrapper request) {
-        return accessRequestService.cancelRequest(request.getTaskId());
+        return accessRequestService.cancelRequest(request.getTaskId(), request.getId());
     }
 
 }

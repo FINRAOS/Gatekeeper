@@ -546,7 +546,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testGetActiveRequests() {
-        when(gatekeeperRoleService.getUserProfile().getName()).thenReturn("owner");
+        when(gatekeeperRoleService.getUserProfile().getUserId()).thenReturn("owner");
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DEV);
         List<ActiveAccessRequestWrapper> activeRequests = accessRequestService.getActiveRequests();
         Assert.assertEquals(activeRequests.size(),1);
@@ -558,7 +558,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(ownerRequest.getTaskId(), "taskOne");
 
 
-        when(gatekeeperRoleService.getUserProfile().getName()).thenReturn("non-owner");
+        when(gatekeeperRoleService.getUserProfile().getUserId()).thenReturn("non-owner");
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DEV);
         activeRequests = accessRequestService.getActiveRequests();
         Assert.assertEquals(activeRequests.size(),1);
@@ -603,7 +603,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testGetCompletedRequests() {
-        when(gatekeeperRoleService.getUserProfile().getName()).thenReturn("owner");
+        when(gatekeeperRoleService.getUserProfile().getUserId()).thenReturn("owner");
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DEV);
 
         List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
@@ -617,7 +617,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(ownerRequest.getUpdated().toString(), new Date(45002).toString());
 
 
-        when(gatekeeperRoleService.getUserProfile().getName()).thenReturn("non-owner");
+        when(gatekeeperRoleService.getUserProfile().getUserId()).thenReturn("non-owner");
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DEV);
 
         completedRequests = accessRequestService.getCompletedRequests();

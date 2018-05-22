@@ -54,9 +54,29 @@ public class CompletedAccessRequestWrapper extends ActiveAccessRequestWrapper {
         return this;
     }
 
+    public String getActionedByUserId() {
+        return actionedByUserId;
+    }
+
+    public CompletedAccessRequestWrapper setActionedByUserId(String actionedByUserId) {
+        this.actionedByUserId = actionedByUserId;
+        return this;
+    }
+
+    public String getActionedByUserName() {
+        return actionedByUserName;
+    }
+
+    public CompletedAccessRequestWrapper setActionedByUserName(String actionedByUserName) {
+        this.actionedByUserName = actionedByUserName;
+        return this;
+    }
+
     private Date updated;
     private Integer attempts;
     private RequestStatus status;
+    private String actionedByUserId;
+    private String actionedByUserName;
 
     public CompletedAccessRequestWrapper(AccessRequest accessRequest){
         super(accessRequest);

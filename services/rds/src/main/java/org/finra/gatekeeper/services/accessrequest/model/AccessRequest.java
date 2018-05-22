@@ -19,10 +19,10 @@ package org.finra.gatekeeper.services.accessrequest.model;
 
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import javax.persistence.*;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Domain Object for a Gatekeeper Access Request
@@ -39,6 +39,8 @@ public class AccessRequest {
     private String region;
     private String accountSdlc;
     private String approverComments;
+    private String actionedByUserId;
+    private String actionedByUserName;
     private String requestReason;
     private Integer days;
     private List<User> users;
@@ -211,52 +213,70 @@ public class AccessRequest {
         return this;
     }
 
+    public String getActionedByUserId() {
+        return actionedByUserId;
+    }
+
+    public AccessRequest setActionedByUserId(String actionedByUserId) {
+        this.actionedByUserId = actionedByUserId;
+        return this;
+    }
+
+    public String getActionedByUserName() {
+        return actionedByUserName;
+    }
+
+    public AccessRequest setActionedByUserName(String actionedByUserName) {
+        this.actionedByUserName = actionedByUserName;
+        return this;
+    }
+
+
     @Override
-    public boolean equals(Object o){
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || !getClass().equals(o.getClass())) {
-            return false;
-        }
-
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         AccessRequest that = (AccessRequest) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(requestorId, that.requestorId)
-                && Objects.equals(requestorName, that.requestorName)
-                && Objects.equals(requestorEmail, that.requestorEmail)
-                && Objects.equals(account, that.account)
-                && Objects.equals(region, that.region)
-                && Objects.equals(accountSdlc, that.accountSdlc)
-                && Objects.equals(days, that.days)
-                && Objects.equals(users, that.users)
-                && Objects.equals(awsRdsDatabases, that.awsRdsDatabases)
-                && Objects.equals(requestReason, that.requestReason)
-                && Objects.equals(approverComments, that.approverComments);
+        return Objects.equal(id, that.id) &&
+                Objects.equal(requestorId, that.requestorId) &&
+                Objects.equal(requestorName, that.requestorName) &&
+                Objects.equal(requestorEmail, that.requestorEmail) &&
+                Objects.equal(account, that.account) &&
+                Objects.equal(region, that.region) &&
+                Objects.equal(accountSdlc, that.accountSdlc) &&
+                Objects.equal(approverComments, that.approverComments) &&
+                Objects.equal(actionedByUserId, that.actionedByUserId) &&
+                Objects.equal(actionedByUserName, that.actionedByUserName) &&
+                Objects.equal(requestReason, that.requestReason) &&
+                Objects.equal(days, that.days) &&
+                Objects.equal(users, that.users) &&
+                Objects.equal(roles, that.roles) &&
+                Objects.equal(awsRdsDatabases, that.awsRdsDatabases);
     }
 
     @Override
-    public int hashCode(){
-        return Objects.hash(id, requestorId, requestorName, requestorEmail, account, region, accountSdlc, days, users, roles, awsRdsDatabases, requestReason, approverComments);
+    public int hashCode() {
+        return Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, accountSdlc, approverComments, actionedByUserId, actionedByUserName, requestReason, days, users, roles, awsRdsDatabases);
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("ID", id)
-                .add("Requestor ID:", requestorId)
-                .add("Requestor Name", requestorName)
-                .add("Requestor Email", requestorEmail)
-                .add("Account", account)
-                .add("Region", region)
-                .add("Account SDLC", accountSdlc)
-                .add("Days", days)
-                .add("Users", users)
-                .add("Roles", roles)
-                .add("RDS Databases", awsRdsDatabases)
-                .add("Request Reason", requestReason)
-                .add("Approver Comments", approverComments)
+                .add("id", id)
+                .add("requestorId", requestorId)
+                .add("requestorName", requestorName)
+                .add("requestorEmail", requestorEmail)
+                .add("account", account)
+                .add("region", region)
+                .add("accountSdlc", accountSdlc)
+                .add("approverComments", approverComments)
+                .add("actionedByUserId", actionedByUserId)
+                .add("actionedByUserName", actionedByUserName)
+                .add("requestReason", requestReason)
+                .add("days", days)
+                .add("users", users)
+                .add("roles", roles)
+                .add("awsRdsDatabases", awsRdsDatabases)
                 .toString();
     }
 
@@ -266,7 +286,20 @@ public class AccessRequest {
 
     public AccessRequest() {}
 
-    public AccessRequest(Integer days, String account, String region, String accountSdlc, String requestorId, String requestorName, String requestorEmail, List<UserRole> roles, List<User> users, List<AWSRdsDatabase> awsRdsDatabases, String requestReason, String approverComments) {
+    public AccessRequest(Integer days,
+                         String account,
+                         String region,
+                         String accountSdlc,
+                         String requestorId,
+                         String requestorName,
+                         String requestorEmail,
+                         List<UserRole> roles,
+                         List<User> users,
+                         List<AWSRdsDatabase> awsRdsDatabases,
+                         String requestReason,
+                         String approverComments,
+                         String actionedByUserId,
+                         String actionedByUserName) {
         this.days = days;
         this.region = region;
         this.account = account;
@@ -279,6 +312,8 @@ public class AccessRequest {
         this.awsRdsDatabases= awsRdsDatabases;
         this.requestReason = requestReason;
         this.approverComments = approverComments;
+        this.actionedByUserId = actionedByUserId;
+        this.actionedByUserName = actionedByUserName;
     }
 
 
