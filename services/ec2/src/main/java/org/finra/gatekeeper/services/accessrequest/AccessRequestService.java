@@ -180,8 +180,10 @@ public class AccessRequestService {
         List<Task> tasks = taskService.createTaskQuery().active().list();
         List<ActiveAccessRequestWrapper> response = new ArrayList<>();
         tasks.forEach(task -> {
-            AccessRequest theRequest = updateInstanceStatus((AccessRequest) runtimeService.getVariable(task.getExecutionId(), "accessRequest"));
-
+            AccessRequest theRequest = updateInstanceStatus(
+                    accessRequestRepository.findOne(Long.valueOf(
+                            runtimeService.getVariableInstance(task.getExecutionId(), "accessRequest").getTextValue2())
+                    ));
             response.add(new ActiveAccessRequestWrapper(theRequest)
                     .setCreated(task.getCreateTime())
                     .setTaskId(task.getId())
@@ -259,27 +261,33 @@ public class AccessRequestService {
         //this section compiles the historicData into the response object for the UI to consume
         for (String k : historicData.keySet()) {
             Map<String, Object> varMap = historicData.get(k);
-            //we instantiate the RequestStatus value here.
-            RequestStatus status = varMap.get("requestStatus") != null
-                    ? RequestStatus.valueOf((String)varMap.get("requestStatus"))
-                    : RequestStatus.APPROVAL_PENDING;
-
+            Long requestId = activitiAccessRequestMap.get(k);
             AccessRequest request = gkAccessRequestMap.get(activitiAccessRequestMap.get(k));
-            if(status.equals(RequestStatus.APPROVAL_PENDING)){
-                request=updateInstanceStatus(request);
+
+            if(request != null ) {
+                //we instantiate the RequestStatus value here.
+                RequestStatus status = varMap.get("requestStatus") != null
+                        ? RequestStatus.valueOf((String) varMap.get("requestStatus"))
+                        : RequestStatus.APPROVAL_PENDING;
+
+                if (status.equals(RequestStatus.APPROVAL_PENDING)) {
+                    request = updateInstanceStatus(request);
+                }
+                Date created = (Date) varMap.get("created");
+                Date updated = (Date) varMap.get("updated");
+                CompletedAccessRequestWrapper wrapper = new CompletedAccessRequestWrapper(request)
+                        .setUpdated(updated)
+                        .setAttempts((Integer) varMap.get("attempts"))
+                        .setStatus(status)
+                        .setActionedByUserId(request.getActionedByUserId())
+                        .setActionedByUserName(request.getActionedByUserName());
+
+                wrapper.setCreated(created);
+
+                results.add(wrapper);
+            } else {
+                logger.warn("Could not get request details for AccessRequest with ID: " + requestId + ". This request will not be returned ");
             }
-            Date created = (Date) varMap.get("created");
-            Date updated = (Date) varMap.get("updated");
-            CompletedAccessRequestWrapper wrapper = new CompletedAccessRequestWrapper(request)
-                    .setUpdated(updated)
-                    .setAttempts((Integer) varMap.get("attempts"))
-                    .setStatus(status)
-                    .setActionedByUserId(request.getActionedByUserId())
-                    .setActionedByUserName(request.getActionedByUserName());
-
-            wrapper.setCreated(created);
-
-            results.add(wrapper);
         }
 
         return (List<CompletedAccessRequestWrapper>)filterResults(results);

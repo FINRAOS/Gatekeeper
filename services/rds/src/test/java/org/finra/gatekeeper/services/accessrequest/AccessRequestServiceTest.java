@@ -24,6 +24,7 @@ import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.history.HistoricVariableInstanceQuery;
 import org.activiti.engine.history.NativeHistoricVariableInstanceQuery;
 import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
+import org.activiti.engine.impl.persistence.entity.VariableInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
@@ -129,6 +130,13 @@ public class AccessRequestServiceTest {
 
     @Mock
     private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceAccessRequest;
+
+    @Mock
+    private VariableInstance ownerOneTaskInstance;
+
+    @Mock
+    private VariableInstance ownerTwoTaskInstance;
+
 
     @Mock
     private GatekeeperOverrideProperties overridePolicy;
@@ -245,8 +253,14 @@ public class AccessRequestServiceTest {
         when(ownerTwoTask.getCreateTime()).thenReturn(testDate);
         when(ownerTwoTask.getId()).thenReturn("taskTwo");
 
-        when(runtimeService.getVariable("ownerOneTask", "accessRequest")).thenReturn(ownerRequest);
-        when(runtimeService.getVariable("ownerTwoTask", "accessRequest")).thenReturn(nonOwnerRequest);
+        when(ownerOneTaskInstance.getTextValue2()).thenReturn("1");
+        when(ownerTwoTaskInstance.getTextValue2()).thenReturn("2");
+
+        when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
+        when(accessRequestRepository.findOne(2L)).thenReturn(nonOwnerRequest);
+
+        when(runtimeService.getVariableInstance("ownerOneTask", "accessRequest")).thenReturn(ownerOneTaskInstance);
+        when(runtimeService.getVariableInstance("ownerTwoTask", "accessRequest")).thenReturn(ownerTwoTaskInstance);
 
 
         List<Task> activeTasks = new ArrayList<>();
@@ -658,7 +672,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApproval(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(new AccessRequest());
+        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
         accessRequestService.approveRequest("taskOne", 1L, "A reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_GRANTED);
@@ -673,7 +687,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testRejected(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(new AccessRequest());
+        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
         accessRequestService.rejectRequest("taskOne", 1L, "Another Reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_REJECTED);
