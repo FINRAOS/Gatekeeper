@@ -22,6 +22,8 @@ import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.history.HistoricVariableInstanceQuery;
+import org.activiti.engine.history.NativeHistoricVariableInstanceQuery;
+import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
@@ -108,22 +110,25 @@ public class AccessRequestServiceTest {
     private HistoricVariableInstanceQuery historicVariableInstanceQuery;
 
     @Mock
-    private HistoricVariableInstance ownerHistoricVariableInstanceAttempt;
+    private NativeHistoricVariableInstanceQuery nativeHistoricVariableInstanceQuery;
 
     @Mock
-    private HistoricVariableInstance ownerHistoricVariableInstanceStatus;
+    private HistoricVariableInstanceEntity ownerHistoricVariableInstanceAttempt;
 
     @Mock
-    private HistoricVariableInstance ownerHistoricVariableInstanceAccessRequest;
+    private HistoricVariableInstanceEntity ownerHistoricVariableInstanceStatus;
 
     @Mock
-    private HistoricVariableInstance nonOwnerHistoricVariableInstanceAttempt;
+    private HistoricVariableInstanceEntity ownerHistoricVariableInstanceAccessRequest;
 
     @Mock
-    private HistoricVariableInstance nonOwnerHistoricVariableInstanceStatus;
+    private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceAttempt;
 
     @Mock
-    private HistoricVariableInstance nonOwnerHistoricVariableInstanceAccessRequest;
+    private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceStatus;
+
+    @Mock
+    private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceAccessRequest;
 
     @Mock
     private GatekeeperOverrideProperties overridePolicy;
@@ -265,20 +270,30 @@ public class AccessRequestServiceTest {
         when(ownerHistoricVariableInstanceAttempt.getValue()).thenReturn(1);
         when(ownerHistoricVariableInstanceAttempt.getVariableName()).thenReturn("attempts");
         when(ownerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(new Date(45000));
-        when(ownerHistoricVariableInstanceStatus.getValue()).thenReturn(RequestStatus.APPROVAL_GRANTED);
+        when(ownerHistoricVariableInstanceAttempt.getTextValue2()).thenReturn("1");
+        when(ownerHistoricVariableInstanceStatus.getValue()).thenReturn("APPROVAL_GRANTED");
         when(ownerHistoricVariableInstanceStatus.getVariableName()).thenReturn("requestStatus");
         when(ownerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(new Date(45002));
+        when(ownerHistoricVariableInstanceStatus.getTextValue2()).thenReturn("1");
         when(ownerHistoricVariableInstanceAccessRequest.getValue()).thenReturn(ownerRequest);
         when(ownerHistoricVariableInstanceAccessRequest.getVariableName()).thenReturn("accessRequest");
+        when(ownerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(new Date(45000));
+        when(ownerHistoricVariableInstanceAccessRequest.getTextValue2()).thenReturn("1");
+        when(ownerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(new Date(45002));
 
         when(nonOwnerHistoricVariableInstanceAttempt.getValue()).thenReturn(2);
         when(nonOwnerHistoricVariableInstanceAttempt.getVariableName()).thenReturn("attempts");
         when(nonOwnerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(new Date(45002));
+        when(nonOwnerHistoricVariableInstanceAttempt.getTextValue2()).thenReturn("2");
         when(nonOwnerHistoricVariableInstanceStatus.getValue()).thenReturn(null);
         when(nonOwnerHistoricVariableInstanceStatus.getVariableName()).thenReturn("requestStatus");
         when(nonOwnerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(new Date(45003));
+        when(nonOwnerHistoricVariableInstanceStatus.getTextValue2()).thenReturn("2");
         when(nonOwnerHistoricVariableInstanceAccessRequest.getValue()).thenReturn(nonOwnerRequest);
         when(nonOwnerHistoricVariableInstanceAccessRequest.getVariableName()).thenReturn("accessRequest");
+        when(nonOwnerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(new Date(45002));
+        when(nonOwnerHistoricVariableInstanceAccessRequest.getTextValue2()).thenReturn("2");
+        when(nonOwnerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(new Date(45003));
 
         taskVars.add(ownerHistoricVariableInstanceAttempt);
         taskVars.add(ownerHistoricVariableInstanceStatus);
@@ -290,11 +305,16 @@ public class AccessRequestServiceTest {
 
         when(historyService.createHistoricVariableInstanceQuery()).thenReturn(historicVariableInstanceQuery);
         when(historyService.createHistoricVariableInstanceQuery().list()).thenReturn(taskVars);
+        when(historicVariableInstanceQuery.excludeVariableInitialization()).thenReturn(historicVariableInstanceQuery);
+        when(historicVariableInstanceQuery.variableName(Mockito.any())).thenReturn(historicVariableInstanceQuery);
+        when(historyService.createNativeHistoricVariableInstanceQuery()).thenReturn(nativeHistoricVariableInstanceQuery);
+        when(nativeHistoricVariableInstanceQuery.sql(Mockito.any())).thenReturn(nativeHistoricVariableInstanceQuery);
+        when(nativeHistoricVariableInstanceQuery.list()).thenReturn(taskVars);
         Map<String,String> statusMap = new HashMap<>();
         statusMap.put("testId","Unknown");
 
         when(accountInformationService.getAccountByAlias(any())).thenReturn(mockAccount);
-
+        when(accessRequestRepository.findAll(Mockito.anyList())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
     }
 
 
