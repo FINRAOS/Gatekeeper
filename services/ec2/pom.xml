@@ -33,7 +33,7 @@
 
     <properties>
         <api-directory.version>1.0.0-M33</api-directory.version>
-        <aws.sdk.version>1.10.71</aws.sdk.version>
+        <aws.sdk.version>1.11.333</aws.sdk.version>
         <bouncycastle.version>1.56</bouncycastle.version>
         <compiler.version>3.3</compiler.version>
         <failsafe.version>2.19.1</failsafe.version>
