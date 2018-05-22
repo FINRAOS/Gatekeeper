@@ -20,6 +20,7 @@ import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricVariableInstance;
+import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
 import org.activiti.engine.task.Task;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
@@ -179,8 +180,10 @@ public class AccessRequestService {
         List<Task> tasks = taskService.createTaskQuery().active().list();
         List<ActiveAccessRequestWrapper> response = new ArrayList<>();
         tasks.forEach(task -> {
-            AccessRequest theRequest = updateInstanceStatus((AccessRequest) runtimeService.getVariable(task.getExecutionId(), "accessRequest"));
-
+            AccessRequest theRequest = updateInstanceStatus(
+                    accessRequestRepository.findOne(Long.valueOf(
+                            runtimeService.getVariableInstance(task.getExecutionId(), "accessRequest").getTextValue2())
+                    ));
             response.add(new ActiveAccessRequestWrapper(theRequest)
                     .setCreated(task.getCreateTime())
                     .setTaskId(task.getId())
@@ -192,52 +195,99 @@ public class AccessRequestService {
     }
 
     public List<CompletedAccessRequestWrapper> getCompletedRequests() {
-        //We can use the variables stored on the activiti requests to build out our request history.
-        List<HistoricVariableInstance> taskVars = historyService.createHistoricVariableInstanceQuery().list();
-
+    /*  This object is all of the Activiti Variables associated with the request
+        This map will contain the following:
+        When the request was opened
+        When the request was actioned by an approver (or canceled by a user/approver)
+        How many attempts it took to approve the user*/
         Map<String, Map<String, Object>> historicData = new HashMap<>();
+
+        //we have to map the activiti hitory items to the gatekeeper requests map activiti objects to the access requests
+        Map<String, Long> activitiAccessRequestMap = new HashMap<>();
+        //map gatekeeper access request ids
+        Map<Long, AccessRequest> gkAccessRequestMap = new HashMap<>();
+
+    /*this gets all of the access requests history items. We exclude variable initialization
+        because activiti will break if we ever change the access request object so we'll just fetch the items
+        ourselves */
+        List<HistoricVariableInstance> accessRequests = historyService.createHistoricVariableInstanceQuery()
+                .excludeVariableInitialization()
+                .variableName("accessRequest")
+                .list();
+
+        //we'll get all the access requests and store the created date into the historicData map
+        //as well as map the activiti item to the access request to which it corresponds
+        accessRequests.forEach(taskVar -> {
+            Map<String, Object> data = new HashMap<>();
+            data.put("created", taskVar.getCreateTime());
+            historicData.put(taskVar.getProcessInstanceId(), data);
+            activitiAccessRequestMap.put(taskVar.getProcessInstanceId(), Long.valueOf(((HistoricVariableInstanceEntity) taskVar).getTextValue2()));
+        });
+
+        //run a query to grab all of the access requests that we found in activiti (this pretty much returns all
+        //for now, until we implement it to use a time window)
+        accessRequestRepository.findAll(activitiAccessRequestMap.values()).forEach(accessRequest -> {
+            gkAccessRequestMap.put(accessRequest.getId(), accessRequest);
+        });
+
+    /*  this one's kind of a hack but this query gets the RequestStatus value for a request
+        we do it like this because once again if the package name changes it won't update the database and will
+        activiti will try to instantiate the object using Reflection. to work around this we just pull out the value
+        for the enum and instantiate it ourselves
+
+        we also put the updated time into the historicData map here as this is when the request was updated
+     */
+        historyService.createNativeHistoricVariableInstanceQuery()
+                .sql("select a.*, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue\n" +
+                        "  from act_hi_varinst a join act_ge_bytearray b on a.bytearray_id_ = b.id_;\n")
+                .list()
+                .forEach(item -> {
+                    historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), ((HistoricVariableInstanceEntity)item).getTextValue());
+                    historicData.get(item.getProcessInstanceId()).put("updated", item.getLastUpdatedTime());
+                });
+
+        //This gets all the attempts data for the requests and inserts it into the historicData map
+        historyService.createHistoricVariableInstanceQuery()
+                .excludeVariableInitialization()
+                .variableName("attempts")
+                .list()
+                .forEach(item -> {
+                    historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), item.getValue());
+                });
+
 
         List<CompletedAccessRequestWrapper> results = new ArrayList<>();
 
-        taskVars.forEach(taskVar -> {
-            String key = taskVar.getVariableName();
-            Object value = taskVar.getValue();
-
-            if (historicData.containsKey(taskVar.getProcessInstanceId())) {
-                historicData.get(taskVar.getProcessInstanceId()).put(taskVar.getVariableName(), taskVar.getValue());
-            } else {
-                Map<String, Object> data = new HashMap<>();
-                data.put("created", taskVar.getCreateTime());
-                data.put(taskVar.getVariableName(), taskVar.getValue());
-                historicData.put(taskVar.getProcessInstanceId(), data);
-            }
-
-            if (key.equals("requestStatus")) {
-                historicData.get(taskVar.getProcessInstanceId()).put("updated", taskVar.getLastUpdatedTime());
-            }
-        });
-
+        //this section compiles the historicData into the response object for the UI to consume
         for (String k : historicData.keySet()) {
             Map<String, Object> varMap = historicData.get(k);
-            RequestStatus status = (RequestStatus) varMap.get("requestStatus") != null
-                    ? (RequestStatus) varMap.get("requestStatus") : RequestStatus.APPROVAL_PENDING;
+            Long requestId = activitiAccessRequestMap.get(k);
+            AccessRequest request = gkAccessRequestMap.get(activitiAccessRequestMap.get(k));
 
-            AccessRequest request = (AccessRequest) varMap.get("accessRequest");
-            if(status.equals(RequestStatus.APPROVAL_PENDING)){
-                request=updateInstanceStatus(request);
+            if(request != null ) {
+                //we instantiate the RequestStatus value here.
+                RequestStatus status = varMap.get("requestStatus") != null
+                        ? RequestStatus.valueOf((String) varMap.get("requestStatus"))
+                        : RequestStatus.APPROVAL_PENDING;
+
+                if (status.equals(RequestStatus.APPROVAL_PENDING)) {
+                    request = updateInstanceStatus(request);
+                }
+                Date created = (Date) varMap.get("created");
+                Date updated = (Date) varMap.get("updated");
+                CompletedAccessRequestWrapper wrapper = new CompletedAccessRequestWrapper(request)
+                        .setUpdated(updated)
+                        .setAttempts((Integer) varMap.get("attempts"))
+                        .setStatus(status)
+                        .setActionedByUserId(request.getActionedByUserId())
+                        .setActionedByUserName(request.getActionedByUserName());
+
+                wrapper.setCreated(created);
+
+                results.add(wrapper);
+            } else {
+                logger.warn("Could not get request details for AccessRequest with ID: " + requestId + ". This request will not be returned ");
             }
-            Date created = (Date) varMap.get("created");
-            Date updated = (Date) varMap.get("updated");
-            CompletedAccessRequestWrapper wrapper = new CompletedAccessRequestWrapper(request)
-                    .setUpdated(updated)
-                    .setAttempts((Integer) varMap.get("attempts"))
-                    .setStatus(status)
-                    .setActionedByUserId(request.getActionedByUserId())
-                    .setActionedByUserName(request.getActionedByUserName());
-
-            wrapper.setCreated(created);
-
-            results.add(wrapper);
         }
 
         return (List<CompletedAccessRequestWrapper>)filterResults(results);
