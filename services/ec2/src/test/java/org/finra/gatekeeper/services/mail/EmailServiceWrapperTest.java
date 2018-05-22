@@ -49,7 +49,7 @@ import static org.mockito.Mockito.when;
 @Configuration
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class EmailServiceWrapperTests {
+public class EmailServiceWrapperTest {
 
     @InjectMocks
     private EmailServiceWrapper mailServiceWrapper;

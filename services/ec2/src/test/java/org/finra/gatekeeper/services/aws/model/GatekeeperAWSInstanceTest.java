@@ -29,7 +29,7 @@ import java.util.Objects;
  * Tests for Account
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GatekeeperAWSInstanceTests {
+public class GatekeeperAWSInstanceTest {
 
     @Test
     public void testConstructorGetters() {

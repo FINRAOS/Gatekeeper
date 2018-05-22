@@ -50,7 +50,7 @@ import static org.mockito.Mockito.times;
 @Configuration
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class RevokeAccessServiceTests {
+public class RevokeAccessServiceTest {
 
     @Mock
     private EmailServiceWrapper emailServiceWrapper;

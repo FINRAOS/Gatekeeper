@@ -57,7 +57,7 @@ import static org.mockito.Mockito.when;
 @Configuration
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class AwsSessionServiceTests {
+public class AwsSessionServiceTest {
 
     @Rule
     public final ExpectedException exception = ExpectedException.none();

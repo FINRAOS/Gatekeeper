@@ -60,7 +60,7 @@ import java.util.*;
 
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class AccessRequestServiceTests {
+public class AccessRequestServiceTest {
 
     @InjectMocks
     private AccessRequestService accessRequestService;

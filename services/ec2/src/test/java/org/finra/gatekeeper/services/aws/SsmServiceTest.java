@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 @Configuration
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class SsmServiceTests {
+public class SsmServiceTest {
     @Mock
     private AWSSimpleSystemsManagementClient awsSimpleSystemsManagementClient;
 

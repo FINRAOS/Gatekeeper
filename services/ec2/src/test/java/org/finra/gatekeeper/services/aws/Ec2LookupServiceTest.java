@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 @Configuration
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class Ec2LookupServiceTests {
+public class Ec2LookupServiceTest {
     @Mock
     private AwsSessionService awsSessionService;
 

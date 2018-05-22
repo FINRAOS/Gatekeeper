@@ -25,7 +25,7 @@ import org.mockito.runners.MockitoJUnitRunner;
  * Tests for AccessRequest object
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RequestStatusTests {
+public class RequestStatusTest {
 
     @Test
     public void testGetters(){

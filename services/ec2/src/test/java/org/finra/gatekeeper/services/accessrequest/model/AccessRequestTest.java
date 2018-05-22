@@ -30,7 +30,7 @@ import java.util.Objects;
  * Tests for AccessRequest object
  */
 @RunWith(MockitoJUnitRunner.class)
-public class AccessRequestTests {
+public class AccessRequestTest {
 
     @Test
     public void testConstructor(){
