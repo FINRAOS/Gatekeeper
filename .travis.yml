@@ -1,2 +1,4 @@
 language: java
-script: mvn test
+script:
+  - cd services
+  - mvn test
