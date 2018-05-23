@@ -4,4 +4,5 @@ script:
   - mvn test
   - popd
   - pushd ui
+  - npm install
   - npm run ci-test
