@@ -1,4 +1,7 @@
 language: java
 script:
-  - cd services
+  - pushd services
   - mvn test
+  - popd
+  - pushd ui
+  - npm run ci-test
