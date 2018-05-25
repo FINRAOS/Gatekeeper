@@ -102,7 +102,7 @@ public class GatekeeperRoleService {
         gatekeeperAuthorizationService.getMemberships().forEach(membership ->{
             Matcher matcher = pattern.matcher(membership);
             if(matcher.find()) {
-                memberships.add(matcher.group(1));
+                memberships.add(matcher.group(1).toUpperCase());
             }
         });
 
