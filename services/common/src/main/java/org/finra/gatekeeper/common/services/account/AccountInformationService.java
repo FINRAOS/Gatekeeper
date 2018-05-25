@@ -57,7 +57,7 @@ public class AccountInformationService {
     private final LoadingCache<String, List<Account>> accountCache = CacheBuilder.newBuilder()
             .maximumSize(1)
             .concurrencyLevel(10)
-            .refreshAfterWrite(1, TimeUnit.DAYS)
+            .refreshAfterWrite(10, TimeUnit.MINUTES)
             .build(new CacheLoader<String, List<Account>>() {
                 @Override
                 public List<Account> load(String account) throws Exception {

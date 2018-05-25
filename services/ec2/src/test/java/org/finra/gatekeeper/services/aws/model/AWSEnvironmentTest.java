@@ -29,7 +29,7 @@ import java.util.Objects;
  * Tests for Account
  */
 @RunWith(MockitoJUnitRunner.class)
-public class AWSEnvironmentTests {
+public class AWSEnvironmentTest {
 
     @Test
     public void testConstructorGetters() {

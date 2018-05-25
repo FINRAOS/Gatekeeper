@@ -39,8 +39,8 @@ public class AccessRequest {
     private String region;
     private String accountSdlc;
     private String approverComments;
-    private String approverUserId;
-    private String approverUserName;
+    private String actionedByUserId;
+    private String actionedByUserName;
     private String requestReason;
     private Integer days;
     private List<User> users;
@@ -213,21 +213,21 @@ public class AccessRequest {
         return this;
     }
 
-    public String getApproverUserId() {
-        return approverUserId;
+    public String getActionedByUserId() {
+        return actionedByUserId;
     }
 
-    public AccessRequest setApproverUserId(String approverUserId) {
-        this.approverUserId = approverUserId;
+    public AccessRequest setActionedByUserId(String actionedByUserId) {
+        this.actionedByUserId = actionedByUserId;
         return this;
     }
 
-    public String getApproverUserName() {
-        return approverUserName;
+    public String getActionedByUserName() {
+        return actionedByUserName;
     }
 
-    public AccessRequest setApproverUserName(String approverUserName) {
-        this.approverUserName = approverUserName;
+    public AccessRequest setActionedByUserName(String actionedByUserName) {
+        this.actionedByUserName = actionedByUserName;
         return this;
     }
 
@@ -245,8 +245,8 @@ public class AccessRequest {
                 Objects.equal(region, that.region) &&
                 Objects.equal(accountSdlc, that.accountSdlc) &&
                 Objects.equal(approverComments, that.approverComments) &&
-                Objects.equal(approverUserId, that.approverUserId) &&
-                Objects.equal(approverUserName, that.approverUserName) &&
+                Objects.equal(actionedByUserId, that.actionedByUserId) &&
+                Objects.equal(actionedByUserName, that.actionedByUserName) &&
                 Objects.equal(requestReason, that.requestReason) &&
                 Objects.equal(days, that.days) &&
                 Objects.equal(users, that.users) &&
@@ -256,7 +256,7 @@ public class AccessRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, accountSdlc, approverComments, approverUserId, approverUserName, requestReason, days, users, roles, awsRdsDatabases);
+        return Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, accountSdlc, approverComments, actionedByUserId, actionedByUserName, requestReason, days, users, roles, awsRdsDatabases);
     }
 
     @Override
@@ -270,8 +270,8 @@ public class AccessRequest {
                 .add("region", region)
                 .add("accountSdlc", accountSdlc)
                 .add("approverComments", approverComments)
-                .add("approverUserId", approverUserId)
-                .add("approverUserName", approverUserName)
+                .add("actionedByUserId", actionedByUserId)
+                .add("actionedByUserName", actionedByUserName)
                 .add("requestReason", requestReason)
                 .add("days", days)
                 .add("users", users)
@@ -298,8 +298,8 @@ public class AccessRequest {
                          List<AWSRdsDatabase> awsRdsDatabases,
                          String requestReason,
                          String approverComments,
-                         String approverUserId,
-                         String approverUserName) {
+                         String actionedByUserId,
+                         String actionedByUserName) {
         this.days = days;
         this.region = region;
         this.account = account;
@@ -312,8 +312,8 @@ public class AccessRequest {
         this.awsRdsDatabases= awsRdsDatabases;
         this.requestReason = requestReason;
         this.approverComments = approverComments;
-        this.approverUserId = approverUserId;
-        this.approverUserName = approverUserName;
+        this.actionedByUserId = actionedByUserId;
+        this.actionedByUserName = actionedByUserName;
     }
 
 

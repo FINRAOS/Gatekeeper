@@ -16,8 +16,14 @@
 
 package org.finra.gatekeeper.services.accessrequest;
 
+import org.activiti.engine.HistoryService;
+import org.activiti.engine.RuntimeService;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.history.HistoricVariableInstance;
 import org.activiti.engine.history.HistoricVariableInstanceQuery;
+import org.activiti.engine.history.NativeHistoricVariableInstanceQuery;
+import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntity;
+import org.activiti.engine.impl.persistence.entity.VariableInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
@@ -60,7 +66,7 @@ import java.util.*;
 
 @ActiveProfiles("unit-test")
 @RunWith(MockitoJUnitRunner.class)
-public class AccessRequestServiceTests {
+public class AccessRequestServiceTest {
 
     @InjectMocks
     private AccessRequestService accessRequestService;
@@ -108,22 +114,31 @@ public class AccessRequestServiceTests {
     private HistoricVariableInstanceQuery historicVariableInstanceQuery;
 
     @Mock
-    private HistoricVariableInstance ownerHistoricVariableInstanceAttempt;
+    private NativeHistoricVariableInstanceQuery nativeHistoricVariableInstanceQuery;
 
     @Mock
-    private HistoricVariableInstance ownerHistoricVariableInstanceStatus;
+    private HistoricVariableInstanceEntity ownerHistoricVariableInstanceAttempt;
 
     @Mock
-    private HistoricVariableInstance ownerHistoricVariableInstanceAccessRequest;
+    private HistoricVariableInstanceEntity ownerHistoricVariableInstanceStatus;
 
     @Mock
-    private HistoricVariableInstance nonOwnerHistoricVariableInstanceAttempt;
+    private HistoricVariableInstanceEntity ownerHistoricVariableInstanceAccessRequest;
 
     @Mock
-    private HistoricVariableInstance nonOwnerHistoricVariableInstanceStatus;
+    private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceAttempt;
 
     @Mock
-    private HistoricVariableInstance nonOwnerHistoricVariableInstanceAccessRequest;
+    private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceStatus;
+
+    @Mock
+    private HistoricVariableInstanceEntity nonOwnerHistoricVariableInstanceAccessRequest;
+
+    @Mock
+    private VariableInstance ownerOneTaskInstance;
+
+    @Mock
+    private VariableInstance ownerTwoTaskInstance;
 
     @Mock
     private GatekeeperApprovalProperties approvalPolicy;
@@ -232,8 +247,15 @@ public class AccessRequestServiceTests {
         when(ownerTwoTask.getCreateTime()).thenReturn(testDate);
         when(ownerTwoTask.getId()).thenReturn("taskTwo");
 
-        when(runtimeService.getVariable("ownerOneTask", "accessRequest")).thenReturn(ownerRequest);
-        when(runtimeService.getVariable("ownerTwoTask", "accessRequest")).thenReturn(nonOwnerRequest);
+        when(ownerOneTaskInstance.getTextValue2()).thenReturn("1");
+        when(ownerTwoTaskInstance.getTextValue2()).thenReturn("2");
+
+        when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
+        when(accessRequestRepository.findOne(2L)).thenReturn(nonOwnerRequest);
+
+        when(runtimeService.getVariableInstance("ownerOneTask", "accessRequest")).thenReturn(ownerOneTaskInstance);
+        when(runtimeService.getVariableInstance("ownerTwoTask", "accessRequest")).thenReturn(ownerTwoTaskInstance);
+
 
 
         List<Task> activeTasks = new ArrayList<>();
@@ -257,21 +279,30 @@ public class AccessRequestServiceTests {
         when(ownerHistoricVariableInstanceAttempt.getValue()).thenReturn(1);
         when(ownerHistoricVariableInstanceAttempt.getVariableName()).thenReturn("attempts");
         when(ownerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(new Date(45000));
-        when(ownerHistoricVariableInstanceStatus.getValue()).thenReturn(RequestStatus.APPROVAL_GRANTED);
+        when(ownerHistoricVariableInstanceAttempt.getTextValue2()).thenReturn("1");
+        when(ownerHistoricVariableInstanceStatus.getValue()).thenReturn("APPROVAL_GRANTED");
         when(ownerHistoricVariableInstanceStatus.getVariableName()).thenReturn("requestStatus");
         when(ownerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(new Date(45002));
+        when(ownerHistoricVariableInstanceStatus.getTextValue2()).thenReturn("1");
         when(ownerHistoricVariableInstanceAccessRequest.getValue()).thenReturn(ownerRequest);
         when(ownerHistoricVariableInstanceAccessRequest.getVariableName()).thenReturn("accessRequest");
+        when(ownerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(new Date(45000));
+        when(ownerHistoricVariableInstanceAccessRequest.getTextValue2()).thenReturn("1");
+        when(ownerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(new Date(45002));
 
         when(nonOwnerHistoricVariableInstanceAttempt.getValue()).thenReturn(2);
         when(nonOwnerHistoricVariableInstanceAttempt.getVariableName()).thenReturn("attempts");
         when(nonOwnerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(new Date(45002));
+        when(nonOwnerHistoricVariableInstanceAttempt.getTextValue2()).thenReturn("2");
         when(nonOwnerHistoricVariableInstanceStatus.getValue()).thenReturn(null);
         when(nonOwnerHistoricVariableInstanceStatus.getVariableName()).thenReturn("requestStatus");
         when(nonOwnerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(new Date(45003));
+        when(nonOwnerHistoricVariableInstanceStatus.getTextValue2()).thenReturn("2");
         when(nonOwnerHistoricVariableInstanceAccessRequest.getValue()).thenReturn(nonOwnerRequest);
         when(nonOwnerHistoricVariableInstanceAccessRequest.getVariableName()).thenReturn("accessRequest");
-
+        when(nonOwnerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(new Date(45002));
+        when(nonOwnerHistoricVariableInstanceAccessRequest.getTextValue2()).thenReturn("2");
+        when(nonOwnerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(new Date(45003));
         taskVars.add(ownerHistoricVariableInstanceAttempt);
         taskVars.add(ownerHistoricVariableInstanceStatus);
         taskVars.add(ownerHistoricVariableInstanceAccessRequest);
@@ -282,11 +313,18 @@ public class AccessRequestServiceTests {
 
         when(historyService.createHistoricVariableInstanceQuery()).thenReturn(historicVariableInstanceQuery);
         when(historyService.createHistoricVariableInstanceQuery().list()).thenReturn(taskVars);
+        when(historicVariableInstanceQuery.excludeVariableInitialization()).thenReturn(historicVariableInstanceQuery);
+        when(historicVariableInstanceQuery.variableName(Mockito.any())).thenReturn(historicVariableInstanceQuery);
+        when(historyService.createNativeHistoricVariableInstanceQuery()).thenReturn(nativeHistoricVariableInstanceQuery);
+        when(nativeHistoricVariableInstanceQuery.sql(Mockito.any())).thenReturn(nativeHistoricVariableInstanceQuery);
+        when(nativeHistoricVariableInstanceQuery.list()).thenReturn(taskVars);
+
         Map<String,String> statusMap = new HashMap<>();
         statusMap.put("testId","Unknown");
         when(ssmService.checkInstancesWithSsm(any(),any())).thenReturn(statusMap);
 
         when(accountInformationService.getAccountByAlias(any())).thenReturn(mockAccount);
+        when(accessRequestRepository.findAll(Mockito.anyList())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
 
     }
 
@@ -498,7 +536,7 @@ public class AccessRequestServiceTests {
     @Test
     public void testGetActiveRequests() {
         when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.DEV);
-        when(gatekeeperLdapService.getUserProfile().getName()).thenReturn("owner");
+        when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("owner");
         List<ActiveAccessRequestWrapper> activeRequests = accessRequestService.getActiveRequests();
         Assert.assertEquals(activeRequests.size(),1);
 
@@ -509,7 +547,7 @@ public class AccessRequestServiceTests {
         Assert.assertEquals(ownerRequest.getTaskId(), "taskOne");
 
 
-        when(gatekeeperLdapService.getUserProfile().getName()).thenReturn("non-owner");
+        when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("non-owner");
         activeRequests = accessRequestService.getActiveRequests();
         Assert.assertEquals(activeRequests.size(),1);
 
@@ -553,7 +591,7 @@ public class AccessRequestServiceTests {
      */
     @Test
     public void testGetCompletedRequests() {
-        when(gatekeeperLdapService.getUserProfile().getName()).thenReturn("owner");
+        when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("owner");
         when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.DEV);
 
         List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
@@ -567,7 +605,7 @@ public class AccessRequestServiceTests {
         Assert.assertEquals(ownerRequest.getUpdated().toString(), new Date(45002).toString());
 
 
-        when(gatekeeperLdapService.getUserProfile().getName()).thenReturn("non-owner");
+        when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("non-owner");
         completedRequests = accessRequestService.getCompletedRequests();
         Assert.assertEquals(completedRequests.size(),1);
 
@@ -586,7 +624,7 @@ public class AccessRequestServiceTests {
      */
     @Test
     public void testApproval(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(new AccessRequest());
+        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
         accessRequestService.approveRequest("taskOne", 1L, "A reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_GRANTED);
@@ -601,7 +639,7 @@ public class AccessRequestServiceTests {
      */
     @Test
     public void testRejected(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(new AccessRequest());
+        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(nonOwnerRequest);
         accessRequestService.rejectRequest("taskOne", 1L, "Another Reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_REJECTED);

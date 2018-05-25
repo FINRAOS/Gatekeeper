@@ -30,7 +30,7 @@ import java.util.Objects;
  * Tests for AccessRequest object
  */
 @RunWith(MockitoJUnitRunner.class)
-public class AccessRequestTests {
+public class AccessRequestTest {
 
     @Test
     public void testConstructor(){
@@ -60,8 +60,8 @@ public class AccessRequestTests {
         Assert.assertEquals("Test Instances", instances, accessRequest.getInstances());
         Assert.assertEquals("Test Request Reason:", requestReason, accessRequest.getRequestReason());
         Assert.assertEquals("Test Approver Comments:", approverComments, accessRequest.getApproverComments());
-        Assert.assertEquals("Test Approver ID: ", approverId, accessRequest.getApproverUserId());
-        Assert.assertEquals("Test Approver Name: ", approverName, accessRequest.getApproverUserName());
+        Assert.assertEquals("Test Approver ID: ", approverId, accessRequest.getActionedByUserId());
+        Assert.assertEquals("Test Approver Name: ", approverName, accessRequest.getActionedByUserName());
         Assert.assertEquals("Test Platform:", platform, accessRequest.getPlatform());
 
     }
@@ -95,8 +95,8 @@ public class AccessRequestTests {
                 .setInstances(instances)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
-                .setApproverUserId(approverId)
-                .setApproverUserName(approverName)
+                .setActionedByUserId(approverId)
+                .setActionedByUserName(approverName)
                 .setPlatform(platform);
 
         Assert.assertEquals("Test Id: ", id, accessRequest.getId());
@@ -110,8 +110,8 @@ public class AccessRequestTests {
         Assert.assertEquals("Test Instances", instances, accessRequest.getInstances());
         Assert.assertEquals("Test Request Reason:", requestReason, accessRequest.getRequestReason());
         Assert.assertEquals("Test Approver Comments:", approverComments, accessRequest.getApproverComments());
-        Assert.assertEquals("Test Approver ID: ", approverId, accessRequest.getApproverUserId());
-        Assert.assertEquals("Test Approver Name: ", approverName, accessRequest.getApproverUserName());
+        Assert.assertEquals("Test Approver ID: ", approverId, accessRequest.getActionedByUserId());
+        Assert.assertEquals("Test Approver Name: ", approverName, accessRequest.getActionedByUserName());
         Assert.assertEquals("Test Platform:", platform, accessRequest.getPlatform());
 
     }
@@ -169,10 +169,10 @@ public class AccessRequestTests {
         accessRequest.setRequestReason(requestReason);
         Assert.assertNotEquals("Different Comments", accessRequest.setApproverComments("Different Comment"), accessRequest3);
         accessRequest.setApproverComments(approverComments);
-        Assert.assertNotEquals("Different Approver Id", accessRequest.setApproverUserId("Test B"), accessRequest3);
-        accessRequest.setApproverUserId(approverId);
-        Assert.assertNotEquals("Different Approver Name", accessRequest.setApproverUserName("TestB"), accessRequest3);
-        accessRequest.setApproverUserId(approverName);
+        Assert.assertNotEquals("Different Approver Id", accessRequest.setActionedByUserId("Test B"), accessRequest3);
+        accessRequest.setActionedByUserId(approverId);
+        Assert.assertNotEquals("Different Approver Name", accessRequest.setActionedByUserName("TestB"), accessRequest3);
+        accessRequest.setActionedByUserId(approverName);
         Assert.assertNotEquals("Different Platforms", accessRequest.setPlatform("Different Platform"), accessRequest3);
         accessRequest.setPlatform(platform);
 
@@ -211,11 +211,26 @@ public class AccessRequestTests {
                 .setInstances(instances)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
-                .setApproverUserId(approverId)
-                .setApproverUserName(approverName)
+                .setActionedByUserId(approverId)
+                .setActionedByUserName(approverName)
                 .setPlatform(platform);
 
-        Assert.assertEquals("Testing hashCode()", Objects.hash(id, requestorId, requestorName, requestorEmail, account, region, hours, users, instances,requestReason, approverComments, approverId, approverName, platform), accessRequest.hashCode());
+        Assert.assertEquals("Testing hashCode()",
+                Objects.hash(id,
+                        requestorId,
+                        requestorName,
+                        requestorEmail,
+                        account,
+                        region,
+                        approverComments,
+                        approverId,
+                        approverName,
+                        requestReason,
+                        platform,
+                        hours,
+                        users,
+                        instances),
+                accessRequest.hashCode());
 
     }
 
@@ -250,8 +265,8 @@ public class AccessRequestTests {
                 .setInstances(instances)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
-                .setApproverUserId(approverId)
-                .setApproverUserName(approverName)
+                .setActionedByUserId(approverId)
+                .setActionedByUserName(approverName)
                 .setPlatform(platform);
 
         String exp = MoreObjects.toStringHelper(AccessRequest.class)
@@ -266,8 +281,8 @@ public class AccessRequestTests {
                 .add("Instances", instances)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
-                .add("Approver ID", approverId)
-                .add("Approver Name", approverName)
+                .add("Actioned By Id", approverId)
+                .add("Actioned By Name", approverName)
                 .add("Platform", platform)
                 .toString();
 
