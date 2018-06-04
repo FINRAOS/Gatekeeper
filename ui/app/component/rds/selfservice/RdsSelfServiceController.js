@@ -18,7 +18,6 @@
 const DIALOG = Symbol();
 const TOAST = Symbol();
 const GRANT = Symbol();
-const SCOPE = Symbol();
 
 //need this to deal with callbacks
 let vm;
@@ -33,7 +32,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         this[GRANT] = gkRdsGrantService;
         this[TOAST] = $mdToast;
         this[DIALOG] = $mdDialog;
-        this[SCOPE] = $scope;
 
         vm.selectedItems = [];
         vm.rdsInstances = [];

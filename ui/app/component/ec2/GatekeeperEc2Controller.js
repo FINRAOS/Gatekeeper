@@ -133,7 +133,6 @@ class GatekeeperEc2Controller extends GatekeeperController{
         this[SCOPE].$on('$stateChangeSuccess',() =>
         {
             vm.global.rollbackIndex=vm.global.selectedIndex;
-            vm.glob
         });
 
         //Listen for the stateChangeInterrupted event
