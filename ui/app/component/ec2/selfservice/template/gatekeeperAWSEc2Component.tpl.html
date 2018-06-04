@@ -18,11 +18,11 @@
 <md-card layout-padding>
     <div id="containerInstanceSearch">
         <h1 class=".md-display-1">Which Instances?</h1>
-        <form name="gkSelfServiceCtrl.awsInstanceForm" layout="row">
+        <form name="gkSelfServiceCtrl.forms.awsInstanceForm" layout="row">
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select an Account</label>
-                    <md-select ng-model="gkSelfServiceCtrl.awsInstanceForm.selectedAccount" ng-change="gkSelfServiceCtrl.clearInstances()" required>
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount" ng-change="gkSelfServiceCtrl.clearInstances()" required>
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsAccounts">{{ opt.alias }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -30,15 +30,15 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select a Region</label>
-                    <md-select ng-model="gkSelfServiceCtrl.awsInstanceForm.selectedRegion" ng-change="gkSelfServiceCtrl.clearInstances()" required>
-                        <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsInstanceForm.selectedAccount.regions">{{ opt.name }}</md-option>
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedRegion" ng-change="gkSelfServiceCtrl.clearInstances()" required>
+                        <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount.regions">{{ opt.name }}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select a Platform</label>
-                    <md-select ng-model="gkSelfServiceCtrl.awsInstanceForm.selectedPlatform" ng-change="gkSelfServiceCtrl.clearInstances()" required>
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedPlatform" ng-change="gkSelfServiceCtrl.clearInstances()" required>
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.platforms">{{ opt }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -46,7 +46,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Search by Tag</label>
-                    <md-select ng-model="gkSelfServiceCtrl.awsInstanceForm.searchTag">
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.searchTag">
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsSearchableTags">{{ opt }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -54,18 +54,18 @@
             <div layout="column">
                 <md-input-container class="md-block" md-no-float>
                     <label>Search EC2</label>
-                    <input id="gkInputAws" type="text" ng-model="gkSelfServiceCtrl.awsInstanceForm.searchText" md-maxlength="30" required md-no-asterisk>
+                    <input id="gkInputAws" type="text" ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.searchText" md-maxlength="30" required md-no-asterisk>
                 </md-input-container>
             </div>
             <div layout="column" layout-align="center center">
                 <button md-button type="submit" class="md-raised md-primary"
-                        ng-disabled="(!gkSelfServiceCtrl.awsInstanceForm.selectedAccount || !gkSelfServiceCtrl.awsInstanceForm.selectedRegion || !gkSelfServiceCtrl.awsInstanceForm.selectedTag) && gkSelfServiceCtrl.awsInstanceForm.$invalid"
+                        ng-disabled="(!gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount || !gkSelfServiceCtrl.forms.awsInstanceForm.selectedRegion || !gkSelfServiceCtrl.forms.awsInstanceForm.selectedTag) && gkSelfServiceCtrl.forms.awsInstanceForm.$invalid"
                         ng-click="gkSelfServiceCtrl.searchAWSInstances()"> Search </button>
             </div>
         </form>
     </div>
     <div id="containerInstancesSearchResult">
-        <p class=".md-body-2" ng-if="!gkSelfServiceCtrl.awsInstanceForm.$submitted">
+        <p class=".md-body-2" ng-if="!gkSelfServiceCtrl.forms.awsInstanceForm.$submitted">
             Search AWS to see results
         </p>
         <div ng-if="gkSelfServiceCtrl.awsTable.data.length >= 10" layout="row" layout-align="start start" layout-padding>
@@ -74,7 +74,7 @@
                 You have 10 or more results from this search, you should consider narrowing your search string
             </span>
         </div>
-        <gk-table ng-if="!gkSelfServiceCtrl.error.aws && gkSelfServiceCtrl.awsInstanceForm.$submitted" config="gkSelfServiceCtrl.awsTable">
+        <gk-table ng-if="!gkSelfServiceCtrl.error.aws && gkSelfServiceCtrl.forms.awsInstanceForm.$submitted" config="gkSelfServiceCtrl.awsTable">
         </gk-table>
         <div ng-if="gkSelfServiceCtrl.fetching.aws" class="gk-pleasewait" layout="row" layout-align="center center">
             <span layout-padding>Searching AWS Instances</span>

@@ -21,6 +21,7 @@ import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.interfaces.DBConnection;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.postgresql.ds.PGPoolingDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -235,13 +236,13 @@ public class PostgresDBConnection implements DBConnection {
         }
     }
 
-    public List<String> getUsers(String address) throws SQLException{
+    public List<DbUser> getUsers(String address) throws SQLException{
         PGPoolingDataSource dataSource = connect(address);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
-        List<String> results;
+        List<DbUser> results;
         logger.info("Getting available schema information for " + address);
         try {
-            results = conn.queryForList(getUsers, String.class);
+            results = conn.query(getUsers, new PostgresDbUserMapper());
             logger.info("Retrieved users for database " + address);
         } catch (Exception ex) {
             logger.error("Could not retrieve list of users for database " + address, ex);
@@ -259,6 +260,13 @@ public class PostgresDBConnection implements DBConnection {
     private class PostgresCallableStatementExecutor implements CallableStatementCallback<Boolean> {
         public Boolean doInCallableStatement(CallableStatement callableStatement) throws SQLException, DataAccessException {
             return callableStatement.execute();
+        }
+    }
+
+    private class PostgresDbUserMapper implements  RowMapper<DbUser> {
+        public DbUser mapRow(ResultSet rs, int rowNum) throws SQLException{
+            return new DbUser()
+                    .setUsername(rs.getString(1));
         }
     }
 }

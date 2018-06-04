@@ -120,7 +120,7 @@ describe('GateKeeper UI self service component', function () {
             let response = {data:[{user:'abc', user:'123', email:'name@org'}]};
             happy ? deferred.resolve(response) : deferred.reject(response);
 
-            controller.adForm = {
+            controller.forms.adForm = {
                 $valid: true,
                 searchText:'steve'
             };
@@ -130,7 +130,7 @@ describe('GateKeeper UI self service component', function () {
             controller.searchAD();
 
             expect(gkADService.search).toHaveBeenCalledWith({
-                searchStr: controller.adForm.searchText
+                searchStr: controller.forms.adForm.searchText
             });
 
             let error = '';
@@ -204,7 +204,7 @@ describe('GateKeeper UI self service component', function () {
             }catch(e){
                 failMsg = e;
             }
-            controller.awsInstanceForm = {};
+            controller.forms.awsInstanceForm = {};
 
             expect(controller.awsTable).toEqual({
                 selection:'multiple',
@@ -257,7 +257,7 @@ describe('GateKeeper UI self service component', function () {
             let response = {data:[{id:'123', name:'name', application:'TEST', ip:'127.0.0.1', platform: 'Linux'}]};
             happy ? deferred.resolve(response) : deferred.reject(response);
 
-            controller.awsInstanceForm = {
+            controller.forms.awsInstanceForm = {
                 $valid: true,
                 selectedAccount:{sdlc:'DEV', alias:'DEV'},
                 selectedRegion:{name:'US-EAST'},
@@ -271,11 +271,11 @@ describe('GateKeeper UI self service component', function () {
             controller.searchAWSInstances();
 
             expect(gkAWSService.search).toHaveBeenCalledWith({
-                account: controller.awsInstanceForm.selectedAccount.alias.toLowerCase(),
-                region: controller.awsInstanceForm.selectedRegion.name,
-                searchTag:controller.awsInstanceForm.searchTag,
-                searchStr:controller.awsInstanceForm.searchText,
-                platform:controller.awsInstanceForm.selectedPlatform
+                account: controller.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
+                region: controller.forms.awsInstanceForm.selectedRegion.name,
+                searchTag:controller.forms.awsInstanceForm.searchTag,
+                searchStr:controller.forms.awsInstanceForm.searchText,
+                platform:controller.forms.awsInstanceForm.selectedPlatform
             });
 
             let error = '';
@@ -317,20 +317,20 @@ describe('GateKeeper UI self service component', function () {
                     {name:'awslx', id:"abc", application:'ABC', ip:'127.0.0.1'}
                 ]};
 
-            controller.grantForm = {
+            controller.forms.grantForm = {
                 $valid:true,
                 grantValue:5
             };
 
-            controller.awsInstanceForm.selectedAccount = {
+            controller.forms.awsInstanceForm.selectedAccount = {
                 sdlc:'TEST',
                 alias:'TheACCOUNT'
             };
 
-            controller.awsInstanceForm.selectedRegion = {
+            controller.forms.awsInstanceForm.selectedRegion = {
                 name:'us-west-2'
             };
-            controller.awsInstanceForm.selectedPlatform = "Test Platform";
+            controller.forms.awsInstanceForm.selectedPlatform = "Test Platform";
             controller.grantAccess();
 
             let error;
@@ -341,8 +341,8 @@ describe('GateKeeper UI self service component', function () {
             }
             expect($mdDialog.show).toHaveBeenCalled();
             if(pressOk){
-                expect(gkGrantService.post).toHaveBeenCalledWith(controller.grantForm.grantValue, controller.usersTable.selected,
-                    controller.awsInstanceForm.selectedAccount.alias.toLowerCase(), controller.awsInstanceForm.selectedRegion.name, controller.awsTable.selected,resp, controller.awsInstanceForm.selectedPlatform);
+                expect(gkGrantService.post).toHaveBeenCalledWith(controller.forms.grantForm.grantValue, controller.usersTable.selected,
+                    controller.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), controller.forms.awsInstanceForm.selectedRegion.name, controller.awsTable.selected,resp, controller.forms.awsInstanceForm.selectedPlatform);
             }else{
                 expect(gkGrantService.post).not.toHaveBeenCalled();
             }
@@ -426,7 +426,7 @@ describe('GateKeeper UI self service component', function () {
         }
 
         let checkPrompt = (confirm) =>{
-            controller.adForm = {
+            controller.forms.adForm = {
                 $valid: true,
                 searchText:'steve',
                 $dirty:true
@@ -451,7 +451,7 @@ describe('GateKeeper UI self service component', function () {
        }
 
         it('Prompt should be displayed when a form is dirty - AD',function(){
-            controller.adForm = {
+            controller.forms.adForm = {
                 $valid: true,
                 searchText:'steve',
                 $dirty:true
@@ -460,7 +460,7 @@ describe('GateKeeper UI self service component', function () {
         });
 
         it('Prompt should be displayed when a form is dirty - AWS',function(){
-            controller.awsInstanceForm = {
+            controller.forms.awsInstanceForm = {
                 $valid: true,
                 selectedAccount:{sdlc:'DEV'},
                 selectedRegion:{name:'US-EAST'},
@@ -473,7 +473,7 @@ describe('GateKeeper UI self service component', function () {
         });
 
         it('Prompt should be displayed when a form is dirty - Time',function(){
-            controller.grantForm = {
+            controller.forms.grantForm = {
                 $valid:true,
                 grantValue:5,
                 $dirty:true

@@ -77,6 +77,9 @@ textarea.gk-textarea[disabled]{
     color: black;
 }
 
+.gk-users {
+    margin-top:9px;
+}
 
 /**
 * This was added as of material 1.1.0 upgrade.

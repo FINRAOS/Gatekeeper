@@ -38,23 +38,11 @@ module.exports = {
             {
                 path:"/api/gatekeeper-ec2/*",
                 target: "http://localhost:8080",
-                rewrite: function(path){
-                    var apiRegex = /^\/api\/[\w-]+\/(.*)/;
-                    var match = apiRegex.exec(path.url);
-                    path.url = "/"+match[1];
-                    console.info(path.url);
-                },
                 headers: { "account": "sm" }
             }
             ,{
                 path:"/api/gatekeeper-rds/*",
                 target: "http://localhost:8088",
-                rewrite: function(path){
-                    var apiRegex = /^\/api\/[\w-]+\/(.*)/;
-                    var match = apiRegex.exec(path.url);
-                    path.url = "/"+match[1];
-                    console.info(path.url);
-                },
                 headers: { "account": "sm" }
             }
         ]

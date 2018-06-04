@@ -18,15 +18,15 @@
 import md from 'angular-material';
 import gkUtil from '../shared/index';
 import gkRdsCtrl from './GatekeeperRdsController';
-import gkRdsSelfServiceCtrl from './selfservice/RdsSelfServiceController';
-import gkRdsAdminCtrl from './admin/RdsAdminController';
 import util from '../shared/generic/DirectiveUtils';
 import Directive from '../shared/generic/BaseDirective';
 import GkRdsSearch from './selfservice/GkRdsSearch';
 
+import gkRdsSelfServiceCtrl from './selfservice/RdsSelfServiceController';
 import gkRdsSchemaDialogController from './selfservice/RdsSchemaDialogController';
 import gkRdsRequestCtrl from './request/RdsRequestController';
 import gkRdsHistoryRequestCtrl from './request/RdsRequestHistoryController';
+import gkRdsAdminCtrl from './admin/RdsAdminController';
 
 var gateKeeperModule = angular.module('gatekeeper-rds', [md, gkUtil]);
 

@@ -18,6 +18,7 @@
 const DIALOG = Symbol();
 const TOAST = Symbol();
 const GRANT = Symbol();
+const SCOPE = Symbol();
 
 //need this to deal with callbacks
 let vm;
@@ -32,54 +33,17 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         this[GRANT] = gkRdsGrantService;
         this[TOAST] = $mdToast;
         this[DIALOG] = $mdDialog;
+        this[SCOPE] = $scope;
+
         vm.selectedItems = [];
         vm.rdsInstances = [];
-    }
-
-    /**
-     * Called from the UI to clear out the AWS Instances if a change in region or account is made.
-     */
-    clearInstances(){
-        let vm = this;
-        let title = 'Change Account/Region/Platform';
-        let message = 'Changing Account, Region, or Platform will clear out your currently selected instances. Are you sure?';
-
-        //only need to do anything if the user has anything selected
-        if(this.awsTable.selected.length > 0) {
-            vm.dialogOpened = true;
-            vm.spawnConfirmDialog(title, message)
-                .then(() => {
-                    vm.selectedItems = [];
-                    vm.awsTable.data = [];
-                    if(vm.awsInstanceForm.selectedAccount !== vm.lastSelectedAccount){
-                        delete vm.awsInstanceForm.selectedRegion;
-                    }
-                    vm.awsInstanceForm.$setUntouched();
-                    vm.awsInstanceForm.$setPristine();
-                    vm.checkIfApprovalNeeded();
-                }).catch(() => {
-                    //Do nothing, essentially
-                    vm.awsInstanceForm.selectedAccount = vm.lastSelectedAccount;
-                    vm.awsInstanceForm.selectedRegion = vm.lastSelectedRegion;
-                    vm.awsInstanceForm.selectedPlatform = vm.lastSelectedPlatform;
-                }).finally(() => {
-                    vm.dialogOpened = false;
-            });
-        }else{
-            vm.lastSelectedAccount = vm.awsInstanceForm.selectedAccount;
-            vm.lastSelectedRegion = vm.awsInstanceForm.selectedRegion;
-            vm.lastSelectedPlatform = vm.awsInstanceForm.selectedPlatform;
-            vm.awsTable.data = [];
-            vm.checkIfApprovalNeeded();
-        }
-
     }
 
     isFormValid(){
         let valueChecked = false;
 
-        if(vm.grantForm && vm.grantForm.selectedRoles) {
-            angular.forEach(vm.grantForm.selectedRoles, (v, k) => {
+        if(vm.forms.grantForm && vm.forms.grantForm.selectedRoles) {
+            angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
                 if (v) {
                     valueChecked = true;
                 }
@@ -90,7 +54,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     }
 
     checkIfApprovalNeeded(){
-        return vm.grantForm.grantValue > vm.getApprovalBounds() || vm.getApprovalBounds() === -1;
+        return vm.forms.grantForm.grantValue > vm.getApprovalBounds() || vm.getApprovalBounds() === -1;
     }
 
     //Get the lowest threshold value across all selected roles for provided sdlc
@@ -105,7 +69,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         //first lets make sure they are members of what they are requesting for
         vm.selectedItems.forEach((item) => {
             let resource = vm.global.userInfo.memberships[item.application];
-            approvalRequired = !resource || resource.indexOf(vm.awsInstanceForm.selectedAccount.sdlc.toUpperCase()) === -1;
+            approvalRequired = !resource || resource.indexOf(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()) === -1;
         });
 
         //if the user isn't part of what he is requesting for warn for approval.
@@ -115,9 +79,9 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
         let values = [];
 
-        angular.forEach(vm.grantForm.selectedRoles, (v, k) => {
+        angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
             if(v){
-                values.push(vm.global.userInfo.approvalThreshold[k][vm.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
+                values.push(vm.global.userInfo.approvalThreshold[k][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
             }
         });
 
@@ -134,8 +98,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             template: require("./template/schemas.tpl.html"),
             parent: angular.element(document.body),
             locals: {
-                account: vm.awsInstanceForm.selectedAccount,
-                region: vm.awsInstanceForm.selectedRegion,
+                account: vm.forms.awsInstanceForm.selectedAccount,
+                region: vm.forms.awsInstanceForm.selectedRegion,
                 database: chip
             }
         };
@@ -145,12 +109,12 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     getMaximumDays(){
 
         let max = 180;
-        if(vm.awsInstanceForm && vm.awsInstanceForm.selectedAccount) {
-            if (vm.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('dba') !== -1) {
+        if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
+            if (vm.forms.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('dba') !== -1) {
                 max = 7;
             }
 
-            if (vm.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('datafix') !== -1) {
+            if (vm.forms.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('datafix') !== -1) {
                 max = 1;
             }
         }
@@ -159,7 +123,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
     getSelectedRoles() {
         let selectedRoles = [];
-        angular.forEach(vm.grantForm.selectedRoles, (value, key) => {
+        angular.forEach(vm.forms.grantForm.selectedRoles, (value, key) => {
             if(value){
                 selectedRoles.push(key);
             }
@@ -173,7 +137,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         if(this.grantForm.$valid) {
             delete vm.error.request;
             let title = 'Confirm Access Request';
-            let message = 'This will request access for ' + vm.grantForm.grantValue + ' day(s) for the selected users and instances. ';
+            let message = 'This will request access for ' + vm.forms.grantForm.grantValue + ' day(s) for the selected users and instances. ';
             let approvalRequired = vm.checkIfApprovalNeeded();
             if(approvalRequired){
                 message += 'This request will require approval.'
@@ -184,12 +148,12 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 .then((explanation) => {
                     this.fetching.grant = true;
                     let roles = [];
-                    vm[GRANT].post(vm.getSelectedRoles(), vm.grantForm.grantValue, vm.usersTable.selected, vm.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.awsInstanceForm.selectedRegion.name, vm.selectedItems, explanation, vm.awsInstanceForm.selectedPlatform)
+                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             var msg;
                             if(response.data.outcome === 'CREATED') {
-                                msg = 'Access was requested for ' + vm.grantForm.grantValue + ' days. If your request required approval,'
+                                msg = 'Access was requested for ' + vm.forms.grantForm.grantValue + ' days. If your request required approval,'
                                     + ' access will not be granted until your request is reviewed and actioned by an approver. Once granted, users will' +
                                     ' be sent an email with further instructions';
                             }else{
@@ -206,7 +170,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                 vm.selectedItems = [];
                                 vm.usersTable.selected = [];
                                 vm.selfService = false;
-                                delete vm.grantForm.grantValue;
+                                delete vm.forms.grantForm.grantValue;
 
                                 //needed since forms are still dirty
                                 vm.confirm = false;

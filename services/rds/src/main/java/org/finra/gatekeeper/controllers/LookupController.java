@@ -22,6 +22,7 @@ import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.aws.RdsLookupService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ class LookupController {
     }
 
     @RequestMapping(value="/getUsers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<String> getUsersForInstance(@RequestParam("account") String account,
+    public List<DbUser> getUsersForInstance(@RequestParam("account") String account,
                                             @RequestParam("region") String region,
                                             @RequestParam("instanceId") String instanceId) throws Exception{
         return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId);

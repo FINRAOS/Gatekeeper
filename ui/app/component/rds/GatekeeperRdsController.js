@@ -80,7 +80,8 @@ class GatekeeperRdsController extends GatekeeperController{
             admin: {
                 label: LABELS.admin,
                 enabled: false,
-                goToState:STATES.admin
+                goToState:STATES.admin,
+                hidden: true
             }
         };
 
@@ -101,6 +102,7 @@ class GatekeeperRdsController extends GatekeeperController{
             }else{
                 vm.global.userInfo.role = data.role;
             }
+            vm.global.tabData.admin.hidden = vm.global.userInfo.role !== 'APPROVER';
 
             switch (vm.global.userInfo.role) {
                 case ROLES.approver:

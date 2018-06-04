@@ -23,6 +23,7 @@ import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.interfaces.DBConnection;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.CallableStatementCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.StatementCallback;
 import org.springframework.stereotype.Component;
 
@@ -203,12 +205,12 @@ public class MySQLDBConnection implements DBConnection {
         return issues;
     }
 
-    public List<String> getUsers(String address) throws SQLException {
+    public List<DbUser> getUsers(String address) throws SQLException {
         String getUsers = "select user from mysql.user";
-        List<String> users = new ArrayList<>();
+        List<DbUser> users = new ArrayList<>();
         try {
             JdbcTemplate template = connect(address);
-            users = template.queryForList(getUsers, String.class);
+            users = template.query(getUsers, new MySqlDbUserMapper());
         }catch(SQLException e){
             logger.error("Error retrieving users from DB", e);
         }
@@ -231,4 +233,12 @@ public class MySQLDBConnection implements DBConnection {
             return statement.execute(sql);
         }
     }
+
+    private class MySqlDbUserMapper implements RowMapper<DbUser> {
+        public DbUser mapRow(ResultSet rs, int rowNum) throws SQLException{
+            return new DbUser()
+                    .setUsername(rs.getString(1));
+        }
+    }
+
 }

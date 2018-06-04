@@ -24,6 +24,7 @@ import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.factory.DatabaseConnectionFactory;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,7 +108,7 @@ public class DatabaseConnectionService {
         return issues.stream().collect(Collectors.joining(","));
     }
 
-    public List<String> getUsersForDb(GatekeeperRDSInstance database) throws Exception {
+    public List<DbUser> getUsersForDb(GatekeeperRDSInstance database) throws Exception {
         return databaseConnectionFactory.getConnection(database.getEngine()).getUsers(getAddress(database.getEndpoint(), database.getDbName()));
     }
 

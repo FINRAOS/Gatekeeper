@@ -229,7 +229,7 @@ function configureRouting($stateProvider, $urlRouterProvider){
             url: '/admin',
             template: require('./component/rds/admin/template/rdsAdmin.tpl.html'),
             controller: 'gkRdsAdminController',
-            controllerAs: 'gkAppCtrl',
+            controllerAs: 'gkAdminCtrl',
             params: {
                 'userId':'unknown',
                 'user':'unknown',

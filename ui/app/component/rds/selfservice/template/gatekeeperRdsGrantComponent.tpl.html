@@ -42,22 +42,22 @@
             </md-chip-template>
         </md-chips>
         <h3 class=".md-display-3">With the following roles</h3>
-        <form name="gkSelfServiceCtrl.grantForm" layout="column">
+        <form name="gkSelfServiceCtrl.forms.grantForm" layout="column">
             <div layout="row">
-                <md-checkbox ng-model="gkSelfServiceCtrl.grantForm.selectedRoles.readonly" aria-label="Read Only">
+                <md-checkbox ng-model="gkSelfServiceCtrl.forms.grantForm.selectedRoles.readonly" aria-label="Read Only">
                     Read Only
                 </md-checkbox>
-                <md-checkbox ng-model="gkSelfServiceCtrl.grantForm.selectedRoles.datafix" aria-label="Datafix">
+                <md-checkbox ng-model="gkSelfServiceCtrl.forms.grantForm.selectedRoles.datafix" aria-label="Datafix">
                     Datafix
                 </md-checkbox>
-                <md-checkbox ng-model="gkSelfServiceCtrl.grantForm.selectedRoles.dba" aria-label="DBA">
+                <md-checkbox ng-model="gkSelfServiceCtrl.forms.grantForm.selectedRoles.dba" aria-label="DBA">
                     DBA
                 </md-checkbox>
             </div>
             <div layout="row">
                 <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
                 <md-input-container id="containerGkInputGrant" layout-align="end end" layout="column" flex="none">
-                    <input id="gkInputGrant" aria-label="Days" class=".md-display-1" min="1" max="{{gkSelfServiceCtrl.getMaximumDays()}}" type="number" ng-model="gkSelfServiceCtrl.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
+                    <input id="gkInputGrant" aria-label="Days" class=".md-display-1" min="1" max="{{gkSelfServiceCtrl.getMaximumDays()}}" type="number" ng-model="gkSelfServiceCtrl.forms.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
                 </md-input-container>
                 <p  layout-align="end start" layout="column" class="md-title" flex="initial">Days.</p>
                 <div layout="column" layout-align="end start" >

@@ -28,6 +28,7 @@ import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,7 +181,7 @@ public class RdsLookupService {
     }
 
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
-    public List<String> getUsersForInstance(AWSEnvironment environment, String instanceId) throws Exception {
+    public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceId) throws Exception {
         Optional<GatekeeperRDSInstance> instance = getInstance(environment, instanceId);
         if(instance.isPresent()){
             return databaseConnectionService.getUsersForDb(instance.get());
