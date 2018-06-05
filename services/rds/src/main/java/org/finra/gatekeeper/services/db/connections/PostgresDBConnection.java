@@ -125,7 +125,13 @@ public class PostgresDBConnection implements DBConnection {
             dataSource = connect(address);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             logger.info("Removing " + user + " from " + address + " if they exist.");
-            revokeUser(conn, user + "_" + roles.getShortSuffix());
+            if(roles != null) {
+                //if roles is provided revoke the user with the suffix (from activiti)
+                revokeUser(conn, user + "_" + roles.getShortSuffix());
+            }else{
+                //if roles is not provided just revoke the user (forced removal)
+                revokeUser(conn, user);
+            }
             return true;
 
         }catch(Exception ex){

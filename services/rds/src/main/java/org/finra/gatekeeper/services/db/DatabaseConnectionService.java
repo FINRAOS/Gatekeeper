@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.services.db;
 
+import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.User;
@@ -30,10 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -91,6 +89,29 @@ public class DatabaseConnectionService {
         });
 
         return statusMap;
+    }
+
+    /**
+     * Revokes a list of users from a given database
+     * @param database - the database to revoke access from
+     * @return
+     * @throws Exception
+     */
+    public Boolean forceRvokeAccessUsersOnDatabase(AWSRdsDatabase database, List<String> users ) throws Exception {
+        List<String> nonGkUsers = users.stream()
+                .filter(user -> !user.startsWith("gk_"))
+                .collect(Collectors.toList());
+
+        if(!nonGkUsers.isEmpty()){
+            throw new GatekeeperException("Forced removal of non-gatekeeper users is not supported. The following unsupported users are: " + nonGkUsers.toString() );
+        }
+
+        boolean result = false;
+        for(String user:  users){
+            result = databaseConnectionFactory.getConnection(database.getEngine()).revokeAccess(user, null, getAddress(database.getEndpoint(), database.getDbName()));
+        }
+
+        return result;
     }
 
     //UI will usually call this one

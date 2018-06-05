@@ -133,7 +133,7 @@ public class MySQLDBConnection implements DBConnection {
      * @return
      */
     private String getGkUserName(String user, RoleType role){
-        return user + "_" + role.getShortSuffix();
+        return role != null ? user + "_" + role.getShortSuffix() : user;
     }
 
     //pulls all the non system schemas for granting
