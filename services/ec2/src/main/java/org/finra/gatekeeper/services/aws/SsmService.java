@@ -206,6 +206,7 @@ public class SsmService {
             return false;
         }
         for (CommandInvocation ci : result.getCommandInvocations()) {
+            logger.info("Document Name: " + ci.getDocumentName() + " Command ID: " + ci.getCommandId() + " Instance Id: " + ci.getInstanceId() + " Status: " + ci.getStatus());
             if((ci.getStatus().equals(CommandStatus.InProgress.toString())
                     || ci.getStatus().equals(CommandStatus.Pending.toString()))){
                 return false;
@@ -221,9 +222,9 @@ public class SsmService {
         ListCommandInvocationsResult result = ssmClient.listCommandInvocations(lcir);
         Map<String, String> results = checkEveryInstance(result);
         int waited=0;
+        logger.info("Waiting for SSM command with id " + commandId + " to complete.");
         while (waited < instanceCount*timeout
                 && !finished(result,instanceCount)) {
-            logger.debug("Waiting for SSM command with id " + commandId + " to complete.");
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
@@ -232,6 +233,7 @@ public class SsmService {
             waited += interval;
             result = ssmClient.listCommandInvocations(lcir);
             results = checkEveryInstance(result);
+            logger.info("time waited: " + waited + " timeout: " + instanceCount*timeout);
         }
         /**
          * This cancels any pending commands so that when timeout happens, users won't get added
