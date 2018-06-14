@@ -2,6 +2,7 @@ var isProd = process.env.NODE_ENV.trim() === 'production';
 
 var webpack = require('webpack');
 var WebpackDevServer = require("webpack-dev-server");
+var HtmlWebpackPlugin = require("html-webpack-plugin");
 var path = require('path');
 var vendor = [
     'angular',
@@ -18,7 +19,7 @@ var vendor = [
 var plugins = [
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.optimize.CommonsChunkPlugin('common', 'common.js')
+    new webpack.optimize.CommonsChunkPlugin('common', '[name].[hash].js')
 ];
 if (isProd) {
     plugins.splice(2, 0, new webpack.optimize.UglifyJsPlugin({
@@ -28,6 +29,11 @@ if (isProd) {
             warnings: false
         }
     }));
+    plugins.splice(3, 0, new HtmlWebpackPlugin({
+        hash: true,
+        filename: './index.html',//relative to root of the application
+        template: './index.html'
+    }))
 }
 
 
@@ -37,24 +43,10 @@ module.exports = {
         proxy: [
             {
                 path:"/api/gatekeeper-ec2/*",
-                target: "http://localhost:8080",
-                rewrite: function(path){
-                    var apiRegex = /^\/api\/[\w-]+\/(.*)/;
-                    var match = apiRegex.exec(path.url);
-                    path.url = "/"+match[1];
-                    console.info(path.url);
-                },
                 headers: { "account": "sm" }
             }
             ,{
                 path:"/api/gatekeeper-rds/*",
-                target: "http://localhost:8088",
-                rewrite: function(path){
-                    var apiRegex = /^\/api\/[\w-]+\/(.*)/;
-                    var match = apiRegex.exec(path.url);
-                    path.url = "/"+match[1];
-                    console.info(path.url);
-                },
                 headers: { "account": "sm" }
             }
         ]
@@ -67,7 +59,7 @@ module.exports = {
     devtool: isProd ? '' : 'source-map',
     output: {
         path: isProd ? './dist' : './app',
-        filename: '[name].js'
+        filename: '[name].[hash].js'
     },
     plugins: plugins,
     module: {
