@@ -22,5 +22,8 @@ jobs:
 
     steps:
       - checkout
-      - run: pushd services
-      - run: mvn test
+      - run:
+          name: Backend-Tests
+          command: |
+            pushd services
+            mvn test
