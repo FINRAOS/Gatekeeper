@@ -1,4 +1,4 @@
-![Gatekeeper](/img/logo.png)
+<img src="/img/logo.png" alt="drawing" width="500px"/>
 
 [![Build Status](https://secure.travis-ci.org/FINRAOS/Gatekeeper.png?branch=master)](http://travis-ci.org/FINRAOS/Gatekeeper)
 
