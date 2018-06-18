@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    
+    <url>
+     <loc>https://finraos.github.io/Gatekeeper/</loc>
+     <lastmod>2018-06-18</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>https://finraos.github.io/Gatekeeper/local-setup/</loc>
+     <lastmod>2018-06-18</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>https://finraos.github.io/Gatekeeper/aws-setup/</loc>
+     <lastmod>2018-06-18</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+    <url>
+     <loc>https://finraos.github.io/Gatekeeper/configuration/</loc>
+     <lastmod>2018-06-18</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+</urlset>

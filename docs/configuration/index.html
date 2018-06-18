@@ -1,0 +1,1231 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+      
+        <link rel="canonical" href="https://finraos.github.io/Gatekeeper/configuration/">
+      
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../">
+      <meta name="generator" content="mkdocs-0.17.3, mkdocs-material-2.5.4">
+    
+    
+      
+        <title>Configuration - Gatekeeper</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.css">
+      
+        <link rel="stylesheet" href="../assets/stylesheets/application-palette.css">
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.js"></script>
+    
+    
+      
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    <body dir="ltr" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <a href="#configuration" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <header style="background-color: #3856A9" class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a style="padding:4px 8px;" target="_parent" href="https://finraos.github.io/Gatekeeper" title="Gatekeeper" class="md-header-nav__button md-logo">
+          
+            <img src="../images/logo.svg" width="32" height="32">
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          
+            
+              <span class="md-header-nav__topic">
+                Gatekeeper
+              </span>
+              <span class="md-header-nav__topic">
+                Configuration
+              </span>
+            
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          
+            <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+            
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+          
+        
+      </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    <span class="md-nav__button md-logo">
+      
+        <img src="../images/logo.svg" width="24" height="24">
+      
+    </span>
+    Gatekeeper
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../local-setup/" title="Local Setup" class="md-nav__link">
+      Local Setup
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../aws-setup/" title="AWS Setup" class="md-nav__link">
+      AWS Setup
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Configuration
+      </label>
+    
+    <a href="./" title="Configuration" class="md-nav__link md-nav__link--active">
+      Configuration
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="toc">Contents </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" title="Configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global" title="Global" class="md-nav__link">
+    Global
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authorization" title="Authorization" class="md-nav__link">
+    Authorization
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws" title="AWS" class="md-nav__link">
+    AWS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email" title="EMAIL" class="md-nav__link">
+    EMAIL
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" title="DATABASE" class="md-nav__link">
+    DATABASE
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ec2" title="EC2" class="md-nav__link">
+    EC2
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database_1" title="DATABASE" class="md-nav__link">
+    DATABASE
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorization_1" title="AUTHORIZATION" class="md-nav__link">
+    AUTHORIZATION
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approvals" title="APPROVALS" class="md-nav__link">
+    APPROVALS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-ssm-documents" title="Configuring SSM Documents" class="md-nav__link">
+    Configuring SSM Documents
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rds" title="RDS" class="md-nav__link">
+    RDS
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#approvals_1" title="APPROVALS" class="md-nav__link">
+    APPROVALS
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="toc">Contents </label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" title="Configuration" class="md-nav__link">
+    Configuration
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global" title="Global" class="md-nav__link">
+    Global
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authorization" title="Authorization" class="md-nav__link">
+    Authorization
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws" title="AWS" class="md-nav__link">
+    AWS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#email" title="EMAIL" class="md-nav__link">
+    EMAIL
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database" title="DATABASE" class="md-nav__link">
+    DATABASE
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ec2" title="EC2" class="md-nav__link">
+    EC2
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#database_1" title="DATABASE" class="md-nav__link">
+    DATABASE
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authorization_1" title="AUTHORIZATION" class="md-nav__link">
+    AUTHORIZATION
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#approvals" title="APPROVALS" class="md-nav__link">
+    APPROVALS
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-ssm-documents" title="Configuring SSM Documents" class="md-nav__link">
+    Configuring SSM Documents
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rds" title="RDS" class="md-nav__link">
+    RDS
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#approvals_1" title="APPROVALS" class="md-nav__link">
+    APPROVALS
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                  <h1>Configuration</h1>
+                
+                <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>Gatekeeper requires some configuration for it to run in your environment, see below for all of the supported configuration parameters</p>
+<h3 id="global">Global<a class="headerlink" href="#global" title="Permanent link">&para;</a></h3>
+<p>These parameters are used by both the EC2 and RDS Gatekeeeper services </p>
+<h4 id="authorization">Authorization<a class="headerlink" href="#authorization" title="Permanent link">&para;</a></h4>
+<p>Currently Gatekeeper only supports authorization through LDAP, the application expects authentication to be done via SSO, and looks for the username in a header.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.auth.userIdHeader</td>
+<td>The header in which gatekeeper looks to extract the authenticated user</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.isActiveDirectory</td>
+<td>Whether your LDAP server is Microsoft Active Directory or not (Nested groups are not supported with Non-Active Directory LDAP servers)</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.objectClass</td>
+<td>The Object class to look for users with (ex. posixAccount, person, user)</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.usersBase</td>
+<td>The base in which the Users are stored on the LDAP Server (e.g. ou=Users,dc=example,dc=org)</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.userDn</td>
+<td>The DN for the user that gatekeeper connects as to query ldap (e.g. cn=admin,dc=example,dc=org )</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.userPassword</td>
+<td>The password to the ldap user</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.server</td>
+<td>The domain of the LDAP server that gatekeeper should connect to</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.base</td>
+<td>The base that LDAP calls will be made off of (e.g. dc=example,dc=org)</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.usersCnAttribute</td>
+<td>The cn</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.usersIdAttribute</td>
+<td>The uid</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.usersNameAttribute</td>
+<td>The name</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.usersEmailAttribute</td>
+<td>The email</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.usersDnAttribute</td>
+<td>The dn</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.pattern</td>
+<td>A regular expression that is used to extract group names from the LDAP results. The regular expression must have exactly one capture ( e.g developer_([A-Za-z0-9]+)_dev) pattern</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.ldap.groupsBase</td>
+<td>The base where your groups are stored on your organization's LDAP server (e.g. ou=groups)</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<h4 id="aws">AWS<a class="headerlink" href="#aws" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.accountInfoEndpoint</td>
+<td>The Endpoint gatekeeper calls to fetch the account data for all of your aws accounts</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.accountInfoUri</td>
+<td>The URI where gatekeeper can call your account Info service. (Defaults to "accounts")</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.aws.proxyHost</td>
+<td>(Optional) The Proxy Host. If you are not behind a proxy you can ignore this</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.aws.proxyPort</td>
+<td>(Optional) The Proxy Port. If you are not behind a proxy you can ignore this</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.aws.roleToAssume</td>
+<td>The AWS IAM role that Gatekeeper will assume to interact with AWS (e.g. Xacnt_APP_GATEKEEPER)</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<h4 id="email">EMAIL<a class="headerlink" href="#email" title="Permanent link">&para;</a></h4>
+<p>Gatekeeper primarily communicates out temporary credentials via email, these are the properties gatekeeper requires for email</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.email.host</td>
+<td>The host of your mail server</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.email.port</td>
+<td>The port that it runs on</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.email.from</td>
+<td>The name of the Sender for Gatekeeper emails.</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.email.team</td>
+<td>The team that will be maintaining gatekeeper on your environment.</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.email.approverEmails</td>
+<td>The email address for the group who will be handling approvals</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.email.opsEmails</td>
+<td>The email address for gatekeeper to reach out to the Ops team</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<h4 id="database">DATABASE<a class="headerlink" href="#database" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.db.url</td>
+<td>The Postgres Database URL to connect to</td>
+<td>String</td>
+</tr>
+<tr>
+<td>gatekeeper.db.port</td>
+<td>The Port of the database</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.db.database</td>
+<td>The name of the database</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.db.ssl</td>
+<td>Whether to enable SSL or not</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>gatekeeper.db.sslMode</td>
+<td>The SSL mode to use</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.db.sslCert</td>
+<td>The SSL certificate location to use ( we provide the RDS cert in the container )</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.db.user</td>
+<td>The DB user to log in as</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.db.password</td>
+<td>The DB user password</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ec2">EC2<a class="headerlink" href="#ec2" title="Permanent link">&para;</a></h3>
+<p>These configurations are specific to Gatekeeper EC2</p>
+<h4 id="database_1">DATABASE<a class="headerlink" href="#database_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.db.schema</td>
+<td>The schema in which gatekeeper operates its tables</td>
+<td>gatekeeper_ec2</td>
+</tr>
+</tbody>
+</table>
+<h4 id="authorization_1">AUTHORIZATION<a class="headerlink" href="#authorization_1" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.auth.approverGroup</td>
+<td>The LDAP group containing the gatekeeper approvers</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.supportGroup</td>
+<td>The LDAP group containing the gatekeeper support staff</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<h4 id="approvals">APPROVALS<a class="headerlink" href="#approvals" title="Permanent link">&para;</a></h4>
+<p>You will set these once for each environment you have in your company</p>
+<p>Here's an example (taken from <a href="../config/ec2_service_config.env">config/ec2_service_config.env</a>)</p>
+<div class="codehilite"><pre><span></span>gatekeeper.approvalThreshold.dev.dev=45
+gatekeeper.approvalThreshold.dev.qa=44
+gatekeeper.approvalThreshold.dev.prod=-1
+gatekeeper.approvalThreshold.dev.test=4
+
+gatekeeper.approvalThreshold.support.dev=42
+gatekeeper.approvalThreshold.support.qa=41
+gatekeeper.approvalThreshold.support.prod=2
+gatekeeper.approvalThreshold.support.test=5
+</pre></div>
+
+<p>This tells Gatekeeper the following:
+1. For a developer role the maximum hours the user can request is:
+    - &lt;= 45 for dev environment
+    - &lt;= 44 for qa environment
+    - approval is <strong>always</strong> required for prod
+    - &lt;= 4 for test
+2. For a support role the maximum hours the user can request without requiring approval is:
+   - &lt;= 42 hours for dev environment
+   - &lt;= 41 for qa environment
+   - &lt;= 2 for prod environment
+   - &lt;= 5 for test environment</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.approvalThreshold.dev.<environment></td>
+<td>The approval threshold for a given environment for the dev role</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.support.<environment></td>
+<td>The approval threshold for a given environment for the support role</td>
+<td>integer</td>
+</tr>
+</tbody>
+</table>
+<h4 id="configuring-ssm-documents">Configuring SSM Documents<a class="headerlink" href="#configuring-ssm-documents" title="Permanent link">&para;</a></h4>
+<p>Gatekeeper for EC2 resources requires SSM documents to be staged to AWS before being able to generate a temporary user. There are 4 different documents that Gatekeeper requires you to provide in order to Create and Delete temporary users. These documents are:</p>
+<ol>
+<li>Create document for Linux </li>
+<li>Delete document for Linux</li>
+<li>Create document for Windows</li>
+<li>Delete document for Windows</li>
+</ol>
+<p>We provide examples of what we are currently using in our environment, you can find these documents located in the <strong>aws/ssm</strong> folder; You ultimately have control of the content in these documents should you have differing requirements in your environment. </p>
+<p>If you decide to write your own document, please keep in mind that gatekeeper will be passing on the following parameters to the documents. </p>
+<p>For create documents (linux):
+1. <strong>userName</strong> - Gatekeeper provides The Username for the temporary user. Currently gatekeeper provides this to the SSM document in the form of <strong>gk-$username</strong>
+2. <strong>publicKey</strong> - Gatekeeper generates the public key for the user and provides it to the SSM document
+3. <strong>executionTimeout</strong> - Gatekeeper provides The maximum time to wait for the script to succeed</p>
+<p>For windows gatekeeper functions differently as we do not want to send the user password directly to SSM (these parameters get logged to the AWS console, so the password would be exposed which is insecure), instead we rely on SSM to generate the user password on the Windows box and have the box send the username and password directly to the requestor(s) </p>
+<p>For create documents (windows):
+1. <strong>opsEmail</strong> - Gatekeeper provides the email of the operations team so that they are notified if any issue occurs 
+2. <strong>teamEmail</strong> - Gatekeeper provides the team email to notify the team that supports gatekeeper if it encounters any issues
+3. <strong>userId</strong> - Gatekeeper provides the User Id being added
+4. <strong>userName</strong> - Gatekeeper provides the User Name being added
+5. <strong>account</strong> - Gatekeeper provides the account the windows instance exists in
+6. <strong>mailFrom</strong> - Gatekeeper provides the sender of the email (who users of gatekeeper see the email is from)
+7. <strong>smtpServer</strong> - <strong>YOU MUST PROVIDE THIS IN THE TEMPLATE</strong> the SMTP server that will be responsible for relaying the mail
+8. <strong>hours</strong> - Gatekeeper provides the amount of time the request is for
+9. <strong>accessRequest</strong> - Gatekeeper provides the access request ID 
+10. <strong>executionTimeout</strong> - Gatekeeper provides The maximum time to wait for the script to succeed</p>
+<p>For delete documents:
+1. <strong>userName</strong> - Gatekeeper provides the Username for the temporary user that should be removed.
+2. <strong>executionTimeout</strong> - Gatekeeper provides the maximum time to wait for the script to succeed.</p>
+<p>For convenience, we have provided SSM scripts with the script part left blank if you need to create your own script to set up a user / remove them. You can learn more about SSM <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/create-ssm-doc.html">here</a></p>
+<p>The following are configuration properties which tell gatekeeper which documents to run for which action:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.ssm.linux.create.documentName</td>
+<td>For Linux: The name of the SSM document Gatekeeper will call to create a user</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.linux.create.timeout</td>
+<td>For Linux: The Amount of time Gatekeeper should wait for the ssm create call to complete</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.linux.create.waitInterval</td>
+<td>For Linux: The Interval that Gatekeeper polls the SSM create for completion</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.linux.delete.documentName</td>
+<td>For Linux: The name of the SSM document Gatekeeper will call to delete a user</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.linux.delete.timeout</td>
+<td>For Linux: The Amount of time Gatekeeper should wait for the ssm delete call to complete</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.linux.delete.waitInterval</td>
+<td>For Linux: The Interval that Gatekeeper polls the SSM delete for completion</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.windows.create.documentName</td>
+<td>For Windows: The name of the SSM document Gatekeeper will call to create a user</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.windows.create.timeout</td>
+<td>For Windows: The Amount of time Gatekeeper should wait for the ssm create call to complete</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.windows.create.waitInterval</td>
+<td>For Windows: The Interval that Gatekeeper polls the SSM create for completion</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.windows.delete.documentName</td>
+<td>For Windows: The name of the SSM document Gatekeeper will call to delete a user</td>
+<td></td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.windows.delete.timeout</td>
+<td>For Windows: The Amount of time Gatekeeper should wait for the ssm delete call to complete</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.ssm.windows.delete.waitInterval</td>
+<td>The Interval that Gatekeeper polls the SSM delete for completion</td>
+<td>integer</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rds">RDS<a class="headerlink" href="#rds" title="Permanent link">&para;</a></h3>
+<p>These configurations are specific to Gatekeeper RDS</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.db.schema</td>
+<td>The schema in which gatekeeper operates its tables</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.requiredSecurityGroup</td>
+<td>The Security Group in which Gatekeeper RDS requires for connectivity</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.postgresMinServerVersion</td>
+<td>The minimum postgrs server to use</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.ssl</td>
+<td>Whether Gatekeeeper-RDS should use SSL or not to connect</td>
+<td>boolean</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.connectTimeout</td>
+<td>The timeout (in milliseconds) to wait for a connection</td>
+<td>Integer</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.sslMode</td>
+<td>The mode of SSL verification to use while Gatekeeper RDS connects to an instance</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.sslCert</td>
+<td>The SSL Cert to use for gatekeeper to connect (We provide the RDS cert)</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.user</td>
+<td>The gatekeeper user to log into the RDS instance.</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.rds.password</td>
+<td>The password for the gatekeeper user</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.auth.approverGroup</td>
+<td>The LDAP group containing Gatekeeper Approvers for RDS</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.dbaGroupsPattern</td>
+<td>A regular expression to extract group(s) of DBAS from ldap groups, requires one capture</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.opsGroupsPattern</td>
+<td>A regular expression to extract group(s) of Ops Members from ldap groups. requires one capture</td>
+<td>string</td>
+</tr>
+<tr>
+<td>gatekeeper.auth.devGroupsPattern</td>
+<td>A regular expression to extract group(s) of Dev Members from ldap groups. requires one capture</td>
+<td>string</td>
+</tr>
+</tbody>
+</table>
+<h4 id="approvals_1">APPROVALS<a class="headerlink" href="#approvals_1" title="Permanent link">&para;</a></h4>
+<p>Like the EC2 service, the RDS approval criteria needs to be set, however this configuration is handled at a more granular level.</p>
+<p>Here is an example from <a href="../config/rds_service_config.env">config/rds_service_config.env</a> </p>
+<p><div class="codehilite"><pre><span></span>    gatekeeper.approvalThreshold.dev.readonly.dev=120
+    gatekeeper.approvalThreshold.dev.readonly.qa=100
+    gatekeeper.approvalThreshold.dev.readonly.prod=-1
+
+    gatekeeper.approvalThreshold.dev.datafix.dev=180
+    gatekeeper.approvalThreshold.dev.datafix.qa=180
+    gatekeeper.approvalThreshold.dev.datafix.prod=-1
+
+    gatekeeper.approvalThreshold.dev.dba.dev=180
+    gatekeeper.approvalThreshold.dev.dba.qa=2
+    gatekeeper.approvalThreshold.dev.dba.prod=-1
+
+    gatekeeper.approvalThreshold.ops.readonly.dev=-1
+    gatekeeper.approvalThreshold.ops.readonly.qa=-1
+    gatekeeper.approvalThreshold.ops.readonly.prod=180
+
+    gatekeeper.approvalThreshold.ops.datafix.dev=-1
+    gatekeeper.approvalThreshold.ops.datafix.qa=-1
+    gatekeeper.approvalThreshold.ops.datafix.prod=1
+
+    gatekeeper.approvalThreshold.ops.dba.dev=-1
+    gatekeeper.approvalThreshold.ops.dba.qa=-1
+    gatekeeper.approvalThreshold.ops.dba.prod=-1
+
+    gatekeeper.approvalThreshold.dba.readonly.dev=180
+    gatekeeper.approvalThreshold.dba.readonly.qa=180
+    gatekeeper.approvalThreshold.dba.readonly.prod=180
+
+    gatekeeper.approvalThreshold.dba.datafix.dev=180
+    gatekeeper.approvalThreshold.dba.datafix.qa=180
+    gatekeeper.approvalThreshold.dba.datafix.prod=180
+
+    gatekeeper.approvalThreshold.dba.dba.dev=180
+    gatekeeper.approvalThreshold.dba.dba.qa=180
+    gatekeeper.approvalThreshold.dba.dba.prod=-1
+</pre></div>
+Here's an explanation of what this configuration translates to in Gatekeeper:</p>
+<ol>
+<li>
+<p>For Dev Role </p>
+<ul>
+<li>Requesting readonly<ul>
+<li>&lt; 120 days for dev environment</li>
+<li>&lt; 180 days for qa environment</li>
+<li>approval is <strong>always</strong> required for prod</li>
+</ul>
+</li>
+<li>Requesting datafix<ul>
+<li>&lt;= 180 days for dev environment</li>
+<li>&lt;= 180 days for qa environment</li>
+<li>approval is <strong>always</strong> required for prod</li>
+</ul>
+</li>
+<li>Requesting dba<ul>
+<li>&lt;= 180 days for dev environment</li>
+<li>&lt;= 2 days for qa environment</li>
+<li>approval is <strong>always</strong> required for prod</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>For Ops Role</p>
+<ul>
+<li>Requesting readonly<ul>
+<li>approval is <strong>always</strong> required for dev</li>
+<li>approval is <strong>always</strong> required for qa</li>
+<li>&lt;= 180 days for prod</li>
+</ul>
+</li>
+<li>Requesting datafix<ul>
+<li>approval is <strong>always</strong> required for dev</li>
+<li>approval is <strong>always</strong> required for qa</li>
+<li>&lt;= 1 days for prod</li>
+</ul>
+</li>
+<li>Requesting dba<ul>
+<li>approval is <strong>always</strong> required for dev</li>
+<li>approval is <strong>always</strong> required for qa</li>
+<li>approval is <strong>always</strong> required for prod</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>For DBA Role<ul>
+<li>Requesting readonly<ul>
+<li>&lt;= 180 days for dev environment</li>
+<li>&lt;= 180 days for qa environment</li>
+<li>&lt;= 180 days for prod environment</li>
+</ul>
+</li>
+<li>Requesting datafix<ul>
+<li>&lt;= 180 days for dev environment</li>
+<li>&lt;= 180 days for qa environment</li>
+<li>&lt;= 180 days for prod environment</li>
+</ul>
+</li>
+<li>Requesting dba<ul>
+<li>&lt;= 180 days for dev environment</li>
+<li>&lt;= 180 days for qa environment</li>
+<li>approval is <strong>always</strong> required for prod</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>You can see the format for these properties below:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Description</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>gatekeeper.approvalThreshold.dev.readonly.<environment></td>
+<td>The threshold in which devs can request readonly access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.dev.datafix.<environment></td>
+<td>The threshold in which devs can request datafix access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.dev.dba.<environment></td>
+<td>The threshold in which devs can request dba access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.ops.readonly.<environment></td>
+<td>The threshold in which ops can request readonly access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.ops.datafix.<environment></td>
+<td>The threshold in which ops can request readonly access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.ops.dba.<environment></td>
+<td>The threshold in which ops can request dba access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.dba.readonly.<environment></td>
+<td>The threshold in which dbas can request readonly access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.dba.datafix.<environment></td>
+<td>The threshold in which dbas can request readonly access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.approvalThreshold.dba.dba.<environment></td>
+<td>The threshold in which dbas can request readonly access before requiring approval</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.overridePolicy.maxDays</td>
+<td>The maximum amount of time a user can request temporary access for</td>
+<td>integer</td>
+</tr>
+<tr>
+<td>gatekeeper.overridePolicy.<user_role>.<db_role>.<environment></td>
+<td>for a given user role, db role and environment, this Overrides the maximum amount of days a user can request temporary access for</td>
+<td>integer</td>
+</tr>
+</tbody>
+</table>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../aws-setup/" title="AWS Setup" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                AWS Setup
+              </span>
+            </div>
+          </a>
+        
+        
+      </nav>
+    </div>
+  
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.js"></script>
+      
+      <script>app.initialize({version:"0.17.3",url:{base:".."}})</script>
+      
+    
+    
+      
+    
+  </body>
+</html>
