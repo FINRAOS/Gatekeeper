@@ -1,7 +1,9 @@
-# Gatekeeper [![Build Status](https://secure.travis-ci.org/FINRAOS/Gatekeeper.png?branch=master)](http://travis-ci.org/FINRAOS/Gatekeeper)
+<img src="/img/logo.png" alt="drawing" width="500px"/>
+
+[![Build Status](https://secure.travis-ci.org/FINRAOS/Gatekeeper.png?branch=master)](http://travis-ci.org/FINRAOS/Gatekeeper)
 
 ## What is Gatekeeper?
-Gatekeeper is an application that we developed here at FINRA to manage temporary access to EC2 and RDS resources in AWS in an automated fashion
+Gatekeeper is self-serviced web application allowing users to make requests for temporary access to EC2/RDS instances running in AWS and gain access instantly.
 
 ## How does Gatekeeper work?
 ### EC2
@@ -25,7 +27,7 @@ In a transient environment where application instances are constantly being torn
 
 Since access is automated and on a temporary basis, using Gatekeeper can reduce the amount of permanent users that get set up on an instance, allowing your resources to be more secure.
 
-Gatekeeper also stores and logs all of the access requests making user access fully auditable 
+Gatekeeper also stores and logs all of the access requests making user access fully auditable. 
 
 ## Local Setup
 
