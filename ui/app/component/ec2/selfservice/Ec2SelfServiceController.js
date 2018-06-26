@@ -47,7 +47,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
         //aws stuff
         this.awsSearchableTags = [
-            'Instance ID', 'Name', 'IP'
+            'Instance ID', 'Name', 'IP', 'Application'
         ];
 
         gkAccountService.fetch().then((response) =>{

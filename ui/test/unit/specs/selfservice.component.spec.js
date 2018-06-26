@@ -239,7 +239,7 @@ describe('GateKeeper UI self service component', function () {
                 disableBackgroundColor: 'rgba(0,0,0,0.12)'
             });
 
-            expect(controller.awsSearchableTags).toEqual(['Instance ID', 'Name', 'IP']);
+            expect(controller.awsSearchableTags).toEqual(['Instance ID', 'Name', 'IP', 'Application']);
             //aws stuff
             if(happy) {
                 expect(controller.awsAccounts).toEqual(resp.data);
