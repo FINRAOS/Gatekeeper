@@ -28,7 +28,6 @@ import commonWeb from './common-web';
 
 //This is for testing with mocked Rest Responses.
 //import runMocked from '../test/app.run.mocked';
-
 //cause I have no idea how to get 'ngMockE2E' this new way.... ;)
 angular.module('app', [md, state, gk, commonWeb, gkEc2, gkRds, select])
     .config(Config);

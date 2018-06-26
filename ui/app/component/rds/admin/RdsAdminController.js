@@ -16,15 +16,20 @@
  */
 
 import GatekeeperAdminController from '../../shared/admin/GatekeeperAdminController';
+import _ from 'lodash';
 
 const USERS = Symbol();
+const REVOKE = Symbol();
+const TOAST = Symbol();
 let vm;
 
 class RdsAdminController extends GatekeeperAdminController{
-    constructor(gkRdsUsersService, gkAccountService){
-        super();
+    constructor($mdDialog, $mdToast, gkRdsUsersService, gkRdsRevokeUsersService, gkAccountService){
+        super($mdDialog, $mdToast);
         vm = this;
         vm[USERS] = gkRdsUsersService;
+        vm[REVOKE] = gkRdsRevokeUsersService;
+        vm[TOAST] = $mdToast;
 
         vm.selectedItems = [];
         vm.rdsInstances = [];
@@ -51,7 +56,7 @@ class RdsAdminController extends GatekeeperAdminController{
                 checkboxFilters: [
                     {
                         label: 'Gatekeeper Users Only',
-                        filterFn: vm.disableRow
+                        filterFn: vm.filterGk
                     }]
             },
             // onSelect: $scope.onSelectFn,
@@ -81,6 +86,10 @@ class RdsAdminController extends GatekeeperAdminController{
         return !row.username.startsWith('gk_');
     }
 
+    filterGk(row){
+        return !vm.disableRow(row);
+    }
+
     getUsers(row){
         delete vm.error.users;
         vm.usersTable.fetching = true;
@@ -89,7 +98,7 @@ class RdsAdminController extends GatekeeperAdminController{
             {
                 account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                 region: vm.forms.awsInstanceForm.selectedRegion.name,
-                instanceId: row.instanceId,
+                instanceName: row.name,
             });
 
         vm.usersTable.promise.then((response) => {
@@ -99,6 +108,43 @@ class RdsAdminController extends GatekeeperAdminController{
         }).finally(() =>{
             vm.usersTable.fetching = false;
         });
+    }
+
+    revokeUsersFromDb(){
+        let title = "Revoke User Access";
+        let message = "This will delete the users you have selected, are you sure?";
+        vm.spawnConfirmDialog(title, message)
+            .then(() => {
+                delete vm.error.users;
+                vm.blocking = true;
+                vm.usersTable.promise = vm[REVOKE].delete(vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
+                    vm.forms.awsInstanceForm.selectedRegion.name,
+                    vm.selectedItems[0].name,
+                    vm.usersTable.selected);
+
+                vm.usersTable.promise.then((response) => {
+                    vm.usersTable.data = response.data;
+                    vm[TOAST].show(
+                        vm[TOAST].simple()
+                            .textContent('Users have been successfully revoked!')
+                            .position('bottom right')
+                            .hideDelay(10000));
+                }).catch((error) => {
+                    vm.error.users = error.data.message;
+                }).finally(() => {
+                    vm.usersTable.selected = [];
+                    vm.blocking = false;
+                });
+            });
+    }
+
+    showRawUsers(){
+        let title = 'Users for ' + vm.selectedItems[0].name;
+        let message = _.orderBy(
+                _.map(vm.usersTable.data, (item) => {
+            return item.username;
+            }), (item) => { return item.toLowerCase(); }, ['asc']);
+        vm.spawnAlertDialog(title, message);
     }
 }
 

@@ -15,13 +15,39 @@
  * limitations under the License.
  */
 
+import GatekeeperSubmissionDialogController from "../selfservice/GatekeeperSubmissionDialogController";
+
 let vm;
 
+const DIALOG = Symbol();
+const TOAST = Symbol();
+
 class GatekeeperAdminController {
-    constructor(){
+    constructor($mdDialog, $mdToast){
         vm = this;
+        vm[DIALOG] = $mdDialog;
+        vm[TOAST] = $mdToast;
         vm.forms = {};
         vm.error = {};
+    }
+    
+    spawnConfirmDialog(title, message){
+        let confirm = this[DIALOG].confirm()
+            .hasBackdrop(true)
+            .title(title)
+            .content(message)
+            .ok('Yes')
+            .cancel('No');
+        return this[DIALOG].show(confirm);
+    }
+
+    spawnAlertDialog(title, message){
+        let confirm = this[DIALOG].alert()
+            .hasBackdrop(true)
+            .title(title)
+            .content(message)
+            .ok('Dismiss');
+        return this[DIALOG].show(confirm);
     }
 }
 

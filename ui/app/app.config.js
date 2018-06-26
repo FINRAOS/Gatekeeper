@@ -258,6 +258,7 @@ function configureRouting($stateProvider, $urlRouterProvider){
 export default function config($mdDateLocaleProvider, $mdThemingProvider, $stateProvider, $urlRouterProvider) {
     require('./assets/Compute_AmazonEC2.svg');
     require('./assets/Database_AmazonRDS.svg');
+    require('./assets/gatekeeper.svg');
     configureMaterial($mdDateLocaleProvider, $mdThemingProvider);
     configureRouting($stateProvider, $urlRouterProvider);
 }

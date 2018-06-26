@@ -28,6 +28,10 @@ a {
     text-align:center;
 }
 
+.gk-card {
+    height:100%;
+}
+
 .gk-nav-bar {
     border-color: rgba(0,0,0,0.12)
 }

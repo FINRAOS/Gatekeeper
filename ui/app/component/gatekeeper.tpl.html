@@ -16,7 +16,7 @@
   -->
 
 <!-- Header -->
-<gk-header apptitle="{{'Gatekeeper'}}" subheader="{{gkCtrl.global.userInfo.user}}"></gk-header>
+<gk-header icon="./assets/gatekeeper.svg" apptitle="{{'Gatekeeper'}}" subheader="{{gkCtrl.global.userInfo.user}}"></gk-header>
 <div id="headerPad" style="padding-top:64px"></div>
 <div ng-show="gkCtrl.global.tabData" gk-nav-bar selected-index="gkCtrl.global.selectedIndex" tab-data="gkCtrl.global.tabData" states="gkCtrl.states" ready-func="gkCtrl.ready" selected-view="gkCtrl.global.selectedView" user-info="gkCtrl.global.userInfo"></div>
 <div ui-view style="height:calc(100% - 114px);"></div>

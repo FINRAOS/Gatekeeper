@@ -135,7 +135,8 @@ public class PostgresDBConnection implements DBConnection {
             return true;
 
         }catch(Exception ex){
-            logger.error("An exception was thrown while trying to revoke user " + user + "_" + roles.getShortSuffix() + " from address " + address, ex);
+            String username = roles == null ? user : user + "_" + roles.getShortSuffix();
+            logger.error("An exception was thrown while trying to revoke user " + username + " from address " + address, ex);
             return false;
         } finally {
             if(dataSource != null) {

@@ -21,6 +21,7 @@ import Directive from './generic/BaseDirective'
 import ADDataService from './ADDataService';
 import AWSDataService from './AWSDataService';
 import RDSDataService from './RDSDataService';
+import RdsRevokeUsersDataService from './RdsRevokeUsersDataService';
 import RdsUsersDataService from './RdsUsersDataService';
 import AccountDataService from './AccountDataService';
 import GrantDataService from './GrantDataService';
@@ -39,6 +40,7 @@ var gkUtil = angular.module('gatekeeper-util', [md, table])
     .service('gkAWSService', AWSDataService)
     .service('gkRDSService', RDSDataService)
     .service('gkRdsUsersService', RdsUsersDataService)
+    .service('gkRdsRevokeUsersService', RdsRevokeUsersDataService)
     .service('gkGrantService', GrantDataService)
     .service('gkRdsGrantService', RdsGrantDataService)
     .service('gkAccountService', AccountDataService)

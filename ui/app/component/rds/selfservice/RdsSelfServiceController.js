@@ -132,7 +132,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
     grantAccess(){
         let vm = this;
-        if(this.grantForm.$valid) {
+        if(vm.forms.grantForm.$valid) {
             delete vm.error.request;
             let title = 'Confirm Access Request';
             let message = 'This will request access for ' + vm.forms.grantForm.grantValue + ' day(s) for the selected users and instances. ';
@@ -165,7 +165,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                             );
                             if(response.data.outcome === 'CREATED') {
                                 //deselect all users and instances
-                                vm.selectedItems = [];
+                                vm.selectedItems.splice(0, vm.selectedItems.length);
                                 vm.usersTable.selected = [];
                                 vm.selfService = false;
                                 delete vm.forms.grantForm.grantValue;

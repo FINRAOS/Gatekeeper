@@ -16,9 +16,9 @@
  */
 
 //Dataservices
-import RDSDataService from '../../../app/component/shared/RdsUsersDataService';
+import RdsRevokeUsersDataService from '../../../app/component/shared/RdsRevokeUsersDataService';
+import RdsUsersDataService from '../../../app/component/shared/RdsUsersDataService';
 import AccountDataService from '../../../app/component/shared/AccountDataService';
-
 
 //Controllers
 import md from 'angular-material';
@@ -28,28 +28,31 @@ import RdsAdminController from '../../../app/component/rds/admin/RdsAdminControl
 
 describe('GateKeeper RDS admin component', function () {
 
-    let $http, $state, scope, controller;
+    let $http, $state, $mdDialog, $mdToast, scope, controller;
 
     beforeEach(angular.mock.module(md, router));
 
-    beforeEach(inject(function($rootScope, _$state_, _$http_){
+    beforeEach(inject(function($rootScope, _$state_, _$http_,_$mdDialog_,_$mdToast_){
         scope = $rootScope.$new();
         $state =_$state_;
         $http = _$http_;
+        $mdDialog = _$mdDialog_;
+        $mdToast = _$mdToast_;
         $state.current.name = 'gatekeeper.rds.admin';
     }));
 
     //mock all this stuff out.
     let $q, $rootScope, $httpBackend;
-    let gkRdsUserService, gkAccountService;
+    let gkRdsUserService, gkAccountService, gkRdsRevokeUsersService;
 
     describe('RdsAdminController', function(){
-        beforeEach(inject(function(_$q_, _$rootScope_, _$httpBackend_, _$http_){
+        beforeEach(inject(function(_$q_, _$rootScope_, _$httpBackend_){
             $q = _$q_;
             $rootScope = _$rootScope_;
             $httpBackend = _$httpBackend_;
-            $http = _$http_;
-            gkRdsUserService = new RDSDataService($http, $state);
+
+            gkRdsRevokeUsersService = new RdsRevokeUsersDataService($http, $state);
+            gkRdsUserService = new RdsUsersDataService($http, $state);
             gkAccountService = new AccountDataService($http, $state);
 
         }));
@@ -74,7 +77,7 @@ describe('GateKeeper RDS admin component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new RdsAdminController(gkRdsUserService, gkAccountService);
+            controller = new RdsAdminController($mdDialog, $mdToast, gkRdsUserService, gkRdsRevokeUsersService, gkAccountService);
 
             let expected = {
                 fetching: false,
@@ -86,7 +89,7 @@ describe('GateKeeper RDS admin component', function () {
                     checkboxFilters: [
                         {
                             label: 'Gatekeeper Users Only',
-                            filterFn: controller.disableRow
+                            filterFn: controller.filterGk
                         }
                     ]
                 },
@@ -143,17 +146,131 @@ describe('GateKeeper RDS admin component', function () {
                    selectedAccount: { alias:'ut'},
                    selectedRegion: { name:'us-east-1'}
                };
-               let row = {instanceId:'testid'};
+               let row = {name:'testid'};
                controller.getUsers(row);
                usersDeferred.resolve(resp);
                scope.$apply();
                expect(gkRdsUserService.search).toHaveBeenCalledWith({
                    account:controller.forms.awsInstanceForm.selectedAccount.alias,
                    region:controller.forms.awsInstanceForm.selectedRegion.name,
-                   instanceId:row.instanceId
+                   instanceName:row.name
                });
                expect(controller.usersTable.data).toEqual(resp.data);
            });
         });
+
+        describe('Test getRawUsers method', function() {
+           it('Should show the raw users in an alert dialog', function() {
+               testInit(true);
+               let deferred = $q.defer();
+               spyOn($mdDialog, 'show').and.returnValue(deferred.promise);
+               controller.forms.awsInstanceForm = {
+                   selectedAccount: { alias:'ut'},
+                   selectedRegion: { name:'us-east-1'}
+               };
+
+               let selectedDb = {name:'mytest'};
+               controller.selectedItems = [selectedDb];
+
+               controller.usersTable.data = [
+                   {username:'gk_test1'},
+                   {username:'a_test1'},
+               ];
+
+               spyOn(controller, 'spawnAlertDialog')
+
+               controller.showRawUsers();
+               expect(controller.spawnAlertDialog).toHaveBeenCalledWith('Users for ' + selectedDb.name, ['a_test1', 'gk_test1']);
+           });
+        });
+
+        describe('Test revokeUsers method', function() {
+            it('Should update users on success', function() {
+                testInit(true);
+                let deferred = $q.defer();
+                let revokeDefer = $q.defer();
+
+                spyOn(controller, 'spawnConfirmDialog').and.returnValue(deferred.promise);
+                spyOn(gkRdsRevokeUsersService, 'delete').and.returnValue(revokeDefer.promise);
+                spyOn($mdToast, 'show');
+
+                controller.forms.awsInstanceForm = {
+                    selectedAccount: { alias:'ut'},
+                    selectedRegion: { name:'us-east-1'}
+                };
+
+                let selectedDb = {name:'mytest'};
+                controller.selectedItems = [selectedDb];
+
+                let user1 = {username:'gk_test1'};
+                let user2 = {username:'a_test1'};
+
+                controller.usersTable.data = [
+                    user1,
+                    user2
+                ];
+
+                controller.usersTable.selected = [
+                    user1
+                ];
+
+                controller.revokeUsersFromDb();
+
+                expect(controller.spawnConfirmDialog).toHaveBeenCalledWith('Revoke User Access', 'This will delete the users you have selected, are you sure?');
+
+                deferred.resolve();
+                revokeDefer.resolve({data:[user2]});
+
+                $rootScope.$apply();
+
+                expect($mdToast.show).toHaveBeenCalled();
+                expect(controller.usersTable.data).toEqual([user2]);
+            });
+
+            it('Should set an error message on failure', function() {
+                testInit(true);
+                let deferred = $q.defer();
+                let revokeDefer = $q.defer();
+
+                spyOn(controller, 'spawnConfirmDialog').and.returnValue(deferred.promise);
+                spyOn(gkRdsRevokeUsersService, 'delete').and.returnValue(revokeDefer.promise);
+                spyOn($mdToast, 'show');
+
+                controller.forms.awsInstanceForm = {
+                    selectedAccount: { alias:'ut'},
+                    selectedRegion: { name:'us-east-1'}
+                };
+
+                let selectedDb = {name:'mytest'};
+                controller.selectedItems = [selectedDb];
+
+                let user1 = {username:'gk_test1'};
+                let user2 = {username:'a_test1'};
+
+                controller.usersTable.data = [
+                    user1,
+                    user2
+                ];
+
+                controller.usersTable.selected = [
+                    user1
+                ];
+
+                controller.revokeUsersFromDb();
+
+                expect(controller.spawnConfirmDialog).toHaveBeenCalledWith('Revoke User Access', 'This will delete the users you have selected, are you sure?');
+
+                let errorStr = 'This is a Test';
+                deferred.resolve();
+                revokeDefer.reject({data:{error:errorStr}});
+
+                $rootScope.$apply();
+
+                expect($mdToast.show).not.toHaveBeenCalled();
+                expect(controller.usersTable.data).toEqual([user1,user2]);
+                expect(controller.error.users = errorStr);
+            });
+        });
+
     });
 });

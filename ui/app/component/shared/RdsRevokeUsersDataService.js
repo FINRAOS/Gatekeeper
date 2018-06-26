@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import SearchableDataService from './generic/SearchableDataService';
+import DataService from './generic/DataService';
 
 /**
  * The Service to make AWS Calls
@@ -23,13 +23,29 @@ import SearchableDataService from './generic/SearchableDataService';
  *
  */
 
-class RdsUsersDataService extends SearchableDataService{
+class RdsRevokeUsersDataService extends DataService{
     constructor($http,$state){
         super($http,$state);
-        this.resource = 'getUsers';
-        this.params= ['account','region','instanceName'];
+        this.resource = 'db/removeUsers';
     }
 
+    delete(account, region, instanceName, users){
+        let bundle = {
+            account: account,
+            region: region,
+            db: instanceName,
+            users: users,
+        };
+
+        let reqHeaders = {'Content-Type': 'application/json'};
+
+        let config = {
+            data:bundle,
+            headers: reqHeaders
+        };
+
+        return this.http.delete(this.getApi()+'/'+this.resource, config);
+    }
 }
 
-export default RdsUsersDataService;
+export default RdsRevokeUsersDataService;
