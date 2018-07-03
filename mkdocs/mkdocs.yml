@@ -29,6 +29,8 @@ theme:
     code: Roboto Mono
   logo: 'images/logo.svg'
 
+google_analytics: ['UA-121230411-1', 'auto']
+
 # Extensions
 markdown_extensions:
   - markdown.extensions.admonition
