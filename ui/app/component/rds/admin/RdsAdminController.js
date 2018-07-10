@@ -51,11 +51,11 @@ class RdsAdminController extends GatekeeperAdminController{
             selection: 'multiple',
             // selectionId: 'userId',
             toolbar: {
-                header: 'Users',
+                header: '',
                 inlineFilter: true,
                 checkboxFilters: [
                     {
-                        label: 'Gatekeeper Users Only',
+                        label: 'GK Users',
                         filterFn: vm.filterGk
                     }]
             },

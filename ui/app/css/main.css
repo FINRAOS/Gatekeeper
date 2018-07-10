@@ -112,3 +112,7 @@ md-select md-select-value span:not(.md-select-icon):after {
     font-weight:800;
     color:black;
 }
+
+.gk-user-fill {
+    height:68px
+}

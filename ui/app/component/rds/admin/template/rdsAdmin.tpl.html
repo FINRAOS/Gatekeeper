@@ -36,16 +36,19 @@
              forms="gkAdminCtrl.forms"
              on-select-fn="gkAdminCtrl.getUsers"
              selection="single"
-             layout-gt-sm="column" flex="70"></div>
-        <md-card layout-padding layout-gt-sm="column" flex="30" >
+             layout-gt-sm="column" flex="65"></div>
+        <md-card layout-padding layout-gt-sm="column" flex="35" >
                 <h1 class=".md-display-1">Active Users</h1>
-            <div layout="row" layout-align="space-between center" >
+            <div class="gk-user-fill"></div>
+            <!--
+            <div layout="row" layout-align="space-between center" class="" >
                 <h2 class=".md-display-2">Selected DB: <i>{{ gkAdminCtrl.selectedItems.length === 0 ? "None Selected" : gkAdminCtrl.selectedItems[0].name }}</i></h2>
                 <div ng-if="gkAdminCtrl.selectedItems.length !== 0" >
                     <button ng-disabled="gkAdminCtrl.usersTable.fetching" md-button type="submit" class="md-raised md-primary"
                             ng-click="gkAdminCtrl.showRawUsers()"> Show Raw Users </button>
                 </div>
             </div>
+            -->
             <gk-table class="gk-users" ng-if="gkAdminCtrl.selectedItems.length > 0" config="gkAdminCtrl.usersTable"></gk-table>
             <div ng-if="gkAdminCtrl.usersTable.fetching" class="gk-pleasewait" layout="row" layout-align="center center">
                 <span layout-padding>Fetching Users</span>
