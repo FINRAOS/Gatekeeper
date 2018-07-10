@@ -84,11 +84,11 @@ describe('GateKeeper RDS admin component', function () {
                 selection: 'multiple',
                 // selectionId: 'username',
                 toolbar:{
-                    header: 'Users',
+                    header: '',
                     inlineFilter:true,
                     checkboxFilters: [
                         {
-                            label: 'Gatekeeper Users Only',
+                            label: 'GK Users',
                             filterFn: controller.filterGk
                         }
                     ]
