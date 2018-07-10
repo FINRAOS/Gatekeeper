@@ -1,8 +1,0 @@
-language: java
-script:
-  - pushd services
-  - mvn test
-  - popd
-  - pushd ui
-  - npm install
-  - npm run ci-test

@@ -1,0 +1,357 @@
+# Java Maven CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-java/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8-jdk
+    working_directory: ~/repo
+    environment:
+      MAVEN_OPTS: -Xmx3200m
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            # when lock file changes, use increasingly general patterns to restore cache
+            - maven-repo-{{ .Branch }}-{{ checksum "services/pom.xml" }}{{ checksum "services/ec2/pom.xml" }}{{ checksum "services/rds/pom.xml" }}{{ checksum "services/common/pom.xml" }}
+            - maven-repo-{{ .Branch }}-
+            - maven-repo
+      - run:
+          name: Run Tests and Build Backend Services
+          command: |
+            pushd services
+            mvn clean package
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-{{ .Branch }}-{{ checksum "services/pom.xml" }}{{ checksum "services/ec2/pom.xml" }}{{ checksum "services/rds/pom.xml" }}{{ checksum "services/common/pom.xml" }}
+      - run:
+          name: Save Tests
+          command: |
+            mkdir -p ~/junit
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/junit/ \;
+      - store_test_results:
+          path: ~/junit
+      - save_cache:
+          key: gk-ec2-{{ .Branch }}-{{ epoch }}
+          paths:
+              - services/ec2/target/gatekeeper-ec2-service-1.0.0.jar
+      - save_cache:
+          key: gk-rds-{{ .Branch }}-{{ epoch }}
+          paths:
+              - services/rds/target/gatekeeper-rds-service-1.0.0.jar
+  build_ui:
+    docker:
+      - image: circleci/node:10-stretch-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+              - v1-dependencies-{{ checksum "ui/package.json" }}
+              - v1-dependencies-
+      - run:
+          name: Install Dependencies
+          command: |
+            pushd ui
+            npm install --verbose
+      - save_cache:
+          key: v1-dependencies-{{ checksum "ui/package.json" }}
+          paths:
+              - ~/ui/node_modules
+      - run:
+          name: Run Tests
+          command: |
+            pushd ui
+            npm run test
+      - run:
+          name: Save-Tests
+          command: |
+            mkdir -p ~/junit
+            find . -type f -regex ".*/test/junit/.*xml" -exec cp {} ~/junit/ \;
+      - run:
+          name: Build Application
+          command: |
+            pushd ui
+            npm run build
+            tar -czvf dist.tar.gz dist
+      - save_cache:
+          key: gk-ui-{{ .Branch }}-{{ epoch }}
+          paths:
+              - ui/dist.tar.gz
+      - store_test_results:
+          path: ~/junit
+  build_base_docker:
+    working_directory: /repo
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Base Container
+          command: |
+            cd containers/base
+            docker build -t gatekeeper/base ./
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/base.tar gatekeeper/base
+      - save_cache:
+          key: gk_cntnr_base_v1-{{ .Branch }}-{{ checksum "/caches/base.tar" }}
+          paths:
+            - /caches/base.tar
+  build_java_docker:
+    working_directory: /repo
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - gk_cntnr_base_v1-{{ .Branch }}
+          paths:
+            - /caches/base.tar
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /caches/base.tar | true
+      - run:
+          name: Build Java Container
+          command: |
+            cd containers/java
+            docker build -t gatekeeper/java ./
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/java.tar gatekeeper/java
+      - save_cache:
+          key: gk_cntnr_java_v1-{{ .Branch }}-{{ checksum "/caches/java.tar" }}
+          paths:
+            - /caches/java.tar
+  build_nginx_docker:
+    working_directory: /repo
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - gk_cntnr_base_v1-{{ .Branch }}
+          paths:
+            - /caches/base.tar
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /caches/base.tar | true
+      - run:
+          name: Build Nginx Container
+          command: |
+            cd containers/nginx
+            docker build -t gatekeeper/nginx ./
+      - run:
+          name: Save Docker image layer cache
+          command: |
+            mkdir -p /caches
+            docker save -o /caches/nginx.tar gatekeeper/nginx
+      - save_cache:
+          key: gk_cntnr_nginx_v1-{{ .Branch }}-{{ checksum "/caches/nginx.tar" }}
+          paths:
+            - /caches/nginx.tar
+  build_and_push_ui:
+    working_directory: ~/repo
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - gk_cntnr_nginx_v1-{{ .Branch }}
+          paths:
+            - /caches/nginx.tar
+      - restore_cache:
+          keys:
+            - gk-ui-{{ .Branch }}
+      - run:
+          name: Load Docker image + stage UI code
+          command: |
+            set +o pipefail
+            docker load -i /caches/nginx.tar | true
+            mv /home/circleci/repo/ui/dist.tar.gz ~/repo/ui
+            cd ui
+            tar -xzvf dist.tar.gz
+      - run:
+          name: Build Gatekeeper UI Container
+          command: |
+            cd ui
+            docker build -t gatekeeper/ui ./
+      - run:
+          name: Push Gatekeeper UI Container to docker repo
+          command: |
+            source .circleci/push.sh gatekeeper/ui gatekeeper-ui
+  build_and_push_rds:
+    working_directory: ~/repo
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - gk_cntnr_java_v1-{{ .Branch }}
+          paths:
+            - /caches/java.tar
+      - restore_cache:
+          keys:
+            - gk-rds-{{ .Branch }}
+      - run:
+          name: Load Docker image
+          command: |
+            set +o pipefail
+            docker load -i /caches/java.tar | true
+            mv /home/circleci/repo/services/rds/target ~/repo/services/rds
+      - run:
+          name: Build Gatekeeper RDS Service Container
+          command: |
+            cd services/rds
+            docker build --build-arg jar_file=gatekeeper-rds-service-1.0.0.jar -t gatekeeper/rds ./
+            docker images
+      - run:
+          name: Push Gatekeeper RDS Container to docker repo
+          command: |
+            source .circleci/push.sh gatekeeper/rds gatekeeper-rds-service
+  build_and_push_ec2:
+    working_directory: ~/repo
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - gk_cntnr_java_v1-{{ .Branch }}
+          paths:
+            - /caches/java.tar
+      - restore_cache:
+          keys:
+            - gk-ec2-{{ .Branch }}
+      - run:
+          name: Load Docker image
+          command: |
+            set +o pipefail
+            docker load -i /caches/java.tar | true
+            mv /home/circleci/repo/services/ec2/target ~/repo/services/ec2
+      - run:
+          name: Build Gatekeeper EC2 Service Container
+          command: |
+            cd services/ec2
+            docker build --build-arg jar_file=gatekeeper-ec2-service-1.0.0.jar -t gatekeeper/ec2 ./
+            docker images
+      - run:
+          name: Push Gatekeeper EC2 Container to docker repo
+          command: |
+            source .circleci/push.sh gatekeeper/ec2 gatekeeper-ec2-service
+workflows:
+  version: 2
+  ci-push:
+    jobs:
+      - build
+      - build_ui
+      - build_base_docker
+      - build_java_docker:
+          requires:
+            - build_base_docker
+      - build_nginx_docker:
+          requires:
+            - build_base_docker
+      - build_and_push_ui:
+          requires:
+            - build_ui
+            - build_base_docker
+            - build_nginx_docker
+      - build_and_push_rds:
+          requires:
+            - build
+            - build_base_docker
+            - build_java_docker
+      - build_and_push_ec2:
+          requires:
+            - build
+            - build_base_docker
+            - build_java_docker
+  tag-and-release:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - build_ui:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - build_base_docker:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - build_java_docker:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build_base_docker
+      - build_nginx_docker:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build_base_docker
+      - build_and_push_ui:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build_ui
+            - build_base_docker
+            - build_nginx_docker
+      - build_and_push_rds:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build
+            - build_base_docker
+            - build_java_docker
+      - build_and_push_ec2:
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+          requires:
+            - build
+            - build_base_docker
+            - build_java_docker
+

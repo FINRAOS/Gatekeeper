@@ -21,7 +21,7 @@ ARG proxy
 ENV http_proxy ${proxy}
 ENV https_proxy ${proxy}
 
-RUN yum install nginx -y
+RUN amazon-linux-extras install nginx1.12
 
 RUN mkdir -p /opt/gatekeeper/static
 ADD static/index.html /opt/gatekeeper/static/index.html
