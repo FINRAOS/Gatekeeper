@@ -1,0 +1,66 @@
+<!--
+  ~
+  ~ Copyright 2018. Gatekeeper Contributors
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div ng-if="gkAdminCtrl.blocking">
+    <div style="overflow:hidden; position: fixed;  top: 0;  left: 0;  width: 100%;  height: 100%;  z-index: 10;  background-color: rgba(0,0,0,0.5); /*dim the background*/" ></div>
+    <div style="position: fixed; z-index:99" layout="column" layout-align="center center" layout-fill>
+        <md-card layout-padding style="background-color:white;" layout="column">
+            <div layout="row" layout-align="center center">
+                <md-progress-circular class="md-accent" md-mode="indeterminate"></md-progress-circular>
+                <span layout-padding>Please Wait</span>
+            </div>
+        </md-card>
+    </div>
+</div>
+<md-content id="gkAdminContainer">
+    <div layout="row" id="gkADAWSInterface">
+        <div gatekeeper-rds-component
+             title="Search RDS Instances"
+             check-if-approval-needed-fn="gkAdminCtrl.checkIfApprovalNeeded"
+             selected-items="gkAdminCtrl.selectedItems"
+             data="gkAdminCtrl.rdsInstances"
+             forms="gkAdminCtrl.forms"
+             on-select-fn="gkAdminCtrl.getUsers"
+             selection="single"
+             layout-gt-sm="column" flex="65"></div>
+        <md-card layout-padding layout-gt-sm="column" flex="35" >
+                <h1 class=".md-display-1">Active Users</h1>
+            <div class="gk-user-fill"></div>
+            <!--
+            <div layout="row" layout-align="space-between center" class="" >
+                <h2 class=".md-display-2">Selected DB: <i>{{ gkAdminCtrl.selectedItems.length === 0 ? "None Selected" : gkAdminCtrl.selectedItems[0].name }}</i></h2>
+                <div ng-if="gkAdminCtrl.selectedItems.length !== 0" >
+                    <button ng-disabled="gkAdminCtrl.usersTable.fetching" md-button type="submit" class="md-raised md-primary"
+                            ng-click="gkAdminCtrl.showRawUsers()"> Show Raw Users </button>
+                </div>
+            </div>
+            -->
+            <gk-table class="gk-users" ng-if="gkAdminCtrl.selectedItems.length > 0" config="gkAdminCtrl.usersTable"></gk-table>
+            <div ng-if="gkAdminCtrl.usersTable.fetching" class="gk-pleasewait" layout="row" layout-align="center center">
+                <span layout-padding>Fetching Users</span>
+            </div>
+            <div class="gk-error" ng-if="gkAdminCtrl.error.users" layout="column" layout-align="center center" layout-padding>
+                <span class="gk-error-text">There was an error while trying to fetch the users:</span>
+                <span class="gk-error-text">{{ gkAdminCtrl.error.users }}</span>
+            </div>
+            <div ng-if="gkAdminCtrl.usersTable.selected.length !== 0" layout="row" layout-align="end center">
+                <button md-button type="submit" class="md-raised md-primary"
+                        ng-click="gkAdminCtrl.revokeUsersFromDb(gkAdminCtrl.usersTable.selected)"> Revoke Selected Users </button>
+            </div>
+        </md-card>
+    </div>
+</md-content>

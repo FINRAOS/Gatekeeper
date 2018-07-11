@@ -115,24 +115,24 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                 .then(() => {
                     vm.awsTable.selected = [];
                     vm.awsTable.data = [];
-                    if(vm.awsInstanceForm.selectedAccount !== vm.lastSelectedAccount){
-                        delete vm.awsInstanceForm.selectedRegion;
+                    if(vm.forms.awsInstanceForm.selectedAccount !== vm.lastSelectedAccount){
+                        delete vm.forms.awsInstanceForm.selectedRegion;
                     }
-                    vm.awsInstanceForm.$setUntouched();
-                    vm.awsInstanceForm.$setPristine();
+                    vm.forms.awsInstanceForm.$setUntouched();
+                    vm.forms.awsInstanceForm.$setPristine();
                     vm.checkIfApprovalNeeded();
                 }).catch(() => {
                     //Do nothing, essentially
-                    vm.awsInstanceForm.selectedAccount = vm.lastSelectedAccount;
-                    vm.awsInstanceForm.selectedRegion = vm.lastSelectedRegion;
-                    vm.awsInstanceForm.selectedPlatform = vm.lastSelectedPlatform;
+                    vm.forms.awsInstanceForm.selectedAccount = vm.lastSelectedAccount;
+                    vm.forms.awsInstanceForm.selectedRegion = vm.lastSelectedRegion;
+                    vm.forms.awsInstanceForm.selectedPlatform = vm.lastSelectedPlatform;
                 }).finally(() => {
                     vm.dialogOpened = false;
                 })
         }else{
-            vm.lastSelectedAccount = vm.awsInstanceForm.selectedAccount;
-            vm.lastSelectedRegion = vm.awsInstanceForm.selectedRegion;
-            vm.lastSelectedPlatform = vm.awsInstanceForm.selectedPlatform;
+            vm.lastSelectedAccount = vm.forms.awsInstanceForm.selectedAccount;
+            vm.lastSelectedRegion = vm.forms.awsInstanceForm.selectedRegion;
+            vm.lastSelectedPlatform = vm.forms.awsInstanceForm.selectedPlatform;
             vm.awsTable.data = [];
             vm.checkIfApprovalNeeded();
         }
@@ -153,17 +153,17 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
     }
 
     searchAWSInstances(){
-        if(this.awsInstanceForm.$valid) {
+        if(this.forms.awsInstanceForm.$valid) {
             delete this.error.aws;
             this.fetching.aws = true;
             this.awsTable.data = [];
             this.awsTable.promise = this[AWS].search(
                 {
-                    account: this.awsInstanceForm.selectedAccount.alias.toLowerCase(),
-                    region: this.awsInstanceForm.selectedRegion.name,
-                    searchTag:this.awsInstanceForm.searchTag,
-                    searchStr:this.awsInstanceForm.searchText,
-                    platform:this.awsInstanceForm.selectedPlatform
+                    account: this.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
+                    region: this.forms.awsInstanceForm.selectedRegion.name,
+                    searchTag:this.forms.awsInstanceForm.searchTag,
+                    searchStr:this.forms.awsInstanceForm.searchText,
+                    platform:this.forms.awsInstanceForm.selectedPlatform
                 });
 
             this.awsTable.promise.then((response) => {
@@ -180,8 +180,8 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
         vm.approvalRequired = false;
         if(vm.global.userInfo.role !== 'APPROVER') {
             //first check hours
-            if (vm.awsInstanceForm.selectedAccount) {
-                vm.approvalRequired = vm.grantForm.grantValue > vm.global.userInfo.approvalThreshold[vm.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]
+            if (vm.forms.awsInstanceForm.selectedAccount) {
+                vm.approvalRequired = vm.forms.grantForm.grantValue > vm.global.userInfo.approvalThreshold[vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]
             }
             //if the hours didn't cross the threshold then check application on selected instances
             if (!vm.approvalRequired && (vm.global.userInfo.role === 'DEV' || vm.global.userInfo.role === 'OPS')) {
@@ -196,10 +196,10 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
     grantAccess(){
         let vm = this;
-        if(this.grantForm.$valid) {
+        if(vm.forms.grantForm.$valid) {
             delete vm.error.request;
             let title = 'Confirm Access Request';
-            let message = 'This will request access for ' + vm.grantForm.grantValue + ' hour(s) for the selected users and instances. ';
+            let message = 'This will request access for ' + vm.forms.grantForm.grantValue + ' hour(s) for the selected users and instances. ';
             if(vm.approvalRequired){
                 message += 'This request will require approval.'
             }
@@ -208,10 +208,10 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
             vm.spawnTemplatedDialog(config)
                 .then((explanation) => {
                     this.fetching.grant = true;
-                    vm[GRANT].post(vm.grantForm.grantValue, vm.usersTable.selected, vm.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.awsInstanceForm.selectedRegion.name, vm.awsTable.selected, explanation, vm.awsInstanceForm.selectedPlatform)
+                    vm[GRANT].post(vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.awsTable.selected, explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
-                            let msg = 'Access was requested for ' + vm.grantForm.grantValue + ' hours. If your request required approval,'
+                            let msg = 'Access was requested for ' + vm.forms.grantForm.grantValue + ' hours. If your request required approval,'
                                 + ' access will not be granted until your request is reviewed and actioned by an approver. Once granted, users will' +
                                 ' be sent an email with further instructions';
                             vm[TOAST].show(
@@ -224,7 +224,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                             vm.awsTable.selected = [];
                             vm.usersTable.selected = [];
                             vm.selfService = false;
-                            delete vm.grantForm.grantValue;
+                            delete vm.forms.grantForm.grantValue;
 
                             //needed since forms are still dirty
                             vm.confirm=false;

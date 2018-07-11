@@ -23,6 +23,11 @@
 	z-index:2147483647;
 }
 
+.gk-logo{
+	width:50px;
+	height:50px;
+}
+
 #appTitle, #appTitle a{
 	text-transform: none;
 	font-size:23px;

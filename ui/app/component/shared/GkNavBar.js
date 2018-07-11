@@ -51,6 +51,10 @@ class GatekeeperNavBar extends Directive {
 
         this.switchContext = (context) => {
             if($scope.readyFunc() && !$state.current.name.includes(context)){
+                if(!$scope.tabData.enabled){
+                    //if the tab is not enabled just go to the tab at position 0
+                    $scope.selectedIndex = 0;
+                }
                 $state.go(context+"."+Object.keys($scope.tabData)[$scope.selectedIndex].toLowerCase(), { selectedIndex: $scope.selectedIndex });
             }
         };

@@ -34,6 +34,7 @@ let STATES = {
     selfService: 'gk.ec2.selfservice',
     requests: 'gk.ec2.requests',
     history: 'gk.ec2.history',
+    admin: 'gk.ec2.administration',
     denied: 'gk.denied',
     error: 'gk.error'
 };
@@ -41,7 +42,8 @@ let STATES = {
 let LABELS = {
     selfService: 'Request Access',
     requests: 'Access Requests',
-    history: 'Access History'
+    history: 'Access History',
+    admin: 'Administration'
 };
 
 let vm;
@@ -74,6 +76,12 @@ class GatekeeperEc2Controller extends GatekeeperController{
                 label: LABELS.history,
                 enabled: false,
                 goToState:STATES.history
+            },
+            admin: {
+                label: LABELS.admin,
+                enabled: false,
+                goToState:STATES.admin,
+                hidden: true
             }
         };
 

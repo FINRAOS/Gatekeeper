@@ -19,6 +19,7 @@ package org.finra.gatekeeper.services.db.interfaces;
 
 import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
@@ -65,4 +66,12 @@ public interface DBConnection {
     List<String> checkDb(String address) throws GKUnsupportedDBException;
 
     List<String> checkIfUsersHasTables(String address, List<String> users) throws SQLException;
+
+    /**
+     * Connects to the DB and gets all of the Users currently on the RDS instance
+     * @param address
+     * @return List of all of the users on the instance
+     */
+    List<DbUser> getUsers(String address) throws SQLException;
+
 }

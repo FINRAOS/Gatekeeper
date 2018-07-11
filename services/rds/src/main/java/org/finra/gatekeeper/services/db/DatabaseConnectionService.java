@@ -17,22 +17,23 @@
 
 package org.finra.gatekeeper.services.db;
 
+import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.factory.DatabaseConnectionFactory;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,6 +93,33 @@ public class DatabaseConnectionService {
         return statusMap;
     }
 
+    /**
+     * Revokes a list of users from a given database
+     * @param database - the database to revoke access from
+     * @return
+     * @throws Exception
+     */
+    @PreAuthorize("@gatekeeperRoleService.isApprover()")
+    public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance database, List<DbUser> users ) throws Exception {
+        List<DbUser> nonGkUsers = users.stream()
+                .filter(user -> !user.getUsername().startsWith("gk_"))
+                .collect(Collectors.toList());
+
+        if(!nonGkUsers.isEmpty()){
+            throw new GatekeeperException("Forced removal of non-gatekeeper users is not supported. The following unsupported users are: " + nonGkUsers.toString() );
+        }
+
+        List<String> usersRemoved = new ArrayList<>();
+        for(DbUser user:  users){
+            boolean outcome = databaseConnectionFactory.getConnection(database.getEngine()).revokeAccess(user.getUsername(), null, getAddress(database.getEndpoint(), database.getDbName()));
+            if(!outcome){
+                usersRemoved.add(user.getUsername());
+            }
+        }
+
+        return usersRemoved;
+    }
+
     //UI will usually call this one
     public Map<RoleType, List<String>> getAvailableSchemasForDb(GatekeeperRDSInstance database) throws Exception {
         return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()));
@@ -105,6 +133,10 @@ public class DatabaseConnectionService {
     public String checkDb(String engine, String address) throws GKUnsupportedDBException{
         List<String> issues = databaseConnectionFactory.getConnection(engine).checkDb(address);
         return issues.stream().collect(Collectors.joining(","));
+    }
+
+    public List<DbUser> getUsersForDb(GatekeeperRDSInstance database) throws Exception {
+        return databaseConnectionFactory.getConnection(database.getEngine()).getUsers(getAddress(database.getEndpoint(), database.getDbName()));
     }
 
     /**

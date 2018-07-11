@@ -29,7 +29,15 @@
 <md-content id="gkAdminContainer">
     <div layout-gt-md="row" id="gkADAWSInterface" >
         <div gatekeeper-user-component layout-gt-sm="column" flex="100" flex-gt-md="30"></div>
-        <div gatekeeper-rds-component layout-gt-sm="column" flex="100" flex-gt-md="70"></div>
+        <div gatekeeper-rds-component
+             title="Which Databases?"
+             on-deselect-fn="gkSelfServiceCtrl.checkIfApprovalNeeded"
+             on-select-fn="gkSelfServiceCtrl.checkIfApprovalNeeded"
+             selected-items="gkSelfServiceCtrl.selectedItems"
+             data="gkSelfServiceCtrl.rdsInstances"
+             forms="gkSelfServiceCtrl.forms"
+             selection="multiple"
+             layout-gt-sm="column" flex="100" flex-gt-md="70"></div>
     </div>
     <div gatekeeper-rds-grant-component layout="row" layout-fill id="gkGrantInterface" layout-padding></div>
 </md-content>

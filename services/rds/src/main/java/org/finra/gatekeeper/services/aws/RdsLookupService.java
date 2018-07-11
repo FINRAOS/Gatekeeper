@@ -28,9 +28,11 @@ import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -162,6 +164,21 @@ public class RdsLookupService {
         return gatekeeperRDSInstances;
     }
 
+    public Optional<GatekeeperRDSInstance> getOneInstance(AWSEnvironment environment, String dbInstanceIdentifier) {
+        Long startTime = System.currentTimeMillis();
+        DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest();
+        List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
+        AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
+        DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest.withDBInstanceIdentifier(dbInstanceIdentifier));
+
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient, result.getDBInstances(), securityGroupIds);
+
+        logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
+
+        Optional<GatekeeperRDSInstance> gatekeeperRDSInstance = Optional.of(gatekeeperRDSInstances.get(0));
+        return gatekeeperRDSInstance;
+    }
+
     private Filter createAwsFilter(String filterKey, Collection<String> vals){
         Filter filter = new Filter();
         filter.setName(filterKey);
@@ -170,16 +187,23 @@ public class RdsLookupService {
     }
 
     public Map<RoleType, List<String>> getSchemasForInstance(AWSEnvironment environment, String instanceId) throws Exception{
-        // get it from the cache, it should be there!
-        List<GatekeeperRDSInstance> cachedInstances = rdsInstanceCache.getUnchecked(environment);
-        Optional<GatekeeperRDSInstance> theInstance = cachedInstances.stream()
-                .filter(db -> db.getInstanceId().equals(instanceId))
-                .findFirst();
-
-        if(theInstance.isPresent()){
-            return databaseConnectionService.getAvailableSchemasForDb(theInstance.get());
+        Optional<GatekeeperRDSInstance> instance = getInstance(environment, instanceId);
+        if(instance.isPresent()){
+            return databaseConnectionService.getAvailableSchemasForDb(instance.get());
         }else{
             return unavailableMap();
+        }
+    }
+
+    @PreAuthorize("@gatekeeperRoleService.isApprover()")
+    public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceName) throws Exception {
+        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceName);
+
+        if(instance.isPresent()){
+            return databaseConnectionService.getUsersForDb(instance.get());
+        }else{
+            logger.error("Could not find database with " + instanceName + " on account " + environment.getAccount() + "(" + environment.getRegion() + ")");
+            return Collections.emptyList();
         }
     }
 
@@ -190,5 +214,12 @@ public class RdsLookupService {
         }
 
         return empty;
+    }
+
+    private Optional<GatekeeperRDSInstance> getInstance(AWSEnvironment environment, String instanceId){
+        // get it from the cache, it should be there!
+        return rdsInstanceCache.getUnchecked(environment).stream()
+                .filter(db -> db.getInstanceId().equals(instanceId))
+                .findFirst();
     }
 }

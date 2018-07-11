@@ -40,11 +40,11 @@
                 <em>({{$chip.name}})</em>
             </md-chip-template>
         </md-chips>
-        <form name="gkSelfServiceCtrl.grantForm" layout="column">
+        <form name="gkSelfServiceCtrl.forms.grantForm" layout="column">
             <div layout="row">
                 <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
                 <md-input-container id="containerGkInputGrant" layout-align="end end" layout="column" flex="none">
-                    <input id="gkInputGrant" aria-label="Hours" class=".md-display-1" min="1" max="168" type="number" ng-model="gkSelfServiceCtrl.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
+                    <input id="gkInputGrant" aria-label="Hours" class=".md-display-1" min="1" max="168" type="number" ng-model="gkSelfServiceCtrl.forms.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
                 </md-input-container>
                 <p  layout-align="end start" layout="column" class="md-title" flex="initial">Hours.</p>
                 <div layout="column" layout-align="end start" >
@@ -53,7 +53,7 @@
                             <button class="gk-grant-btn md-raised md-primary" ng-disabled="gkSelfServiceCtrl.usersTable.selected.length === 0 || gkSelfServiceCtrl.awsTable.selected.length === 0" md-button
                                 type="submit" class="gk-grant-button md-raised md-primary" ng-click="gkSelfServiceCtrl.grantAccess()"> Request Access </button>
                         </div>
-                        <div layout="column" layout-align="center center" ng-if="gkSelfServiceCtrl.grantForm.grantValue">
+                        <div layout="column" layout-align="center center" ng-if="gkSelfServiceCtrl.forms.grantForm.grantValue">
                             <div layout="row" ng-if="!gkSelfServiceCtrl.approvalRequired" layout-align="center center">
                                 <md-icon layout="column" class="gk-grant-icon md-accent md-avatar" md-svg-src="action:check_circle"></md-icon>
                                 <span layout="column">This request does not need approval</span>

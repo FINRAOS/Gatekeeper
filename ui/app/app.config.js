@@ -206,7 +206,6 @@ function configureRouting($stateProvider, $urlRouterProvider){
         }
     );
 
-
     $stateProvider.state('gk.rds.selfservice',
         {
             url: '/selfservice',
@@ -218,6 +217,22 @@ function configureRouting($stateProvider, $urlRouterProvider){
                 'user':'unknown',
                 'memberships':[],
                 'approvalThreshold':[],
+                'role':'unauthorized',
+                'email':'unknown'
+            },
+            onEnter:confirmAccess
+        }
+    );
+
+    $stateProvider.state('gk.rds.admin',
+        {
+            url: '/admin',
+            template: require('./component/rds/admin/template/rdsAdmin.tpl.html'),
+            controller: 'gkRdsAdminController',
+            controllerAs: 'gkAdminCtrl',
+            params: {
+                'userId':'unknown',
+                'user':'unknown',
                 'role':'unauthorized',
                 'email':'unknown'
             },
@@ -243,6 +258,7 @@ function configureRouting($stateProvider, $urlRouterProvider){
 export default function config($mdDateLocaleProvider, $mdThemingProvider, $stateProvider, $urlRouterProvider) {
     require('./assets/Compute_AmazonEC2.svg');
     require('./assets/Database_AmazonRDS.svg');
+    require('./assets/gatekeeper.svg');
     configureMaterial($mdDateLocaleProvider, $mdThemingProvider);
     configureRouting($stateProvider, $urlRouterProvider);
 }

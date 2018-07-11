@@ -2,8 +2,10 @@
 	<md-toolbar class="md-toolbar-tools gk-banner" layout-align="center center" ng-style="{'background-color':color}">
 		<span flex="5"></span>
 		<div  class="gkStoreBrand" layout="row" layout-align="center center">
-			<img id="appLogo" ng-src="{{icon}}" ng-if="icon"></img>
-			<span id="appTitle" aria-label="{{apptitle}}" layout-margin>
+            <div class="gk-logo">
+                <md-icon id="appLogo" style="height:75%" md-svg-src="{{icon}}" ng-if="icon" layout-fill></md-icon>
+            </div>
+            <span id="appTitle" aria-label="{{apptitle}}" layout-margin>
 				{{apptitle}}
 			</span>
 		</div>

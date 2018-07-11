@@ -16,9 +16,9 @@
   -->
 
 <div class="md-nav-bar gk-nav-bar"  layout="row">
-    <div layout="column" flex="50">
+    <div layout="column" flex="75">
         <md-tabs md-selected="selectedIndex" md-swipe-content layout="column">
-            <md-tab ng-repeat="(tab, value) in tabData" label="{{value.label}}" md-active="value.enabled" md-on-select="gkNavCtrl.openView(value.goToState)" ></md-tab>
+            <md-tab ng-repeat="(tab, value) in tabData" ng-if="!value.hidden" label="{{value.label}}" md-active="value.enabled" md-on-select="gkNavCtrl.openView(value.goToState)" ></md-tab>
         </md-tabs>
     </div>
     <span flex></span>

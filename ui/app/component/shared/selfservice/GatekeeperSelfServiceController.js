@@ -41,6 +41,8 @@ class GatekeeperSelfServiceController {
         this.selfService = false;
         this.role = vm.global.userInfo.role;
         this.approvalThreshold = vm.global.userInfo.approvalThreshold;
+        this.forms = {};
+
 
         this.selfServiceUser = {
             name:vm.global.userInfo.user,
@@ -92,8 +94,8 @@ class GatekeeperSelfServiceController {
     }
 
     confirmStateChange(event,toState,toParams){
-        var isPristine = Object.keys(vm).every(function(key){
-            return !vm[key] || !vm[key].$dirty;
+        var isPristine = Object.keys(vm.forms).every(function(key){
+            return !vm.forms[key] || !vm.forms[key].$dirty;
         });
 
         if (!isPristine && vm.confirm) {
@@ -149,11 +151,11 @@ class GatekeeperSelfServiceController {
 
     //AD Component
     searchAD(){
-        if(this.adForm.$valid) {
+        if(this.forms.adForm.$valid) {
             delete this.error.ad;
             this.fetching.ad = true;
             this.usersTable.data = [];
-            this.usersTable.promise = this[AD].search({searchStr:this.adForm.searchText});
+            this.usersTable.promise = this[AD].search({searchStr:this.forms.adForm.searchText});
 
             this.usersTable.promise.then((response) => {
                 this.usersTable.data = response.data;

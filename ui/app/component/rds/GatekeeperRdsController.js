@@ -34,6 +34,7 @@ let STATES = {
     selfService: 'gk.rds.selfservice',
     requests: 'gk.rds.requests',
     history: 'gk.rds.history',
+    admin: 'gk.rds.admin',
     denied: 'gk.denied',
     error: 'gk.error'
 };
@@ -41,7 +42,8 @@ let STATES = {
 let LABELS = {
     selfService: 'Request Access',
     requests: 'Access Requests',
-    history: 'Access History'
+    history: 'Access History',
+    admin: 'Administration'
 };
 
 let vm;
@@ -74,6 +76,12 @@ class GatekeeperRdsController extends GatekeeperController{
                 label: LABELS.history,
                 enabled: false,
                 goToState:STATES.history
+            },
+            admin: {
+                label: LABELS.admin,
+                enabled: false,
+                goToState:STATES.admin,
+                hidden: true
             }
         };
 
@@ -94,6 +102,7 @@ class GatekeeperRdsController extends GatekeeperController{
             }else{
                 vm.global.userInfo.role = data.role;
             }
+            vm.global.tabData.admin.hidden = vm.global.userInfo.role !== 'APPROVER';
 
             switch (vm.global.userInfo.role) {
                 case ROLES.approver:

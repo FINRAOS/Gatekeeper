@@ -18,15 +18,15 @@
 <md-card layout-padding>
     <div id="containerADSearch">
         <h1 class=".md-display-1">Who needs access?</h1>
-        <form name="gkSelfServiceCtrl.adForm" layout="row">
+        <form name="gkSelfServiceCtrl.forms.adForm" layout="row">
             <div layout="column">
                 <md-input-container>
                     <label>Search Active Directory</label>
-                    <input type="text" ng-model="gkSelfServiceCtrl.adForm.searchText" md-maxlength="30" required md-no-asterisk>
+                    <input type="text" ng-model="gkSelfServiceCtrl.forms.adForm.searchText" md-maxlength="30" required md-no-asterisk>
                 </md-input-container>
             </div>
             <div layout="column" layout-align="center center">
-                <button  ng-disabled="gkSelfServiceCtrl.adForm.$invalid" md-button type="submit" class="md-raised md-primary" ng-click="gkSelfServiceCtrl.searchAD()"> Search </button>
+                <button  ng-disabled="gkSelfServiceCtrl.forms.adForm.$invalid" md-button type="submit" class="md-raised md-primary" ng-click="gkSelfServiceCtrl.searchAD()"> Search </button>
             </div>
             <div layout="column" layout-align="center center">
                 <button  md-button class="md-raised md-primary" ng-click="gkSelfServiceCtrl.toggleSelfService()">{{ gkSelfServiceCtrl.selfService ? 'Remove Self' : 'Add Self' }} </button>
@@ -34,7 +34,7 @@
         </form>
     </div>
     <div id="containerADSearchResult">
-        <p class=".md-body-2" ng-if="!gkSelfServiceCtrl.adForm.$submitted">
+        <p class=".md-body-2" ng-if="!gkSelfServiceCtrl.forms.adForm.$submitted">
             Search AD to see results
         </p>
         <div ng-if="gkSelfServiceCtrl.usersTable.data.length >= 10" layout="row" layout-align="start start" layout-padding>
@@ -43,7 +43,7 @@
                 You have 10 or more results from this search, you should consider narrowing your search string
             </span>
         </div>
-        <gk-table ng-if="!gkSelfServiceCtrl.error.ad && gkSelfServiceCtrl.adForm.$submitted" config="gkSelfServiceCtrl.usersTable">
+        <gk-table ng-if="!gkSelfServiceCtrl.error.ad && gkSelfServiceCtrl.forms.adForm.$submitted" config="gkSelfServiceCtrl.usersTable">
         </gk-table>
         <div ng-if="gkSelfServiceCtrl.fetching.ad" class="gk-pleasewait" layout="row" layout-align="center center">
             <span layout-padding >Searching Active Directory</span>

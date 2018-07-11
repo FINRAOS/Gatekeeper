@@ -28,6 +28,10 @@ a {
     text-align:center;
 }
 
+.gk-card {
+    height:100%;
+}
+
 .gk-nav-bar {
     border-color: rgba(0,0,0,0.12)
 }
@@ -77,6 +81,9 @@ textarea.gk-textarea[disabled]{
     color: black;
 }
 
+.gk-users {
+    margin-top:9px;
+}
 
 /**
 * This was added as of material 1.1.0 upgrade.
@@ -104,4 +111,8 @@ md-select md-select-value span:not(.md-select-icon):after {
     font-size: 128px;
     font-weight:800;
     color:black;
+}
+
+.gk-user-fill {
+    height:68px
 }

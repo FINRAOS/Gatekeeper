@@ -21,6 +21,7 @@ import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.interfaces.DBConnection;
+import org.finra.gatekeeper.services.db.model.DbUser;
 import org.postgresql.ds.PGPoolingDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,7 @@ public class PostgresDBConnection implements DBConnection {
     private final String EXPIRATION_TIMESTAMP = "yyyy-MM-dd HH:mm:ss";
     private final String getSchemas = "SELECT distinct table_schema||'.'||table_name FROM information_schema.role_table_grants "
     + "where grantee = ? order by table_schema||'.'||table_name";
+    private final String getUsers = "select rolname from pg_roles where rolcanlogin = true";
 
     private final String gkUserName;
     private final String gkUserPassword;
@@ -123,11 +125,18 @@ public class PostgresDBConnection implements DBConnection {
             dataSource = connect(address);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             logger.info("Removing " + user + " from " + address + " if they exist.");
-            revokeUser(conn, user + "_" + roles.getShortSuffix());
+            if(roles != null) {
+                //if roles is provided revoke the user with the suffix (from activiti)
+                revokeUser(conn, user + "_" + roles.getShortSuffix());
+            }else{
+                //if roles is not provided just revoke the user (forced removal)
+                revokeUser(conn, user);
+            }
             return true;
 
         }catch(Exception ex){
-            logger.error("An exception was thrown while trying to revoke user " + user + "_" + roles.getShortSuffix() + " from address " + address, ex);
+            String username = roles == null ? user : user + "_" + roles.getShortSuffix();
+            logger.error("An exception was thrown while trying to revoke user " + username + " from address " + address, ex);
             return false;
         } finally {
             if(dataSource != null) {
@@ -234,6 +243,22 @@ public class PostgresDBConnection implements DBConnection {
         }
     }
 
+    public List<DbUser> getUsers(String address) throws SQLException{
+        PGPoolingDataSource dataSource = connect(address);
+        JdbcTemplate conn = new JdbcTemplate(dataSource);
+        List<DbUser> results;
+        logger.info("Getting available schema information for " + address);
+        try {
+            results = conn.query(getUsers, new PostgresDbUserMapper());
+            logger.info("Retrieved users for database " + address);
+        } catch (Exception ex) {
+            logger.error("Could not retrieve list of users for database " + address, ex);
+            results = Collections.emptyList();
+        }
+        dataSource.close();
+        return results;
+    }
+
     private boolean revokeUser(JdbcTemplate conn, String user){
         return conn.execute("DROP USER IF EXISTS " + user, new PostgresCallableStatementExecutor());
 
@@ -242,6 +267,13 @@ public class PostgresDBConnection implements DBConnection {
     private class PostgresCallableStatementExecutor implements CallableStatementCallback<Boolean> {
         public Boolean doInCallableStatement(CallableStatement callableStatement) throws SQLException, DataAccessException {
             return callableStatement.execute();
+        }
+    }
+
+    private class PostgresDbUserMapper implements  RowMapper<DbUser> {
+        public DbUser mapRow(ResultSet rs, int rowNum) throws SQLException{
+            return new DbUser()
+                    .setUsername(rs.getString(1));
         }
     }
 }
