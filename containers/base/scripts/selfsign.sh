@@ -1,5 +1,5 @@
 #!/bin/bash
-openssl req -x509 -nodes -days 365 \
+/usr/bin/openssl req -x509 -nodes -days 365 \
     -subj  "/CN=localhost" \
     -newkey rsa:2048 \
     -keyout "/etc/pki/tls/private/selfsigned.key" \
