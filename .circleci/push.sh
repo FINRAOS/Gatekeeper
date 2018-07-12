@@ -15,13 +15,7 @@ echo "TAG IS $TAG"
 
 if [ "${BRANCH}" != "UNSET" ]; then
     echo "This is a CI branch build"
-    if [ "${BRANCH}" == "master" ]; then
-        echo "This is the main branch, not including the branch name in the push"
-        DOCKER_RELEASE_TAG=${DATE}-${BUILD_NUM}
-    else
-        echo "This is not the main branch (${BRANCH}), including the branch name in this push"
-        DOCKER_RELEASE_TAG=${BRANCH}-${DATE}-${BUILD_NUM}
-    fi
+    DOCKER_RELEASE_TAG=${BRANCH}-${DATE}-${BUILD_NUM}
     DOCKER_LATEST_TAG=${BRANCH}-latest
 else
     echo "This is a Tag release"
