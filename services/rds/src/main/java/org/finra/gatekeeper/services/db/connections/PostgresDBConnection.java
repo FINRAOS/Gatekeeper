@@ -18,15 +18,14 @@
 package org.finra.gatekeeper.services.db.connections;
 
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
-import org.finra.gatekeeper.services.accessrequest.model.RoleType;
-import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
-import org.finra.gatekeeper.services.db.interfaces.DBConnection;
-import org.finra.gatekeeper.services.db.model.DbUser;
+import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.rds.interfaces.DBConnection;
+import org.finra.gatekeeper.rds.model.DbUser;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.postgresql.ds.PGPoolingDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.*;

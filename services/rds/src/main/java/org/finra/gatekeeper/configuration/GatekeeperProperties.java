@@ -365,6 +365,7 @@ public class GatekeeperProperties {
         private String gkPass;
         private String assumeMinServerVersion;
         private String ssl;
+        private Map<String, String> supportedDbs;
         private PostgresDbProperties postgres;
         private MySqlDbProperties mysql;
 
@@ -457,6 +458,15 @@ public class GatekeeperProperties {
 
         public GatekeeperDbProperties setSsl(String ssl) {
             this.ssl = ssl;
+            return this;
+        }
+
+        public Map<String, String> getSupportedDbs() {
+            return supportedDbs;
+        }
+
+        public GatekeeperDbProperties setSupportedDbs(Map<String, String> supportedDbs) {
+            this.supportedDbs = supportedDbs;
             return this;
         }
 

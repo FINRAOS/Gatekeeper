@@ -83,7 +83,7 @@ class RdsAdminController extends GatekeeperAdminController{
 
     //also used for filtering.
     disableRow(row){
-        return !row.username.startsWith('gk_');
+        return !row.username.toLowerCase().startsWith('gk_');
     }
 
     filterGk(row){

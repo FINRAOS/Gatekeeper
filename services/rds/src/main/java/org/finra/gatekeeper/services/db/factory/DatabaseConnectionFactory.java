@@ -17,40 +17,39 @@
 
 package org.finra.gatekeeper.services.db.factory;
 
-import org.finra.gatekeeper.services.db.connections.MySQLDBConnection;
-import org.finra.gatekeeper.services.db.connections.PostgresDBConnection;
-import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
-import org.finra.gatekeeper.services.db.interfaces.DBConnection;
+import org.finra.gatekeeper.configuration.GatekeeperProperties;
+import org.finra.gatekeeper.rds.interfaces.DBConnection;
+import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
+import java.util.Map;
 
 /**
  * Factory for getting a Database Connection based on a provided Engine String
  */
 @Component
-public class DatabaseConnectionFactory {
+public class DatabaseConnectionFactory implements ApplicationContextAware {
 
-
-    private final PostgresDBConnection postgresDBConnection;
-    private final MySQLDBConnection mySQLDBConnection;
+    private ApplicationContext context;
+    private Map<String, String> supportedDbs;
 
     @Autowired
-    public DatabaseConnectionFactory(PostgresDBConnection postgresDBConnection,
-                                     MySQLDBConnection mySQLDBConnection) {
-        this.postgresDBConnection = postgresDBConnection;
-        this.mySQLDBConnection = mySQLDBConnection;
+    public DatabaseConnectionFactory(GatekeeperProperties gatekeeperProperties){
+        this.supportedDbs = gatekeeperProperties.getDb().getSupportedDbs();
+    }
+
+    public void setApplicationContext(ApplicationContext applicationContext){
+        this.context = applicationContext;
     }
 
     public DBConnection getConnection(String dbEngine) throws GKUnsupportedDBException{
-        switch(dbEngine.toLowerCase()){
-            case "postgres":
-                return postgresDBConnection;
-            case "mysql":
-                return mySQLDBConnection;
-            default:
-                throw new GKUnsupportedDBException(dbEngine);
+        String bean = this.supportedDbs.get(dbEngine.toLowerCase());
+        if(bean == null){
+            throw new GKUnsupportedDBException(dbEngine);
         }
+        return (DBConnection) context.getBean(bean);
     }
 }

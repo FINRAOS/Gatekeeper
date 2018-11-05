@@ -15,13 +15,16 @@
  *
  */
 
-package org.finra.gatekeeper.services.db.model;
+package org.finra.gatekeeper.rds.model;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.List;
+
 public class DbUser {
     private String username;
+    private List<String> roles;
 
     public String getUsername() {
         return username;
@@ -32,30 +35,42 @@ public class DbUser {
         return this;
     }
 
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public DbUser setRoles(List<String> roles) {
+        this.roles = roles;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DbUser dbUser = (DbUser) o;
-        return Objects.equal(username, dbUser.username);
+        return Objects.equal(username, dbUser.username) &&
+                Objects.equal(roles, dbUser.roles);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(username);
-    }
-
-    public DbUser(String username) {
-        this.username = username;
-    }
-
-    public DbUser() {
+        return Objects.hashCode(username, roles);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("username", username)
+                .add("roles", roles)
                 .toString();
+    }
+
+    public DbUser(String username, List<String> roles) {
+        this.username = username;
+        this.roles = roles;
+    }
+
+    public DbUser() {
     }
 }

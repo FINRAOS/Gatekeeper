@@ -15,12 +15,11 @@
  *
  */
 
-package org.finra.gatekeeper.services.db.interfaces;
+package org.finra.gatekeeper.rds.interfaces;
 
-import org.finra.gatekeeper.services.accessrequest.model.RoleType;
-import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
-import org.finra.gatekeeper.services.db.model.DbUser;
-import org.springframework.stereotype.Component;
+import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.rds.model.DbUser;
+import org.finra.gatekeeper.rds.model.RoleType;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -29,7 +28,6 @@ import java.util.Map;
 /**
  * Standard contract for a Database Connection for Gatekeeper
  */
-@Component
 public interface DBConnection {
     /**
      * Grants user access to a database

@@ -17,6 +17,7 @@
 #This stuff is usually replaced by the container profile, feel free to set them to what you need should you find yourself doing local development
 server.context-path: /api/gatekeeper-rds
 
+loader.path: /Users/meles/development-os/gatekeeper-smxjrz/services/rds/oracle
 gatekeeper:
   aws:
     proxyHost: unset
@@ -94,6 +95,9 @@ gatekeeper:
     opsEmails: GK-OPS@company.com
 
   db:
+    supportedDbs:
+      mysql: mySQLDBConnection
+      postgres: postgresDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
     sslParams: ssl=${gatekeeper.db.ssl}&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
     postgres:
@@ -111,6 +115,7 @@ log:
 
 spring:
   profiles.active: local
+  loader.path:
   activiti:
     asyncExecutorEnabled: true
     jobExecutorActivate: true

@@ -15,7 +15,7 @@
  *
  */
 
-package org.finra.gatekeeper.services.db.exception;
+package org.finra.gatekeeper.rds.exception;
 
 /**
  * Standard Exception to bark at unsupported database engines
