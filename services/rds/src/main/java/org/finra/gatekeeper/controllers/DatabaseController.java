@@ -19,11 +19,11 @@ package org.finra.gatekeeper.controllers;
 
 import org.finra.gatekeeper.controllers.wrappers.RemoveUsersWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.services.aws.RdsLookupService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
-import org.finra.gatekeeper.services.db.model.DbUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestBody;

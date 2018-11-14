@@ -20,6 +20,7 @@ package org.finra.gatekeeper.services.accessrequest.delegates;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;

@@ -18,15 +18,14 @@
 package org.finra.gatekeeper.services.db;
 
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.model.DbUser;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
-import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
-import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
-import org.finra.gatekeeper.services.db.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.factory.DatabaseConnectionFactory;
-import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +101,7 @@ public class DatabaseConnectionService {
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
     public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance database, List<DbUser> users ) throws Exception {
         List<DbUser> nonGkUsers = users.stream()
-                .filter(user -> !user.getUsername().startsWith("gk_"))
+                .filter(user -> !user.getUsername().toLowerCase().startsWith("gk_"))
                 .collect(Collectors.toList());
 
         if(!nonGkUsers.isEmpty()){

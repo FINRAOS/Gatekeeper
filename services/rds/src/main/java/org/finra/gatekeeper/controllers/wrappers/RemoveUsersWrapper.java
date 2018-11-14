@@ -16,7 +16,8 @@
  */
 package org.finra.gatekeeper.controllers.wrappers;
 
-import org.finra.gatekeeper.services.db.model.DbUser;
+
+import org.finra.gatekeeper.rds.model.DbUser;
 
 import java.util.List;
 

@@ -18,9 +18,9 @@
 package org.finra.gatekeeper.services.email.wrappers;
 
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
-import org.finra.gatekeeper.services.accessrequest.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.email.EmailService;
 import org.slf4j.Logger;

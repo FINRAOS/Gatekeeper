@@ -51,6 +51,7 @@
 
     <modules>
         <module>common</module>
+        <module>db</module>
         <module>ec2</module>
         <module>rds</module>
     </modules>

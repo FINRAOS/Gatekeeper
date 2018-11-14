@@ -15,7 +15,7 @@
  *
  */
 
-package org.finra.gatekeeper.services.accessrequest.model;
+package org.finra.gatekeeper.rds.model;
 
 /**
  * Domain Representation of the 3 Gatekeeper RDS Roles that get requested

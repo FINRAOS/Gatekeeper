@@ -18,11 +18,11 @@
 package org.finra.gatekeeper.controllers;
 
 
-import org.finra.gatekeeper.services.accessrequest.model.RoleType;
+import org.finra.gatekeeper.rds.model.DbUser;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.aws.RdsLookupService;
-import org.finra.gatekeeper.services.db.model.DbUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
