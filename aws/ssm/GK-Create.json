@@ -13,6 +13,11 @@
       "description":"(Required) The public key string for the user.",
       "maxChars":4096
     },
+    "hours":{
+      "type":"String",
+      "description":"(Required) The amount of time to give the user access",
+      "default": "24"
+    },
     "executionTimeout":{
       "type":"String",
       "default":"300",
@@ -26,7 +31,7 @@
         {
           "id":"0.aws:runShellScript",
           "runCommand":[
-            "useradd -e `date -d '+2 days' '+%Y-%m-%d'` {{ userName }} -m",
+            "useradd -e `date -d \"+$((({{hours}} / 24) + 1)) days\" '+%Y-%m-%d'` {{ userName }} -m",
             "mkdir /home/{{ userName }}/.ssh",
             "echo '{{ publicKey }}' >> /home/{{ userName }}/.ssh/authorized_keys",
             "chown -R {{ userName }}:{{ userName }} /home/{{ userName }}",
