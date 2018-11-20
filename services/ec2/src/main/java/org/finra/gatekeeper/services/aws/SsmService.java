@@ -102,13 +102,14 @@ public class SsmService {
      * @param platform the platform used to determine the document to be executed
      * @return True or false based on whether the user was added to all instances
      */
-    public Map<String, String> createUserAccount(AWSEnvironment environment, List<String> instanceIds, String userName, String publicKey, String platform) {
-        logger.info("Creating user account: " + userName + " on "+ platform +" instances: " + instanceIds + " on environment: " + environment);
+    public Map<String, String> createUserAccount(AWSEnvironment environment, List<String> instanceIds, String userName, String publicKey, String platform, String hours) {
+        logger.info("Creating user account: " + userName + " on "+ platform +" instances: " + instanceIds + " on environment: " + environment + " for hours: " + hours);
 
 
         GatekeeperSsmProperties.SsmDocument documentProperties = getSsmDocument(platform, "create");
 
         Map<String, ArrayList<String>> parameters = new HashMap<>();
+        parameters.put("hours", Lists.newArrayList(hours));
         parameters.put("userName", Lists.newArrayList(userName));
         parameters.put("publicKey", Lists.newArrayList(publicKey));
         parameters.put("executionTimeout", Lists.newArrayList(Integer.toString(documentProperties.getTimeout())));

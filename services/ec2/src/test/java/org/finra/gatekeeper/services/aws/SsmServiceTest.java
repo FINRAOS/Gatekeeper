@@ -185,7 +185,7 @@ public class SsmServiceTest {
 
     @Test
     public void testCreateUserAccount(){
-        Map<String, String> results = ssmService.createUserAccount(awsEnvironment, Arrays.asList("i-1","i-2"), "theUser", "HelloKey", "Linux");
+        Map<String, String> results = ssmService.createUserAccount(awsEnvironment, Arrays.asList("i-1","i-2"), "theUser", "HelloKey", "Linux", "23");
         Assert.assertTrue("Verify that the ssm succeeds for Linux", results.containsValue("Success"));
 
 
@@ -194,6 +194,7 @@ public class SsmServiceTest {
                 .withDocumentName("test-linux-create")
                 .addParametersEntry("userName",Arrays.asList("theUser"))
                 .addParametersEntry("publicKey",Arrays.asList("HelloKey"))
+                .addParametersEntry("hours", Arrays.asList("23"))
                 .addParametersEntry("executionTimeout",Arrays.asList("15"));
         verify(awsSimpleSystemsManagementClient, times(1)).sendCommand(scr);
 
@@ -227,7 +228,7 @@ public class SsmServiceTest {
         fakeCommand2.setStatus(CommandInvocationStatus.Success);
         fakeCommandList.setCommandInvocations(Arrays.asList(fakeCommand1, fakeCommand2));
         when(awsSimpleSystemsManagementClient.listCommandInvocations(anyObject())).thenReturn(fakeCommandList);
-        Map<String, String> results = ssmService.createUserAccount(awsEnvironment, Arrays.asList("i-1","i-2"), "theUser", "HelloKey", "Linux");
+        Map<String, String> results = ssmService.createUserAccount(awsEnvironment, Arrays.asList("i-1","i-2"), "theUser", "HelloKey", "Linux", "23");
         Assert.assertFalse("Verify that the ssm reports false and times out", !results.containsValue("Success"));
     }
 
@@ -236,7 +237,7 @@ public class SsmServiceTest {
         ListCommandInvocationsResult timeout = new ListCommandInvocationsResult();
         timeout.setCommandInvocations(new ArrayList<>());
         when(awsSimpleSystemsManagementClient.listCommandInvocations(anyObject())).thenReturn(timeout);
-        Map<String, String> results = ssmService.createUserAccount(awsEnvironment, Arrays.asList("i-1","i-2"), "theUser", "HelloKey", "Linux");
+        Map<String, String> results = ssmService.createUserAccount(awsEnvironment, Arrays.asList("i-1","i-2"), "theUser", "HelloKey", "Linux", "23");
         Assert.assertFalse("Verify that the ssm reports false and times out",results.containsValue("Success"));
     }
 

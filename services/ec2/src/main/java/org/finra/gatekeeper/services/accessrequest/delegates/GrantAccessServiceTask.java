@@ -143,7 +143,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
             String privateKeyString = keypairService.getPEM(privKey);
 
             // Call SSM to create account (one call does all instances)
-            Map<String, String> createStatus = ssmService.createUserAccount(env, instances, u.getUserId(), publicKeyString, platform);
+            Map<String, String> createStatus = ssmService.createUserAccount(env, instances, u.getUserId(), publicKeyString, platform, accessRequest.getHours().toString());
             userStatus.put(u.getName(), createStatus.containsValue(CommandStatus.Success.toString()));
 
             // Send email with private key
