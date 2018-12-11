@@ -20,8 +20,12 @@ alter role gatekeeper with CREATEROLE;
 create role gk_readonly;
 create role gk_dba;
 create role gk_datafix;
+create role gk_readonly_confidential;
+create fole gk_dba_confidential;
 
 --we have to grant all roles to gatekeeper for the schema query
 grant gk_readonly to gatekeeper;
 grant gk_datafix to gatekeeper;
 grant gk_dba to gatekeeper;
+grant gk_readonly_confidential to gatekeeper;
+grant gk_dba_confidential to gatekeeper;
