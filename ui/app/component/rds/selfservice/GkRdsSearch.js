@@ -89,7 +89,7 @@ class GkRdsSearch extends Directive{
                 {dataType: 'string', display: 'Instance Name', value: 'name'},
                 {dataType: 'string', display: 'Database Name', value: 'dbName'},
                 {dataType: 'string', display: 'Engine',        value: 'engine'},
-                {dataType: 'string', display: 'Instance ID',   value: 'instanceId'},
+                {dataType: 'string', display: 'Available Roles',   value: 'roles'},
                 {dataType: 'string', display: 'Status',        value: 'status'}
             ],
             data: $scope.data,
@@ -120,6 +120,16 @@ class GkRdsSearch extends Directive{
                     });
 
                 vm.awsTable.promise.then((response) => {
+                    console.info(response);
+                    response.data.forEach((item) => {
+                        let roles = '';
+                        if(item.availableRoles !== null) {
+                            item.availableRoles.forEach((role, index) => {
+                                roles += role.substr(3).replace('_confidential', ' (c)') + (index < item.availableRoles.length - 1 ? ' | ' : '');
+                            });
+                        }
+                        item.roles = roles;
+                    });
                     vm.awsTable.data.push.apply(vm.awsTable.data, response.data);
                 }).catch((error) =>{
                     vm.error.aws = error;

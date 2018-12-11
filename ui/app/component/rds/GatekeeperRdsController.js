@@ -97,6 +97,8 @@ class GatekeeperRdsController extends GatekeeperController{
             vm.global.userInfo.userId = data.userId;
             vm.global.userInfo.user = data.name;
             vm.global.userInfo.email = data.email;
+            vm.global.rdsOverridePolicy = data.overridePolicy;
+            vm.global.rdsMaxDays = data.maxDays;
             if([ROLES.approver, ROLES.support].indexOf(data.role) === -1 && data.memberships.length === 0 ){
                 vm.global.userInfo.role = ROLES.unauthorized;
             }else{

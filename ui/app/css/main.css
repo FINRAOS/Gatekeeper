@@ -116,3 +116,7 @@ md-select md-select-value span:not(.md-select-icon):after {
 .gk-user-fill {
     height:68px
 }
+
+.gk-role-checkbox {
+    padding-right: 15px;
+}

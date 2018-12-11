@@ -221,6 +221,10 @@ public class MySQLDBConnection implements DBConnection {
         return Collections.emptyList();
     }
 
+    public List<String> getAvailableRoles(String address) throws SQLException{
+        return Arrays.asList("gk_readonly", "gk_datafix", "gk_dba");
+    }
+
     private class MySqlStatement implements StatementCallback<Boolean>{
         private String sql;
 

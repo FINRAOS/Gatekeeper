@@ -44,15 +44,7 @@
         <h3 class=".md-display-3">With the following roles</h3>
         <form name="gkSelfServiceCtrl.forms.grantForm" layout="column">
             <div layout="row">
-                <md-checkbox ng-model="gkSelfServiceCtrl.forms.grantForm.selectedRoles.readonly" aria-label="Read Only">
-                    Read Only
-                </md-checkbox>
-                <md-checkbox ng-model="gkSelfServiceCtrl.forms.grantForm.selectedRoles.datafix" aria-label="Datafix">
-                    Datafix
-                </md-checkbox>
-                <md-checkbox ng-model="gkSelfServiceCtrl.forms.grantForm.selectedRoles.dba" aria-label="DBA">
-                    DBA
-                </md-checkbox>
+                <gatekeeper-role-checkbox  ng-repeat="role in gkSelfServiceCtrl.roles" form-obj="gkSelfServiceCtrl.forms.grantForm.selectedRoles" form-attr="{{ role.model }}" label="{{ role.label }}" disable-fn="role.disableFn"></gatekeeper-role-checkbox>
             </div>
             <div layout="row">
                 <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>

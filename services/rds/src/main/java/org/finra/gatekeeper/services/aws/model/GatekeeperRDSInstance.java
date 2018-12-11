@@ -19,6 +19,7 @@ package org.finra.gatekeeper.services.aws.model;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -33,9 +34,10 @@ public class GatekeeperRDSInstance {
     private String arn;
     private String endpoint;
     private String application;
+    private List<String> availableRoles;
     private boolean enabled;
 
-    public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint, String application, Boolean enabled){
+    public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint, String application, List<String> availableRoles, Boolean enabled){
         this.instanceId = instanceId;
         this.name = name;
         this.dbName = dbName;
@@ -44,6 +46,7 @@ public class GatekeeperRDSInstance {
         this.arn = arn;
         this.endpoint = endpoint;
         this.application = application;
+        this.availableRoles = availableRoles;
         this.enabled = enabled;
     }
 
@@ -69,6 +72,7 @@ public class GatekeeperRDSInstance {
 
     public String getApplication() { return application; }
 
+    public List<String> getAvailableRoles() { return availableRoles; }
     public Boolean getEnabled() { return enabled;}
     @Override
     public boolean equals(Object o){
@@ -89,12 +93,13 @@ public class GatekeeperRDSInstance {
                 && Objects.equals(this.arn, that.getArn())
                 && Objects.equals(this.endpoint, that.getEndpoint())
                 && Objects.equals(this.application, that.getApplication())
+                && Objects.equals(this.availableRoles, that.getAvailableRoles())
                 && Objects.equals(this.enabled, that.getEnabled());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceId, name, dbName, engine, status, arn, endpoint, application, enabled);
+        return Objects.hash(instanceId, name, dbName, engine, status, arn, endpoint, application, availableRoles, enabled);
     }
 
     @Override
@@ -108,6 +113,7 @@ public class GatekeeperRDSInstance {
                 .add("ARN", arn)
                 .add("Endpoint", endpoint)
                 .add("Application", application)
+                .add("Available Roles", availableRoles)
                 .add("Enabled?", enabled)
                 .toString();
     }

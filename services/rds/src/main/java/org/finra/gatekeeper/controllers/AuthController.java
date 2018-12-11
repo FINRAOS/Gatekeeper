@@ -3,6 +3,7 @@ package org.finra.gatekeeper.controllers;
 import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
+import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,11 +25,13 @@ public class AuthController {
 
     private final GatekeeperRoleService gatekeeperRoleService;
     private final GatekeeperApprovalProperties approvalThreshold;
+    private final GatekeeperOverrideProperties gatekeeperOverrideProperties;
 
     @Autowired
-    public AuthController(GatekeeperRoleService gatekeeperRoleService, GatekeeperApprovalProperties gatekeeperApprovalProperties) {
+    public AuthController(GatekeeperRoleService gatekeeperRoleService, GatekeeperApprovalProperties gatekeeperApprovalProperties, GatekeeperOverrideProperties gatekeeperOverrideProperties) {
         this.gatekeeperRoleService = gatekeeperRoleService;
         this.approvalThreshold = gatekeeperApprovalProperties;
+        this.gatekeeperOverrideProperties = gatekeeperOverrideProperties;
 
     }
 
@@ -41,6 +44,8 @@ public class AuthController {
         GatekeeperRdsRole role = gatekeeperRoleService.getRole();
         result.put("email", user.getEmail());
         result.put("approvalThreshold", approvalThreshold.getApprovalPolicy(role));
+        result.put("maxDays", gatekeeperOverrideProperties.getMaxDays());
+        result.put("overridePolicy", gatekeeperOverrideProperties.getOverridePolicy(role));
         result.put("role", role);
         switch(role){
             case APPROVER:

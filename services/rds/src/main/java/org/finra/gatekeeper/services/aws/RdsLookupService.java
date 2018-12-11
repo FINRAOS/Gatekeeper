@@ -116,6 +116,7 @@ public class RdsLookupService {
 
                 String status = item.getDBInstanceStatus();
                 String dbName = item.getDBName();
+                List<String> availableRoles = null;
                 if(dbName ==null && item.getEngine().equalsIgnoreCase("postgres")){
                     dbName = item.getEngine().toLowerCase();
                 }
@@ -127,21 +128,34 @@ public class RdsLookupService {
 
                     try {
 
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), item.getEndpoint().getAddress() + ":" + item.getEndpoint().getPort() + "/" + dbName);
+                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(),String.valueOf(item.getEndpoint().getPort()),dbName));
                         status = !dbStatus.isEmpty() ? dbStatus : status;
                     }catch(GKUnsupportedDBException e){
                         logger.error("Database Engine is not supported", e);
                         status = "DB Engine not supported";
                     }
+
+                    // get available roles for DB
+                    try {
+                        availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(),String.valueOf(item.getEndpoint().getPort()),dbName));
+                        Collections.sort(availableRoles);
+                    }catch(Exception e){
+                        logger.error("Could not fetch roles available to DB", e);
+                        status = "Could not fetch roles available to DB";
+                    }
                 }
 
                 gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
                         dbName != null ? dbName : "", item.getEngine(), status,
-                        item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + item.getEndpoint().getPort(), application, enabled));
+                        item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + item.getEndpoint().getPort(), application, availableRoles, enabled));
             }
         });
 
         return gatekeeperRDSInstances;
+    }
+
+    private String getAddress(String address, String port, String dbName){
+        return String.format("%s:%s/%s", address, port, dbName);
     }
 
     private List<GatekeeperRDSInstance> loadInstances(AWSEnvironment environment) {

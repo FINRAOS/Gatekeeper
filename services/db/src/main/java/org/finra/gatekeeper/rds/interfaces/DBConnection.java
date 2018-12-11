@@ -72,4 +72,9 @@ public interface DBConnection {
      */
     List<DbUser> getUsers(String address) throws SQLException;
 
+    /**
+     * Connects to the DB and gets all of the available gk roles currently on the RDS instance
+     */
+    List<String> getAvailableRoles(String address) throws SQLException;
+
 }

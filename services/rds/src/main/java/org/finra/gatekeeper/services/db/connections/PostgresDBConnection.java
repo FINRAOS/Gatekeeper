@@ -258,6 +258,21 @@ public class PostgresDBConnection implements DBConnection {
         return results;
     }
 
+    public List<String> getAvailableRoles(String address) throws SQLException{
+        PGPoolingDataSource dataSource = connect(address);
+        JdbcTemplate conn = new JdbcTemplate(dataSource);
+        List<String> results;
+        logger.info("Getting available roles for " + address);
+        try {
+            results = conn.queryForList("select rolname from pg_catalog.pg_roles where rolname like 'gk_%' and rolcanlogin = false", String.class);
+        } catch (Exception ex) {
+            logger.error("Could not retrieve list of roles for database " + address, ex);
+            throw ex;
+        }
+        dataSource.close();
+        return results;
+    }
+
     private boolean revokeUser(JdbcTemplate conn, String user){
         return conn.execute("DROP USER IF EXISTS " + user, new PostgresCallableStatementExecutor());
 

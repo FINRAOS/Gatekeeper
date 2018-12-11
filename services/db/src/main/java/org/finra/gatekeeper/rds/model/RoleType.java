@@ -21,7 +21,11 @@ package org.finra.gatekeeper.rds.model;
  * Domain Representation of the 3 Gatekeeper RDS Roles that get requested
  */
 public enum RoleType {
-    READONLY("readonly", "ro", "gk_readonly", "Read Only"),DATAFIX("datafix", "df", "gk_datafix", "Datafix"),DBA("dba", "dba", "gk_dba", "DBA");
+    READONLY("readonly", "ro", "gk_readonly", "Read Only"),
+    DATAFIX("datafix", "df", "gk_datafix", "Datafix"),
+    DBA("dba", "dba", "gk_dba", "DBA"),
+    READONLY_CONFIDENTIAL("readonly_confidential", "roc", "gk_readonly_confidential", "Read Only Confidential" ),
+    DBA_CONFIDENTIAL("dba_confidential", "dbac", "gk_dba_confidential", "DBA Confidential" );
 
     private String userSuffix;
     private String shortSuffix;

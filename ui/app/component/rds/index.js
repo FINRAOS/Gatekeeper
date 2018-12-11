@@ -21,7 +21,7 @@ import gkRdsCtrl from './GatekeeperRdsController';
 import util from '../shared/generic/DirectiveUtils';
 import Directive from '../shared/generic/BaseDirective';
 import GkRdsSearch from './selfservice/GkRdsSearch';
-
+import GkRdsCheckbox from './selfservice/GkRdsCheckbox';
 import gkRdsSelfServiceCtrl from './selfservice/RdsSelfServiceController';
 import gkRdsSchemaDialogController from './selfservice/RdsSchemaDialogController';
 import gkRdsRequestCtrl from './request/RdsRequestController';
@@ -36,6 +36,7 @@ gateKeeperModule.controller('gkRdsController', gkRdsCtrl)
     .controller('gkRdsRequestHistoryController', gkRdsHistoryRequestCtrl)
     .controller('gkRdsSchemaDialogController', gkRdsSchemaDialogController)
     .controller('gkRdsAdminController', gkRdsAdminCtrl)
+    .directive('gatekeeperRoleCheckbox', util.newDirective(new GkRdsCheckbox(require('./selfservice/template/gatekeeperRoleCheckbox.tpl.html'))))
     .directive('gatekeeperRdsComponent',   util.newDirective(new GkRdsSearch(require('./selfservice/template/gatekeeperAWSRdsComponent.tpl.html'))))
     .directive('gatekeeperRdsGrantComponent', util.newDirective(new Directive(require('./selfservice/template/gatekeeperRdsGrantComponent.tpl.html'))));
 
