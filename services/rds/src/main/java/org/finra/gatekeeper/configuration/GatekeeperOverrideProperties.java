@@ -40,18 +40,18 @@ public class GatekeeperOverrideProperties {
         return this;
     }
 
-    public GatekeeperOverrideProperties setOverrides(Map<String, Object> overrides) {
+    public GatekeeperOverrideProperties setOverrides(Map<String, Map<String, Map<String, Integer>>> overrides) {
         this.overrides = overrides;
         return this;
     }
 
-    private Map<String, Object> overrides = new HashMap<>();
+    private Map<String, Map<String, Map<String, Integer>>> overrides = new HashMap<>();
 
-    public Map<String, Object> getOverrides() {
+    public Map<String, Map<String, Map<String, Integer>>> getOverrides() {
         return overrides;
     }
 
-    private Map<String, Map<String, Integer>> getOverridePolicy(GatekeeperRdsRole role) {
+    public Map<String, Map<String, Integer>> getOverridePolicy(GatekeeperRdsRole role) {
         return (Map<String, Map<String, Integer>>)this.overrides.get(role.toString().toLowerCase());
     }
 

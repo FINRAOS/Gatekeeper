@@ -342,41 +342,65 @@ Like the EC2 service, the RDS approval criteria needs to be set, however this co
 Here is an example from [config/rds_service_config.env](config/rds_service_config.env) 
 
 ```dotenv
-    gatekeeper.approvalThreshold.dev.readonly.dev=120
-    gatekeeper.approvalThreshold.dev.readonly.qa=100
-    gatekeeper.approvalThreshold.dev.readonly.prod=-1
+gatekeeper.approvalThreshold.dev.readonly.dev=120
+gatekeeper.approvalThreshold.dev.readonly.qa=100
+gatekeeper.approvalThreshold.dev.readonly.prod=-1
 
-    gatekeeper.approvalThreshold.dev.datafix.dev=180
-    gatekeeper.approvalThreshold.dev.datafix.qa=180
-    gatekeeper.approvalThreshold.dev.datafix.prod=-1
-    
-    gatekeeper.approvalThreshold.dev.dba.dev=180
-    gatekeeper.approvalThreshold.dev.dba.qa=2
-    gatekeeper.approvalThreshold.dev.dba.prod=-1
-    
-    gatekeeper.approvalThreshold.ops.readonly.dev=-1
-    gatekeeper.approvalThreshold.ops.readonly.qa=-1
-    gatekeeper.approvalThreshold.ops.readonly.prod=180
-    
-    gatekeeper.approvalThreshold.ops.datafix.dev=-1
-    gatekeeper.approvalThreshold.ops.datafix.qa=-1
-    gatekeeper.approvalThreshold.ops.datafix.prod=1
-    
-    gatekeeper.approvalThreshold.ops.dba.dev=-1
-    gatekeeper.approvalThreshold.ops.dba.qa=-1
-    gatekeeper.approvalThreshold.ops.dba.prod=-1
-    
-    gatekeeper.approvalThreshold.dba.readonly.dev=180
-    gatekeeper.approvalThreshold.dba.readonly.qa=180
-    gatekeeper.approvalThreshold.dba.readonly.prod=180
-    
-    gatekeeper.approvalThreshold.dba.datafix.dev=180
-    gatekeeper.approvalThreshold.dba.datafix.qa=180
-    gatekeeper.approvalThreshold.dba.datafix.prod=180
-    
-    gatekeeper.approvalThreshold.dba.dba.dev=180
-    gatekeeper.approvalThreshold.dba.dba.qa=180
-    gatekeeper.approvalThreshold.dba.dba.prod=-1
+gatekeeper.approvalThreshold.dev.readonly_confidential.dev=50
+gatekeeper.approvalThreshold.dev.readonly_confidential.qa=20
+gatekeeper.approvalThreshold.dev.readonly_confidential.prod=-1
+
+gatekeeper.approvalThreshold.dev.datafix.dev=180
+gatekeeper.approvalThreshold.dev.datafix.qa=180
+gatekeeper.approvalThreshold.dev.datafix.prod=-1
+
+gatekeeper.approvalThreshold.dev.dba.dev=180
+gatekeeper.approvalThreshold.dev.dba.qa=2
+gatekeeper.approvalThreshold.dev.dba.prod=-1
+
+gatekeeper.approvalThreshold.dev.dba_confidential.dev=-1
+gatekeeper.approvalThreshold.dev.dba_confidential.qa=-1
+gatekeeper.approvalThreshold.dev.dba_confidential.prod=-1
+
+gatekeeper.approvalThreshold.ops.readonly.dev=-1
+gatekeeper.approvalThreshold.ops.readonly.qa=-1
+gatekeeper.approvalThreshold.ops.readonly.prod=180
+
+gatekeeper.approvalThreshold.ops.readonly_confidential.dev=75
+gatekeeper.approvalThreshold.ops.readonly_confidential.qa=50
+gatekeeper.approvalThreshold.ops.readonly_confidential.prod=-1
+
+gatekeeper.approvalThreshold.ops.datafix.dev=-1
+gatekeeper.approvalThreshold.ops.datafix.qa=-1
+gatekeeper.approvalThreshold.ops.datafix.prod=1
+
+gatekeeper.approvalThreshold.ops.dba.dev=-1
+gatekeeper.approvalThreshold.ops.dba.qa=-1
+gatekeeper.approvalThreshold.ops.dba.prod=-1
+
+gatekeeper.approvalThreshold.ops.dba_confidential.dev=-1
+gatekeeper.approvalThreshold.ops.dba_confidential.qa=-1
+gatekeeper.approvalThreshold.ops.dba_confidential.prod=-1
+
+gatekeeper.approvalThreshold.dba.readonly.dev=180
+gatekeeper.approvalThreshold.dba.readonly.qa=180
+gatekeeper.approvalThreshold.dba.readonly.prod=180
+
+gatekeeper.approvalThreshold.dba.readonly_confidential.dev=100
+gatekeeper.approvalThreshold.dba.readonly_confidential.qa=125
+gatekeeper.approvalThreshold.dba.readonly_confidential.prod=1
+
+gatekeeper.approvalThreshold.dba.datafix.dev=180
+gatekeeper.approvalThreshold.dba.datafix.qa=180
+gatekeeper.approvalThreshold.dba.datafix.prod=180
+
+gatekeeper.approvalThreshold.dba.dba.dev=180
+gatekeeper.approvalThreshold.dba.dba.qa=180
+gatekeeper.approvalThreshold.dba.dba.prod=-1
+
+gatekeeper.approvalThreshold.dba.dba_confidential.dev=180
+gatekeeper.approvalThreshold.dba.dba_confidential.qa=180
+gatekeeper.approvalThreshold.dba.dba_confidential.prod=-1
 ```
 Here's an explanation of what this configuration translates to in Gatekeeper:
 
@@ -384,6 +408,10 @@ Here's an explanation of what this configuration translates to in Gatekeeper:
     - Requesting readonly
         - < 120 days for dev environment
         - < 180 days for qa environment
+        - approval is **always** required for prod
+    - Requesting readonly_confidential
+        - <= 50 days for dev environment
+        - <= 20 days for qa environment
         - approval is **always** required for prod
     - Requesting datafix
         - <= 180 days for dev environment
@@ -393,12 +421,19 @@ Here's an explanation of what this configuration translates to in Gatekeeper:
         - <= 180 days for dev environment
         - <= 2 days for qa environment
         - approval is **always** required for prod
-          
+    - Requesting dba_confidential
+        - approval is **always** required for dev
+        - approval is **always** required for qa
+        - approval is **always** required for prod
 2. For Ops Role
     - Requesting readonly
         - approval is **always** required for dev
         - approval is **always** required for qa
         - <= 180 days for prod
+    - Requesting readonly_confidential
+        - <= 75 days for dev environment
+        - <= 50 days for qa environment
+        - approval is **always** required for prod
     - Requesting datafix
         - approval is **always** required for dev
         - approval is **always** required for qa
@@ -407,16 +442,28 @@ Here's an explanation of what this configuration translates to in Gatekeeper:
         - approval is **always** required for dev
         - approval is **always** required for qa
         - approval is **always** required for prod
+    - Requesting dba_confidential
+        - approval is **always** required for dev
+        - approval is **always** required for qa
+        - approval is **always** required for prod
 3. For DBA Role
     - Requesting readonly
         - <= 180 days for dev environment
         - <= 180 days for qa environment
         - <= 180 days for prod environment
+    - Requesting readonly_confidential
+        - <= 100 days for dev environment
+        - <= 125 days for qa environment
+        - approval is **always** required for prod        
     - Requesting datafix
         - <= 180 days for dev environment
         - <= 180 days for qa environment
         - <= 180 days for prod environment
     - Requesting dba
+        - <= 180 days for dev environment
+        - <= 180 days for qa environment
+        - approval is **always** required for prod
+    - Requesting dba_confidential
         - <= 180 days for dev environment
         - <= 180 days for qa environment
         - approval is **always** required for prod
@@ -426,13 +473,19 @@ You can see the format for these properties below:
 | Property | Description | Type |
 |----------|-------------|------|
 | gatekeeper.approvalThreshold.dev.readonly.<environment>| The threshold in which devs can request readonly access before requiring approval | integer
+| gatekeeper.approvalThreshold.dev.readonly_confidential.<environment>| The threshold in which devs can request readonly access before requiring approval | integer
 | gatekeeper.approvalThreshold.dev.datafix.<environment>| The threshold in which devs can request datafix access before requiring approval | integer
 | gatekeeper.approvalThreshold.dev.dba.<environment>| The threshold in which devs can request dba access before requiring approval | integer
+| gatekeeper.approvalThreshold.dev.dba_confidential.<environment>| The threshold in which devs can request dba access before requiring approval | integer
 | gatekeeper.approvalThreshold.ops.readonly.<environment>| The threshold in which ops can request readonly access before requiring approval | integer
+| gatekeeper.approvalThreshold.ops.readonly_confidential.<environment>| The threshold in which ops can request readonly access before requiring approval | integer
 | gatekeeper.approvalThreshold.ops.datafix.<environment>| The threshold in which ops can request readonly access before requiring approval | integer
 | gatekeeper.approvalThreshold.ops.dba.<environment>| The threshold in which ops can request dba access before requiring approval  | integer
+| gatekeeper.approvalThreshold.ops.dba_confidential.<environment>| The threshold in which ops can request dba access before requiring approval  | integer
 | gatekeeper.approvalThreshold.dba.readonly.<environment>| The threshold in which dbas can request readonly access before requiring approval | integer
+| gatekeeper.approvalThreshold.dba.readonly_confidential.<environment>| The threshold in which dbas can request readonly access before requiring approval | integer
 | gatekeeper.approvalThreshold.dba.datafix.<environment>| The threshold in which dbas can request readonly access before requiring approval | integer
 | gatekeeper.approvalThreshold.dba.dba.<environment>| The threshold in which dbas can request readonly access before requiring approval | integer
+| gatekeeper.approvalThreshold.dba.dba_confidential.<environment>| The threshold in which dbas can request readonly access before requiring approval | integer
 | gatekeeper.overridePolicy.maxDays | The maximum amount of time a user can request temporary access for | integer
-| gatekeeper.overridePolicy.<user_role>.<db_role>.<environment> | for a given user role, db role and environment, this Overrides the maximum amount of days a user can request temporary access for | integer
+| gatekeeper.overridePolicy.overrides.<user_role>.<db_role>.<environment> | for a given user role, db role and environment, this Overrides the maximum amount of days a user can request temporary access for | integer

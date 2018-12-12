@@ -33,8 +33,30 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         this[TOAST] = $mdToast;
         this[DIALOG] = $mdDialog;
 
+        vm.roles = [
+                { model: 'readonly', label: 'Read Only', disableFn: vm.disableRoleCheckbox('gk_readonly') },
+                { model: 'readonly_confidential', label: 'Read Only (Confidential)', disableFn: vm.disableRoleCheckbox('gk_readonly_confidential') },
+                { model: 'datafix', label: 'Datafix', disableFn: vm.disableRoleCheckbox('gk_datafix') },
+                { model: 'dba', label: 'DBA', disableFn: vm.disableRoleCheckbox('gk_dba') },
+                { model: 'dba_confidential', label: 'DBA (Confidential)', disableFn: vm.disableRoleCheckbox('gk_dba_confidential') }
+            ];
         vm.selectedItems = [];
         vm.rdsInstances = [];
+    }
+
+
+    disableRoleCheckbox(roleStr){
+        let role = roleStr;
+        return () => {
+            let dbsThatDontSupportRole = vm.selectedItems.length;
+            vm.selectedItems.forEach((item) => {
+                if (item.availableRoles.indexOf(role) !== -1) {
+                    dbsThatDontSupportRole--;
+                }
+            });
+
+            return vm.selectedItems.length === 0 || dbsThatDontSupportRole > 0;
+        };
     }
 
     isFormValid(){
@@ -60,7 +82,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
         //approvers don't need approval
         if(vm.global.userInfo.role.toLowerCase() === 'approver'){
-            return 180;
+            return vm.global.rdsMaxDays;
         }
 
         let approvalRequired = true;
@@ -105,17 +127,19 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     }
 
     getMaximumDays(){
-
-        let max = 180;
+        let thresholds = vm.global.rdsOverridePolicy;
+        let max = vm.global.rdsMaxDays;
         if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
-            if (vm.forms.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('dba') !== -1) {
-                max = 7;
-            }
-
-            if (vm.forms.awsInstanceForm.selectedAccount.sdlc === 'prod' && vm.getSelectedRoles().indexOf('datafix') !== -1) {
-                max = 1;
-            }
+            vm.getSelectedRoles().forEach((role) => {
+                if(thresholds[role] && thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
+                    let overrideVal = thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
+                    if (overrideVal < max) {
+                        max = overrideVal;
+                    }
+                }
+            });
         }
+
         return max;
     }
 
