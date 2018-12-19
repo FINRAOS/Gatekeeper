@@ -268,8 +268,9 @@ public class PostgresDBConnection implements DBConnection {
         } catch (Exception ex) {
             logger.error("Could not retrieve list of roles for database " + address, ex);
             throw ex;
+        }finally {
+            dataSource.close();
         }
-        dataSource.close();
         return results;
     }
 
