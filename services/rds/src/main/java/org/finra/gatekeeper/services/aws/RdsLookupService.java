@@ -64,29 +64,13 @@ public class RdsLookupService {
         this.gatekeeperProperties = gatekeeperProperties;
     }
 
-    /* Account_Region -> Instances Cache, Want to minimize impact on AWS calls.*/
-    private final LoadingCache<AWSEnvironment, List<GatekeeperRDSInstance>> rdsInstanceCache = CacheBuilder.newBuilder()
-            .maximumSize(10)
-            .concurrencyLevel(10)
-            .refreshAfterWrite(15, TimeUnit.MINUTES)
-            .build(new CacheLoader<AWSEnvironment, List<GatekeeperRDSInstance>>() {
-                @Override
-                public List<GatekeeperRDSInstance> load(AWSEnvironment environment) throws Exception {
-                    return loadInstances(environment);
-                }
-            });
-
-    private List<GatekeeperRDSInstance> doFilter(AWSEnvironment environment, Predicate<? super GatekeeperRDSInstance> filter) {
-        List<GatekeeperRDSInstance> result = rdsInstanceCache.getUnchecked(environment)
-                .stream()
-                .filter(filter)
-                .collect(Collectors.toList());
-        return result;
+    private List<GatekeeperRDSInstance> doFilter(AWSEnvironment environment, String searchString) {
+        return loadInstances(environment, instance -> instance.getDBInstanceIdentifier().toLowerCase().contains(searchString.toLowerCase())
+                || instance.getDbiResourceId().toLowerCase().contains(searchString.toLowerCase()));
     }
 
     public List<GatekeeperRDSInstance> getInstances(AWSEnvironment environment, String searchString) {
-        return doFilter(environment, instance -> instance.getInstanceId().toLowerCase().contains(searchString.toLowerCase())
-                || instance.getName().toLowerCase().contains(searchString.toLowerCase()));
+        return doFilter(environment, searchString);
     }
 
     private String getApplicationTagforInstanceArn(AmazonRDSClient client, String arn){
@@ -115,12 +99,41 @@ public class RdsLookupService {
                         });
 
                 String status = item.getDBInstanceStatus();
-                String dbName = item.getDBName();
+                String dbName = item.getEngine().equalsIgnoreCase("postgres") ? "postgres" : item.getDBName();
+                Integer port = item.getEndpoint().getPort();
                 List<String> availableRoles = null;
-                if(dbName ==null && item.getEngine().equalsIgnoreCase("postgres")){
-                    dbName = item.getEngine().toLowerCase();
+
+                // If the database engine is an oracle based engine then we need to go dig the SSL port out thru the options.
+                if(item.getEngine().contains("oracle")) {
+                    // need to get the oracle SSL port from the associated option group
+                    logger.info("determining SSL port for Oracle DB " + item.getDBInstanceIdentifier() + " (" + item.getEngine() + ")");
+                    List<String> optionGroups = item.getOptionGroupMemberships().stream()
+                            .map(OptionGroupMembership::getOptionGroupName)
+                            .collect(Collectors.toList());
+
+                    // look through all option groups attached to the DB
+                    for(String ogName: optionGroups) {
+                        DescribeOptionGroupsRequest describeOptionGroupsRequest = new DescribeOptionGroupsRequest();
+                        OptionGroup optionGroup = client.describeOptionGroups(describeOptionGroupsRequest.withOptionGroupName(ogName))
+                                .getOptionGroupsList().get(0);
+
+                        // look for the SSL Option
+                        final Optional<Option> sslOption = optionGroup.getOptions().stream()
+                                .filter(option -> option.getOptionName().equalsIgnoreCase("SSL"))
+                                .findFirst();
+
+                        // if the SSL Option is present then set the port and stop searching
+                        if(sslOption.isPresent()){
+                            port = sslOption.get().getPort();
+                            break;
+                        }
+                    }
+                    logger.info("The SSL Port for " + item.getDBName() + " is: " + port);
                 }
 
+                if(item.getReadReplicaSourceDBInstanceIdentifier() != null){
+                    status = "Unsupported (Read-Only replica of " +item.getReadReplicaSourceDBInstanceIdentifier() + ")";
+                }
                 if(!enabled){
                     status = "Missing FINRA-RDS-support Security Group";
                 }else{
@@ -128,20 +141,23 @@ public class RdsLookupService {
 
                     try {
 
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(),String.valueOf(item.getEndpoint().getPort()),dbName));
+                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(),String.valueOf(port),dbName));
                         status = !dbStatus.isEmpty() ? dbStatus : status;
                     }catch(GKUnsupportedDBException e){
                         logger.error("Database Engine is not supported", e);
                         status = "DB Engine not supported";
                     }
-
-                    // get available roles for DB
-                    try {
-                        availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(),String.valueOf(item.getEndpoint().getPort()),dbName));
-                        Collections.sort(availableRoles);
-                    }catch(Exception e){
-                        logger.error("Could not fetch roles available to DB", e);
-                        status = "Could not fetch roles available to DB";
+                    // if status hasn't changed then get the roles
+                    if(status.equals(item.getDBInstanceStatus())) {
+                        // get available roles for DB
+                        try {
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(), String.valueOf(port), dbName));
+                            Collections.sort(availableRoles);
+                            logger.info("Found the following roles on " + item.getDBInstanceIdentifier() + " (" + availableRoles +").");
+                        } catch (Exception e) {
+                            logger.error("Could not fetch roles available to DB", e);
+                            status = "Could not fetch roles available to DB";
+                        }
                     }
                 }
 
@@ -158,7 +174,7 @@ public class RdsLookupService {
         return String.format("%s:%s/%s", address, port, dbName);
     }
 
-    private List<GatekeeperRDSInstance> loadInstances(AWSEnvironment environment) {
+    private List<GatekeeperRDSInstance> loadInstances(AWSEnvironment environment, Predicate<? super DBInstance> filter) {
         logger.info("Refreshing RDS Instance Data");
         Long startTime = System.currentTimeMillis();
         DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest();
@@ -166,12 +182,20 @@ public class RdsLookupService {
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
         DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest);
 
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient, result.getDBInstances(), securityGroupIds);
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient,
+                result.getDBInstances()
+                        .stream()
+                        .filter(filter)
+                        .collect(Collectors.toList()), securityGroupIds);
 
         //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
         while(result.getMarker() != null) {
             result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest.withMarker(result.getMarker()));
-            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstance(amazonRDSClient, result.getDBInstances(), securityGroupIds));
+            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstance(amazonRDSClient,
+                    result.getDBInstances()
+                            .stream()
+                            .filter(filter)
+                            .collect(Collectors.toList()), securityGroupIds));
         }
         logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
@@ -193,15 +217,9 @@ public class RdsLookupService {
         return gatekeeperRDSInstance;
     }
 
-    private Filter createAwsFilter(String filterKey, Collection<String> vals){
-        Filter filter = new Filter();
-        filter.setName(filterKey);
-        filter.setValues(vals);
-        return filter;
-    }
-
     public Map<RoleType, List<String>> getSchemasForInstance(AWSEnvironment environment, String instanceId) throws Exception{
-        Optional<GatekeeperRDSInstance> instance = getInstance(environment, instanceId);
+        logger.info("Getting Schema info for " + instanceId + " On Account " + environment.getAccount() + " and Region " + environment.getRegion());
+        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId);
         if(instance.isPresent()){
             return databaseConnectionService.getAvailableSchemasForDb(instance.get());
         }else{
@@ -228,12 +246,5 @@ public class RdsLookupService {
         }
 
         return empty;
-    }
-
-    private Optional<GatekeeperRDSInstance> getInstance(AWSEnvironment environment, String instanceId){
-        // get it from the cache, it should be there!
-        return rdsInstanceCache.getUnchecked(environment).stream()
-                .filter(db -> db.getInstanceId().equals(instanceId))
-                .findFirst();
     }
 }

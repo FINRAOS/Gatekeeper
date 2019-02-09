@@ -87,7 +87,6 @@ class GkRdsSearch extends Directive{
             onDeselect: $scope.onDeselectFn,
             headers: [
                 {dataType: 'string', display: 'Instance Name', value: 'name'},
-                {dataType: 'string', display: 'Database Name', value: 'dbName'},
                 {dataType: 'string', display: 'Engine',        value: 'engine'},
                 {dataType: 'string', display: 'Available Roles',   value: 'roles'},
                 {dataType: 'string', display: 'Status',        value: 'status'}
