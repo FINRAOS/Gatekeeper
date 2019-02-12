@@ -67,24 +67,17 @@ public class PostgresDBConnection implements DBConnection {
         this.connectTimeout = postgres.getConnectTimeout();
     }
 
-    private PGPoolingDataSource connect(String url) throws SQLException{
-        logger.info("Getting connection for " + url);
-        logger.info("Creating Datasource connection for " + url);
-        PGPoolingDataSource dataSource = new PGPoolingDataSource();
-        String dbUrl = "jdbc:postgresql://" + url;
-
-        dataSource.setDataSourceName(url);
-        dataSource.setUrl(dbUrl);
-        dataSource.setUser(gkUserName);
-        dataSource.setPassword(gkUserPassword);
-        dataSource.setConnectTimeout(connectTimeout);
-        dataSource.setSsl(ssl);
-        dataSource.setSslMode(sslMode);
-        dataSource.setSslRootCert(sslCert);
-        //Do not want to keep the connection after execution
-
-        logger.info("Using the following properties with the connection: " + ssl );
-        return dataSource;
+    private PGPoolingDataSource connect(String url) throws SQLException {
+        String dbUrl = url.split("/")[0];
+        logger.info("Getting connection for " + dbUrl);
+        logger.info("Creating Datasource connection for " + dbUrl);
+        String pgUrl = dbUrl + "/postgres"; // url with postgres instead of whatever was on the AWS console
+        try {
+            return connectHelper(pgUrl); // Try postgres first since it is a default db.
+        } catch (Exception e){
+            logger.info("postgres database not present for " + dbUrl.split("/")[0] + " Attempting connection to " + url + " as fallback.");
+            return connectHelper(url); // Fall-back if postgres isn't there
+        }
     }
 
     public boolean grantAccess(String user, String password, RoleType role, String address, Integer length) throws SQLException {
@@ -189,13 +182,12 @@ public class PostgresDBConnection implements DBConnection {
             }
         }catch(SQLException e){
             logger.error("Error running check query", e);
-        }
-        catch(CannotGetJdbcConnectionException ex){
+        } catch(CannotGetJdbcConnectionException ex){
             logger.error("Failed to connect to DB", ex);
             if(ex.getMessage().contains("password")) {
                 issues.add("Password authentication failed for gatekeeper user");
             }else{
-                issues.add("Unable to connect to DB (Check network configuration)");
+                issues.add("Unable to connect to DB (" + ex.getCause().getMessage() + ")");
             }
         }finally{
             if(dataSource != null) {
@@ -203,8 +195,8 @@ public class PostgresDBConnection implements DBConnection {
             }
         }
 
-
         return issues;
+
     }
 
     /**
@@ -274,6 +266,31 @@ public class PostgresDBConnection implements DBConnection {
         return results;
     }
 
+    private PGPoolingDataSource connectHelper(String address) {
+        PGPoolingDataSource dataSource = new PGPoolingDataSource();
+        String dbUrl = "jdbc:postgresql://" + address;
+
+        dataSource.setDataSourceName(address);
+        dataSource.setUrl(dbUrl);
+        dataSource.setUser(gkUserName);
+        dataSource.setPassword(gkUserPassword);
+        dataSource.setConnectTimeout(connectTimeout);
+        dataSource.setSsl(ssl);
+        dataSource.setSslMode(sslMode);
+        dataSource.setSslRootCert(sslCert);
+        //Do not want to keep the connection after execution
+
+        try {
+            new JdbcTemplate(dataSource).queryForList("select 1"); // Tests the connection
+        } catch (Exception e) {
+            logger.error("Failed to connect to " + address);
+            dataSource.close(); // close the datasource
+            throw e;
+        }
+        logger.info("Using the following properties with the connection: " + ssl);
+        return dataSource;
+
+    }
     private boolean revokeUser(JdbcTemplate conn, String user){
         return conn.execute("DROP USER IF EXISTS " + user, new PostgresCallableStatementExecutor());
 

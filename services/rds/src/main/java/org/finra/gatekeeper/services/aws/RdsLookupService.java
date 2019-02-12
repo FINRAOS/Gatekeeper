@@ -99,7 +99,7 @@ public class RdsLookupService {
                         });
 
                 String status = item.getDBInstanceStatus();
-                String dbName = item.getEngine().equalsIgnoreCase("postgres") ? "postgres" : item.getDBName();
+                String dbName = item.getDBName();
                 Integer port = item.getEndpoint().getPort();
                 List<String> availableRoles = null;
 
