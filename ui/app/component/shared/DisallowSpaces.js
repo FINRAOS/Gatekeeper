@@ -19,10 +19,6 @@ import Directive from '../shared/generic/BaseDirective';
 import $ from 'jquery';
 /**
  * Navigation directive
- *
- * @returns {{}}
- *
- * TODO: may need to do some fine tuning with this one.
  */
 
 class DisallowSpaces extends Directive {
