@@ -34,7 +34,7 @@ class RdsSchemaDialogController {
         this[DIALOG] = $mdDialog;
 
         vm.fetched = false;
-        vm.schemaPromise = gkSchemaService.search({account:account.alias, region: region.name, instanceId: database.instanceId})
+        vm.schemaPromise = gkSchemaService.search({account:account.alias, region: region.name, instanceId: database.name});
         vm.schemaPromise.then((response) => {
             vm.schemas = response.data;
             vm.fetched = true;
