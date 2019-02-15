@@ -163,7 +163,7 @@ public class RdsLookupService {
 
                 gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
                         dbName != null ? dbName : "", item.getEngine(), status,
-                        item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + item.getEndpoint().getPort(), application, availableRoles, enabled));
+                        item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled));
             }
         });
 
