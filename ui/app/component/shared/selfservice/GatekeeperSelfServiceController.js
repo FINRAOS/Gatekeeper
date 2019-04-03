@@ -20,6 +20,7 @@ const DIALOG = Symbol();
 const TOAST = Symbol();
 const SCOPE = Symbol();
 const ROOTSCOPE = Symbol();
+const CONFIG = Symbol();
 let STATE = Symbol();
 
 //need this to deal with callbacks
@@ -28,9 +29,10 @@ let vm;
 import GatekeeperSubmissionDialogController from './GatekeeperSubmissionDialogController';
 
 class GatekeeperSelfServiceController {
-    constructor($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope){
+    constructor($mdDialog, $mdToast, gkADService, $scope,$state,$rootScope, gkEc2ConfigService) {
         vm = this;
         this[AD] = gkADService;
+        this[CONFIG] = gkEc2ConfigService;
         this[DIALOG] = $mdDialog;
         this[TOAST] = $mdToast;
         this[SCOPE] = $scope;
@@ -45,24 +47,24 @@ class GatekeeperSelfServiceController {
 
 
         this.selfServiceUser = {
-            name:vm.global.userInfo.user,
-            email:vm.global.userInfo.email,
-            userId:vm.global.userInfo.userId
+            name: vm.global.userInfo.user,
+            email: vm.global.userInfo.email,
+            userId: vm.global.userInfo.userId
         };
 
         this.usersTable = {
-            selection:'multiple',
+            selection: 'multiple',
             selectionId: 'userId',
-            toolbar:{
+            toolbar: {
                 header: "Search Result",
-                inlineFilter:true
+                inlineFilter: true
             },
             onSelect: this.isSelectedUserCurrentUser,
             onDeselect: this.isSelectedUserCurrentUser,
             headers: [
-                {dataType:'string', display: 'User ID', value: 'userId'},
-                {dataType:'string', display: 'Name', value: 'name'},
-                {dataType:'string', display: 'E-Mail', value: 'email'}
+                {dataType: 'string', display: 'User ID', value: 'userId'},
+                {dataType: 'string', display: 'Name', value: 'name'},
+                {dataType: 'string', display: 'E-Mail', value: 'email'}
             ],
             data: [],
             selected: [],
@@ -77,21 +79,20 @@ class GatekeeperSelfServiceController {
             }
         };
 
-        this.error = {
-
-        };
+        this.error = {};
 
         this.fetching = {
-            ad:false
+            ad: false
         };
 
         this.confirm = true;
         this[SCOPE].$on('$stateChangeStart', (event, toState, toParams) => {
             vm.global.rollbackIndex = vm.global.selectedIndex;
-            this.confirmStateChange(event,toState, toParams);
+            this.confirmStateChange(event, toState, toParams);
         });
-
     }
+
+
 
     confirmStateChange(event,toState,toParams){
         var isPristine = Object.keys(vm.forms).every(function(key){
@@ -125,7 +126,7 @@ class GatekeeperSelfServiceController {
 
     isSelectedUserCurrentUser(user){
         if(user.userId === vm.selfServiceUser.userId){
-            vm.selfService = !vm.selfService
+            vm.selfService = !vm.selfService;
         }
     }
 

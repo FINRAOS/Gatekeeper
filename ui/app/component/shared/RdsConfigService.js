@@ -18,30 +18,15 @@
 import DataService from './generic/DataService';
 
 /**
- * This service grants access to users
+ * This service retrieves list of ticketing systems in use.
  * @returns {{}}
  */
 
-class GrantDataService extends DataService{
+class RdsConfigService extends DataService{
     constructor($http,$state){
         super($http,$state);
-        this.resource = 'grantAccess';
-    }
-
-    post(hours, users, account, region, instances, ticketId, requestReason, platform){
-        var bundle = {
-            account: account,
-            region: region,
-            hours: hours,
-            users: users,
-            instances: instances,
-            ticketId: ticketId,
-            requestReason: requestReason,
-            platform: platform
-        };
-
-        return this.http.post(this.getApi()+'/'+this.resource, bundle);
+        this.resource = 'getConfig';
     }
 }
 
-export default GrantDataService;
+export default RdsConfigService;

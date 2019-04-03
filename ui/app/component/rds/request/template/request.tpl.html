@@ -105,6 +105,22 @@
                 <tr>
                     <td colspan="2"><hr></td>
                 </tr>
+                <tr layout-padding>
+                    <td valign="top"><span class="md-body-2">Ticket ID:</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2" valign="top">
+                        <div layout="row" layout-padding layout-align="center center" >
+                            <md-input-container layout-fill>
+                                <label ng-if="::!dialogCtrl.row.ticketId">No ticket ID provided</label>
+                                <textarea ng-if="::dialogCtrl.row.ticketId" md-no-resize ng-if="::!dialogCtrl.row.requestReason" class="gk-textarea" rows="1" ng-model="dialogCtrl.row.ticketId" disabled></textarea>
+                            </md-input-container>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
                 <tr layout-padding ng-if="dialogCtrl.row.actionedByUserId">
                     <td><span class="md-body-2">Actioned By: </span></td>
                     <td layout-padding><span>{{::dialogCtrl.row.actionedByUserName}} ({{::dialogCtrl.row.actionedByUserId}}) </span></td>

@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
@@ -35,7 +36,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller providing basic gatekeeper services
@@ -48,12 +51,15 @@ public class AccessRequestController {
 
     private final AccessRequestService accessRequestService;
     private final AccountInformationService accountInformationService;
+    private final GatekeeperProperties gatekeeperProperties;
 
     @Autowired
     public AccessRequestController(AccessRequestService accessRequestService,
-                                   AccountInformationService accountInformationService){
+                                   AccountInformationService accountInformationService,
+                                   GatekeeperProperties gatekeeperProperties){
         this.accessRequestService = accessRequestService;
         this.accountInformationService = accountInformationService;
+        this.gatekeeperProperties = gatekeeperProperties;
     }
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Account> getAccounts() throws Exception {
@@ -90,6 +96,16 @@ public class AccessRequestController {
     @RequestMapping(value = "/cancelRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object cancelRequest(@RequestBody ActiveAccessRequestWrapper request) {
         return accessRequestService.cancelRequest(request.getTaskId(), request.getId());
+    }
+
+    @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Object> getConfig() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("explanationFieldRequired", gatekeeperProperties.isExplanationFieldRequired());
+        result.put("ticketIdFieldRequired", gatekeeperProperties.isTicketIdFieldRequired());
+        result.put("ticketIdFieldMessage", gatekeeperProperties.getTicketIdFieldMessage());
+
+        return result;
     }
 
 }

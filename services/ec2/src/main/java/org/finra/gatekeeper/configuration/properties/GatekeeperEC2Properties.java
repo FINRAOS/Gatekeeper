@@ -19,8 +19,6 @@ package org.finra.gatekeeper.configuration.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 @Component
 @ConfigurationProperties(prefix="gatekeeper")
 public class GatekeeperEC2Properties {
@@ -29,12 +27,45 @@ public class GatekeeperEC2Properties {
      */
     private String appIdentityTag;
 
+    private boolean explanationFieldRequired;
+
+    private boolean ticketIdFieldRequired;
+
+    private String ticketIdFieldMessage;
+
     public String getAppIdentityTag() {
         return appIdentityTag;
     }
 
     public GatekeeperEC2Properties setAppIdentityTag(String appIdentityTag) {
         this.appIdentityTag = appIdentityTag;
+        return this;
+    }
+
+    public boolean isExplanationFieldRequired() {
+        return explanationFieldRequired;
+    }
+
+    public GatekeeperEC2Properties setExplanationFieldRequired(boolean explanationFieldRequired) {
+        this.explanationFieldRequired = explanationFieldRequired;
+        return this;
+    }
+
+    public boolean isTicketIdFieldRequired() {
+        return ticketIdFieldRequired;
+    }
+
+    public GatekeeperEC2Properties setTicketIdFieldRequired(boolean ticketIdFieldRequired) {
+        this.ticketIdFieldRequired = ticketIdFieldRequired;
+        return this;
+    }
+
+    public String getTicketIdFieldMessage() {
+        return ticketIdFieldMessage;
+    }
+
+    public GatekeeperEC2Properties setTicketIdFieldMessage(String ticketIdFieldMessage) {
+        this.ticketIdFieldMessage = ticketIdFieldMessage;
         return this;
     }
 }

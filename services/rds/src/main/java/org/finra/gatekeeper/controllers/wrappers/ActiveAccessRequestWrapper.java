@@ -89,6 +89,7 @@ public class ActiveAccessRequestWrapper extends AccessRequestWrapper {
                 .setRequestorName(accessRequest.getRequestorName())
                 .setRequestorEmail(accessRequest.getRequestorEmail())
                 .setApproverComments(accessRequest.getApproverComments())
+                .setTicketId(accessRequest.getTicketId())
                 .setRequestReason(accessRequest.getRequestReason());
     }
 

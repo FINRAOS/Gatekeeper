@@ -18,6 +18,7 @@
 const DIALOG = Symbol();
 const TOAST = Symbol();
 const GRANT = Symbol();
+const CONFIG = Symbol();
 
 //need this to deal with callbacks
 let vm;
@@ -25,11 +26,12 @@ let vm;
 import GatekeeperSelfServiceController from '../../shared/selfservice/GatekeeperSelfServiceController';
 
 class RdsSelfServiceController extends GatekeeperSelfServiceController {
-    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService,$scope,$state,$rootScope){
+    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService, gkRdsConfigService,$scope,$state,$rootScope){
         super($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
 
         vm = this;
         this[GRANT] = gkRdsGrantService;
+        this[CONFIG] = gkRdsConfigService;
         this[TOAST] = $mdToast;
         this[DIALOG] = $mdDialog;
 
@@ -42,6 +44,15 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             ];
         vm.selectedItems = [];
         vm.rdsInstances = [];
+
+        this[CONFIG].fetch().then((response) =>{
+            let data = response.data;
+            vm.ticketIdFieldMessage = data.ticketIdFieldMessage;
+            vm.ticketIdFieldRequired = data.ticketIdFieldRequired;
+            vm.explanationFieldRequired = data.explanationFieldRequired;
+        }).catch(()=>{
+            throw new Error('Error fetching ticket systems');
+        });
     }
 
 
@@ -165,12 +176,13 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 message += 'This request will require approval.'
             }
 
-            let config = {title:title, message:message, requiresExplanation: approvalRequired};
+            let config = {title:title, message:message, requiresExplanation: approvalRequired, ticketIdFieldMessage:vm.ticketIdFieldMessage, ticketIdFieldRequired: vm.ticketIdFieldRequired, explanationFieldRequired:vm.explanationFieldRequired};
             vm.spawnTemplatedDialog(config)
-                .then((explanation) => {
+                .then((justification) => {
                     this.fetching.grant = true;
                     let roles = [];
-                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, explanation, vm.forms.awsInstanceForm.selectedPlatform)
+                    console.log('grantAccess() ticketId: ' + justification.ticketId + ', explanation: ' + justification.explanation);
+                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             var msg;

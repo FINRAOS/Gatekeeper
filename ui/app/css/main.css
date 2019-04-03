@@ -120,3 +120,8 @@ md-select md-select-value span:not(.md-select-icon):after {
 .gk-role-checkbox {
     padding-right: 15px;
 }
+
+.justification-field {
+    margin-top: 8px;
+    padding-left: 0px;
+}

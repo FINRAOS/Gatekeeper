@@ -114,6 +114,7 @@ public class AccessRequestService {
                 .setRequestorEmail(requestor.getEmail())
                 .setUsers(request.getUsers())
                 .setInstances(request.getInstances())
+                .setTicketId(request.getTicketId())
                 .setRequestReason(request.getRequestReason())
                 .setPlatform(request.getPlatform());
 

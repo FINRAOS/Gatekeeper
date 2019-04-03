@@ -38,6 +38,7 @@ public class AccessRequestWrapper {
     private String account;
     private String accountSdlc;
     private String region;
+    private String ticketId;
     private String requestReason;
     private String approverComments;
     private List<User> users;
@@ -143,6 +144,14 @@ public class AccessRequestWrapper {
         return this;
     }
 
+    public String getTicketId() {
+        return ticketId;
+    }
+
+    public AccessRequestWrapper setTicketId(String ticketId) {
+        this.ticketId = ticketId;
+        return this;
+    }
 
     public String getRequestReason() {
         return requestReason;

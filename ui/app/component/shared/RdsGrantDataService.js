@@ -28,7 +28,7 @@ class GrantDataService extends DataService{
         this.resource = 'grantAccess';
     }
 
-    post(roles, days, users, account, accountSdlc, region, instances,requestReason,platform){
+    post(roles, days, users, account, accountSdlc, region, instances, ticketId, requestReason, platform){
         var bundle = {
             roles: roles,
             account: account,
@@ -37,6 +37,7 @@ class GrantDataService extends DataService{
             days: days,
             users: users,
             instances: instances,
+            ticketId: ticketId,
             requestReason: requestReason,
             platform: platform
         };

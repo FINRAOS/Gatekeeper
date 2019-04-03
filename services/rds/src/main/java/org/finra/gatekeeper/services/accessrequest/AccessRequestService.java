@@ -126,6 +126,7 @@ public class AccessRequestService {
                 .setRequestorEmail(requestor.getEmail())
                 .setUsers(request.getUsers())
                 .setAwsRdsInstances(request.getInstances())
+                .setTicketId(request.getTicketId())
                 .setRequestReason(request.getRequestReason())
                 .setRoles(request.getRoles());
 

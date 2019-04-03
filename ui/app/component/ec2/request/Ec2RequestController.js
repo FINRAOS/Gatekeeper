@@ -52,7 +52,7 @@ class Ec2RequestController extends GatekeeperRequestController{
 
         $rootScope.$on("requestsUpdated", function(){
             VM.getActive();
-        })
+        });
 
 
     }

@@ -514,6 +514,12 @@ public class GatekeeperProperties {
 
     private String appIdentityTag;
 
+    private boolean explanationFieldRequired;
+
+    private boolean ticketIdFieldRequired;
+
+    private String ticketIdFieldMessage;
+
 
     public String getAccountInfoEndpoint() {
         return accountInfoEndpoint;
@@ -539,6 +545,33 @@ public class GatekeeperProperties {
 
     public GatekeeperProperties setAppIdentityTag(String appIdentityTag) {
         this.appIdentityTag = appIdentityTag;
+        return this;
+    }
+
+    public boolean isExplanationFieldRequired() {
+        return explanationFieldRequired;
+    }
+
+    public GatekeeperProperties setExplanationFieldRequired(boolean explanationFieldRequired) {
+        this.explanationFieldRequired = explanationFieldRequired;
+        return this;
+    }
+
+    public boolean isTicketIdFieldRequired() {
+        return ticketIdFieldRequired;
+    }
+
+    public GatekeeperProperties setTicketIdFieldRequired(boolean ticketIdFieldRequired) {
+        this.ticketIdFieldRequired = ticketIdFieldRequired;
+        return this;
+    }
+
+    public String getTicketIdFieldMessage() {
+        return ticketIdFieldMessage;
+    }
+
+    public GatekeeperProperties setTicketIdFieldMessage(String ticketIdFieldMessage) {
+        this.ticketIdFieldMessage = ticketIdFieldMessage;
         return this;
     }
 }
