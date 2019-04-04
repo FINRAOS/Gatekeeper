@@ -205,6 +205,13 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 | gatekeeper.db.user | The DB user to log in as | string
 | gatekeeper.db.password | The DB user password | string
 
+#### JUSTIFICATION
+| Property | Description | Type|
+|----------|-------------|------|
+| gatekeeper.explanationFieldRequired | Whether to require an explanation when approval is required. | String
+| gatekeeper.ticketIdFieldRequired | Whether to require a ticket ID when approval is required. | String
+| gatekeeper.ticketIdFieldMessage | Placeholder message in the ticket ID field. Automatically appended with " (Optional)" if gatekeeper.ticketIdFieldRequired is set to false. | String
+
 ### EC2
 These configurations are specific to Gatekeeper EC2
 
