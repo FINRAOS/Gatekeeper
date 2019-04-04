@@ -16,6 +16,7 @@
  */
 
 import GatekeeperSubmissionDialogJustification from './model/GatekeeperSubmissionDialogJustification';
+import GatekeeperJustificationConfig from './model/GatekeeperJustificationConfig';
 
 let dialog;
 let explanation;
@@ -26,22 +27,20 @@ let title;
 let ticketIdFieldMessage;
 let ticketIdFieldRequired;
 let explanationFieldRequired;
+let justificationConfig;
 let justification;
 
 class GatekeeperSubmissionDialogController{
-        constructor($mdDialog, $scope, message, requiresExplanation, title, ticketIdFieldMessage, ticketIdFieldRequired, explanationFieldRequired){
+        constructor($mdDialog, $scope, message, requiresExplanation, title, justificationConfig){
             dialog = $mdDialog;
             this.message = message;
             requiresExplanation = requiresExplanation;
             this.title = title;
-            this.ticketIdFieldMessage = ticketIdFieldMessage;
-            this.ticketIdFieldRequired = ticketIdFieldRequired;
-            this.explanationFieldRequired = explanationFieldRequired;
+            this.justificationConfig = justificationConfig;
         }
 
         hide() {
             justification = new GatekeeperSubmissionDialogJustification(this.explanation, this.ticketId);
-            console.log('hide() ticketId: ' + justification.ticketId + ', explanation: ' + justification.explanation);
             dialog.hide(justification);
         };
 
@@ -51,11 +50,11 @@ class GatekeeperSubmissionDialogController{
 
         getTicketIdFieldMessage() {
             let ticketIdFieldMessageToDisplay = 'Please provide a Ticket ID';
-            if(this.ticketIdFieldMessage !== '') {
-                ticketIdFieldMessageToDisplay = this.ticketIdFieldMessage;
+            if(this.justificationConfig.ticketIdFieldMessage !== '') {
+                ticketIdFieldMessageToDisplay = this.justificationConfig.ticketIdFieldMessage;
             }
 
-            if(!this.ticketIdFieldRequired) {
+            if(!this.justificationConfig.ticketIdFieldRequired) {
                 ticketIdFieldMessageToDisplay += ' (Optional)';
             }
 

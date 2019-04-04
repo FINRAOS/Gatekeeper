@@ -22,10 +22,10 @@
             {{dialogCtrl.message}}
             <form name="dialogCtrl.grantReason" ng-if="dialogCtrl.requiresExplanation" layout-padding>
                 <md-input-container class="justification-field" layout-fill flex md-no-float>
-                    <textarea name="explanation" placeholder="Please provide a reason" ng-model="dialogCtrl.explanation" ng-required='dialogCtrl.explanationFieldRequired'></textarea>
+                    <textarea name="explanation" placeholder="Please provide a reason" ng-model="dialogCtrl.explanation" ng-required='dialogCtrl.justificationConfig.explanationFieldRequired'></textarea>
                 </md-input-container>
                 <md-input-container class="justification-field" layout-fill flex md-no-float>
-                    <textarea name="ticketId" placeholder="{{dialogCtrl.getTicketIdFieldMessage()}}" ng-model="dialogCtrl.ticketId" ng-required='dialogCtrl.ticketIdFieldRequired'></textarea>
+                    <textarea name="ticketId" placeholder="{{dialogCtrl.getTicketIdFieldMessage()}}" ng-model="dialogCtrl.ticketId" ng-required='dialogCtrl.justificationConfig.ticketIdFieldRequired'></textarea>
                 </md-input-container>
             </form>
         </div>
