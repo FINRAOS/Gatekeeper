@@ -24,6 +24,7 @@ const CONFIG = Symbol();
 let vm;
 
 import GatekeeperSelfServiceController from '../../shared/selfservice/GatekeeperSelfServiceController';
+import GatekeeperJustificationConfig from '../../shared/selfservice/model/GatekeeperJustificationConfig';
 
 class RdsSelfServiceController extends GatekeeperSelfServiceController {
     constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService, gkRdsConfigService,$scope,$state,$rootScope){
@@ -50,8 +51,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             vm.ticketIdFieldMessage = data.ticketIdFieldMessage;
             vm.ticketIdFieldRequired = data.ticketIdFieldRequired;
             vm.explanationFieldRequired = data.explanationFieldRequired;
-        }).catch(()=>{
-            throw new Error('Error fetching ticket systems');
+        }).catch((error)=>{
+            console.log('Error retrieving justification config: ' + error);
         });
     }
 
@@ -176,12 +177,11 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 message += 'This request will require approval.'
             }
 
-            let config = {title:title, message:message, requiresExplanation: approvalRequired, ticketIdFieldMessage:vm.ticketIdFieldMessage, ticketIdFieldRequired: vm.ticketIdFieldRequired, explanationFieldRequired:vm.explanationFieldRequired};
+            let config = {title:title, message:message, requiresExplanation: approvalRequired, justificationConfig:new GatekeeperJustificationConfig(vm.ticketIdFieldMessage, vm.ticketIdFieldRequired, vm.explanationFieldRequired)};
             vm.spawnTemplatedDialog(config)
                 .then((justification) => {
                     this.fetching.grant = true;
                     let roles = [];
-                    console.log('grantAccess() ticketId: ' + justification.ticketId + ', explanation: ' + justification.explanation);
                     vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;

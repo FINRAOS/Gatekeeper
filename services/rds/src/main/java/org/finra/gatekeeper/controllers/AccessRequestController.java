@@ -18,7 +18,6 @@
 package org.finra.gatekeeper.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
@@ -26,6 +25,7 @@ import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
+import org.finra.gatekeeper.common.services.properties.GatekeeperPropertiesService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,15 +50,15 @@ public class AccessRequestController {
 
     private final AccessRequestService accessRequestService;
     private final AccountInformationService accountInformationService;
-    private final GatekeeperProperties gatekeeperProperties;
+    private final GatekeeperPropertiesService gatekeeperPropertiesService;
 
     @Autowired
     public AccessRequestController(AccessRequestService accessRequestService,
                                    AccountInformationService accountInformationService,
-                                   GatekeeperProperties gatekeeperProperties){
+                                   GatekeeperPropertiesService gatekeeperPropertiesService){
         this.accessRequestService = accessRequestService;
         this.accountInformationService = accountInformationService;
-        this.gatekeeperProperties = gatekeeperProperties;
+        this.gatekeeperPropertiesService = gatekeeperPropertiesService;
     }
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Account> getAccounts() throws Exception {
@@ -100,12 +99,7 @@ public class AccessRequestController {
 
     @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> getConfig() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("explanationFieldRequired", gatekeeperProperties.isExplanationFieldRequired());
-        result.put("ticketIdFieldRequired", gatekeeperProperties.isTicketIdFieldRequired());
-        result.put("ticketIdFieldMessage", gatekeeperProperties.getTicketIdFieldMessage());
-
-        return result;
+        return gatekeeperPropertiesService.getJustificationConfig();
     }
 
 }

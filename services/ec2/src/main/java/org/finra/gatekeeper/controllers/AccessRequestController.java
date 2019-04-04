@@ -16,7 +16,7 @@
 
 package org.finra.gatekeeper.controllers;
 
-import org.finra.gatekeeper.configuration.properties.GatekeeperEC2Properties;
+import org.finra.gatekeeper.common.services.properties.GatekeeperPropertiesService;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,13 +46,13 @@ public class AccessRequestController {
 
     private final AccessRequestService accessRequestService;
     private final AccountInformationService accountsService;
-    private final GatekeeperEC2Properties gatekeeperEC2Properties;
+    private final GatekeeperPropertiesService gatekeeperPropertiesService;
 
     @Autowired
-    public AccessRequestController(AccessRequestService accessRequestService, AccountInformationService accountsService, GatekeeperEC2Properties gatekeeperEC2Properties){
+    public AccessRequestController(AccessRequestService accessRequestService, AccountInformationService accountsService, GatekeeperPropertiesService gatekeeperPropertiesService){
         this.accessRequestService = accessRequestService;
         this.accountsService = accountsService;
-        this.gatekeeperEC2Properties = gatekeeperEC2Properties;
+        this.gatekeeperPropertiesService = gatekeeperPropertiesService;
     }
 
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -94,13 +93,7 @@ public class AccessRequestController {
 
     @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> getConfig() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("explanationFieldRequired", gatekeeperEC2Properties.isExplanationFieldRequired());
-        result.put("ticketIdFieldRequired", gatekeeperEC2Properties.isTicketIdFieldRequired());
-        result.put("ticketIdFieldMessage", gatekeeperEC2Properties.getTicketIdFieldMessage());
-
-        logger.info("getConfig endpoint pinged. Returning: " + result);
-        return result;
+        return gatekeeperPropertiesService.getJustificationConfig();
     }
 
 }

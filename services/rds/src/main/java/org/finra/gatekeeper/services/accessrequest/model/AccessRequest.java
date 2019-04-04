@@ -53,8 +53,7 @@ public class AccessRequest {
      */
 
     @Id
-    @SequenceGenerator(name="hibernate_generator", sequenceName="hibernate_sequence")
-    @GeneratedValue(generator="hibernate_generator")
+    @GeneratedValue
     public Long getId() {
         return id;
     }
@@ -202,7 +201,7 @@ public class AccessRequest {
         return this;
     }
 
-    @Column(length = 50)
+    @Column(length = 100)
     public String getTicketId() {
         return ticketId;
     }

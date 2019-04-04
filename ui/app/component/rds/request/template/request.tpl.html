@@ -97,7 +97,7 @@
                         <div layout="row" layout-padding layout-align="center center" >
                             <md-input-container layout-fill>
                                 <label ng-if="::!dialogCtrl.row.requestReason">No reason provided</label>
-                                <textarea ng-if="::dialogCtrl.row.requestReason" md-no-resize ng-if="::!dialogCtrl.row.requestReason" class="gk-textarea" rows="1" ng-model="dialogCtrl.row.requestReason" disabled></textarea>
+                                <textarea md-no-resize class="gk-textarea" rows="1" ng-model="dialogCtrl.row.requestReason" disabled></textarea>
                             </md-input-container>
                         </div>
                     </td>
@@ -113,7 +113,7 @@
                         <div layout="row" layout-padding layout-align="center center" >
                             <md-input-container layout-fill>
                                 <label ng-if="::!dialogCtrl.row.ticketId">No ticket ID provided</label>
-                                <textarea ng-if="::dialogCtrl.row.ticketId" md-no-resize ng-if="::!dialogCtrl.row.requestReason" class="gk-textarea" rows="1" ng-model="dialogCtrl.row.ticketId" disabled></textarea>
+                                <textarea md-no-resize class="gk-textarea" rows="1" ng-model="dialogCtrl.row.ticketId" disabled></textarea>
                             </md-input-container>
                         </div>
                     </td>

@@ -187,7 +187,7 @@ public class AccessRequest {
         return this;
     }
 
-    @Column(length = 50)
+    @Column(length = 100)
     public String getTicketId() {
         return ticketId;
     }
