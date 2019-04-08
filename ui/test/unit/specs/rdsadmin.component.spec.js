@@ -177,7 +177,7 @@ describe('GateKeeper RDS admin component', function () {
                    {username:'a_test1'},
                ];
 
-               spyOn(controller, 'spawnAlertDialog')
+               spyOn(controller, 'spawnAlertDialog');
 
                controller.showRawUsers();
                expect(controller.spawnAlertDialog).toHaveBeenCalledWith('Users for ' + selectedDb.name, ['a_test1', 'gk_test1']);

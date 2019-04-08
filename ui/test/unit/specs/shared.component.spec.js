@@ -101,8 +101,8 @@ describe('GateKeeper UI shared gatekeeper component', function () {
             spyOn($http, 'post').and.returnValue('stubbed');
 
             let dataservice = new GrantDataService($http, $state);
-            var testBundle = {hours:5, users:{name:'bob', email:'bob@thing' }, account:"TEST", region:"us-west-2", instances:{instance:'hello'}, requestReason:'test request explanation', platform: "Test platform"};
-            let promise = dataservice.post(testBundle.hours, testBundle.users, testBundle.account, testBundle.region, testBundle.instances, testBundle.requestReason, testBundle.platform);
+            var testBundle = {hours:5, users:{name:'bob', email:'bob@thing' }, account:"TEST", region:"us-west-2", instances:{instance:'hello'}, ticketId: 'TST-123', requestReason:'test request explanation', platform: "Test platform"};
+            let promise = dataservice.post(testBundle.hours, testBundle.users, testBundle.account, testBundle.region, testBundle.instances, testBundle.ticketId, testBundle.requestReason, testBundle.platform);
             expect(promise).toBe('stubbed');
             expect($http.post).toHaveBeenCalledWith('/api/gatekeeper-ec2/grantAccess', testBundle);
         });

@@ -21,6 +21,7 @@ import AWSDataService from '../../../app/component/shared/AWSDataService';
 import ADDataService from '../../../app/component/shared/ADDataService';
 import GrantDataService from '../../../app/component/shared/GrantDataService';
 import RoleDataService from '../../../app/component/shared/RoleDataService';
+import Ec2ConfigService from "../../../app/component/shared/Ec2ConfigService";
 
 //Controllers
 import md from 'angular-material';
@@ -39,7 +40,7 @@ describe('GateKeeper UI self service component', function () {
     }));
 
     //mock all this stuff out.
-    let $q, $httpBackend, $mdDialog,$mdToast,gkADService,gkAWSService,gkGrantService, gkAccountService,$scope,$state,$rootScope;
+    let $q, $httpBackend, $mdDialog,$mdToast,gkADService,gkAWSService,gkGrantService, gkAccountService, gkEc2ConfigService, $scope,$state, $rootScope;
 
     describe('GatekeeperSelfServiceController', function(){
         beforeEach(inject(function(_$mdDialog_, _$mdToast_, $http, _$q_, _$httpBackend_,_$rootScope_){
@@ -49,6 +50,7 @@ describe('GateKeeper UI self service component', function () {
             gkADService  = new ADDataService($http);
             gkGrantService = new GrantDataService($http);
             gkAccountService = new AccountDataService($http);
+            gkEc2ConfigService = new Ec2ConfigService($http);
             $q = _$q_;
             $httpBackend = _$httpBackend_;
             $rootScope=_$rootScope_;
@@ -77,7 +79,7 @@ describe('GateKeeper UI self service component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new GatekeeperSelfServiceController($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
+            controller = new GatekeeperSelfServiceController($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope, gkEc2ConfigService);
 
             let expected = {
                 selection: 'multiple',
@@ -165,20 +167,42 @@ describe('GateKeeper UI self service component', function () {
     });
 
     describe('GatekeeperSelfServiceController', function(){
-        beforeEach(inject(function(_$mdDialog_, _$mdToast_, $http, _$q_){
+        let state;
+        beforeEach(inject(function(_$mdDialog_, _$mdToast_, $http, _$q_, _$rootScope_){
             $mdDialog = _$mdDialog_;
             $mdToast = _$mdToast_;
             gkADService = new ADDataService($http);
             gkAWSService = new AWSDataService($http);
             gkGrantService = new GrantDataService($http);
             gkAccountService = new AccountDataService($http);
+            gkEc2ConfigService = new Ec2ConfigService($http);
             $q = _$q_;
+            state = {
+                current: {
+                    name: 'gatekeeper.ec2'
+                }
+            };
+            if($rootScope === undefined) {
+                $rootScope = _$rootScope_;
+            }
+            if($scope === undefined) {
+                $scope = $rootScope.$new();
+            }
         }));
 
         let testInit = (happy) => {
             let deferred = $q.defer();
+            let deferredEc2 = $q.defer();
             spyOn(gkAccountService, 'fetch').and.returnValue(deferred.promise);
+            spyOn(gkEc2ConfigService, 'fetch').and.returnValue(deferredEc2.promise);
             let resp = {data:['stuff']};
+            let respEc2 = {
+                data: {
+                    ticketIdFieldMessage: 'Please enter a ticket ID: ',
+                    ticketIdFieldRequired: true,
+                    explanationFieldRequired: true
+                }
+            };
 
             $rootScope.userInfo = {
                 userId:"testId",
@@ -189,12 +213,14 @@ describe('GateKeeper UI self service component', function () {
 
             if(happy) {
                 deferred.resolve(resp);
+                deferredEc2.resolve(respEc2);
             }else{
                 deferred.reject(resp);
+                deferredEc2.reject(respEc2);
             }
 
             controller = new Ec2SelfServiceController($mdDialog,
-                $mdToast, gkADService, gkAWSService, gkGrantService, gkAccountService, $scope,$state,$rootScope);
+                $mdToast, gkADService, gkAWSService, gkGrantService, gkAccountService, gkEc2ConfigService, $scope,state,$rootScope);
 
 
             let failMsg;
@@ -297,7 +323,7 @@ describe('GateKeeper UI self service component', function () {
             //fake the dialog
             let deferred = $q.defer();
             spyOn($mdDialog, 'show').and.returnValue(deferred.promise);
-            let resp = {data:['stuff']};
+            let resp = {explanation:'test', ticketId:'TEST-123'};
             pressOk ? deferred.resolve(resp) : deferred.reject(resp);
 
             //fake the rest call
@@ -322,15 +348,21 @@ describe('GateKeeper UI self service component', function () {
                 grantValue:5
             };
 
-            controller.forms.awsInstanceForm.selectedAccount = {
-                sdlc:'TEST',
-                alias:'TheACCOUNT'
+            controller.forms.awsInstanceForm = {
+                selectedAccount: {
+                    sdlc:'TEST',
+                    alias:'TheACCOUNT'
+                },
+                selectedRegion: {
+                    name:'us-west-2'
+                },
+                selectedPlatform: 'Test Platform',
             };
 
-            controller.forms.awsInstanceForm.selectedRegion = {
-                name:'us-west-2'
+            let justification = {
+                ticketId: 'TEST-123',
+                explanation: 'test'
             };
-            controller.forms.awsInstanceForm.selectedPlatform = "Test Platform";
             controller.grantAccess();
 
             let error;
@@ -342,7 +374,7 @@ describe('GateKeeper UI self service component', function () {
             expect($mdDialog.show).toHaveBeenCalled();
             if(pressOk){
                 expect(gkGrantService.post).toHaveBeenCalledWith(controller.forms.grantForm.grantValue, controller.usersTable.selected,
-                    controller.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), controller.forms.awsInstanceForm.selectedRegion.name, controller.awsTable.selected,resp, controller.forms.awsInstanceForm.selectedPlatform);
+                    controller.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), controller.forms.awsInstanceForm.selectedRegion.name, controller.awsTable.selected, justification.ticketId, justification.explanation, controller.forms.awsInstanceForm.selectedPlatform);
             }else{
                 expect(gkGrantService.post).not.toHaveBeenCalled();
             }
@@ -415,7 +447,7 @@ describe('GateKeeper UI self service component', function () {
             $httpBackend.expectGET('/api/gatekeeper/getAccounts').respond([]);
 
 
-            controller = new GatekeeperSelfServiceController($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
+            controller = new GatekeeperSelfServiceController($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope, gkEc2ConfigService);
         }));
 
         let confirmStateChange = () => {
@@ -423,7 +455,7 @@ describe('GateKeeper UI self service component', function () {
             spyOn($mdDialog, 'show').and.returnValue(deferred.promise);
             $scope.$broadcast('$stateChangeStart');
             expect($mdDialog.show).toHaveBeenCalled();
-        }
+        };
 
         let checkPrompt = (confirm) =>{
             controller.forms.adForm = {
