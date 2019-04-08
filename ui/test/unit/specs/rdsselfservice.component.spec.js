@@ -16,6 +16,7 @@
  */
 import AccountDataService from '../../../app/component/shared/AccountDataService';
 import RdsGrantDataService from '../../../app/component/shared/RdsGrantDataService';
+import RdsConfigService from '../../../app/component/shared/RdsConfigService';
 
 //Controllers
 import md from 'angular-material';
@@ -40,7 +41,7 @@ describe('GateKeeper RDS SelfService component', function () {
 
     //mock all this stuff out.
     let $q, $rootScope, $httpBackend;
-    let gkAccountService, gkRdsGrantService;
+    let gkAccountService, gkRdsConfigService, gkRdsGrantService;
 
     describe('RdsSelfServiceController', function(){
         beforeEach(inject(function(_$q_, _$rootScope_, _$httpBackend_){
@@ -49,6 +50,7 @@ describe('GateKeeper RDS SelfService component', function () {
             $httpBackend = _$httpBackend_;
 
             gkRdsGrantService = new RdsGrantDataService($http, $state);
+            gkRdsConfigService = new RdsConfigService($http, $state);
             gkAccountService = new AccountDataService($http, $state);
 
         }));
@@ -122,7 +124,7 @@ describe('GateKeeper RDS SelfService component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new RdsSelfServiceController($mdDialog, $mdToast, gkAccountService, gkRdsGrantService, scope, $state, $rootScope);
+            controller = new RdsSelfServiceController($mdDialog, $mdToast, gkAccountService, gkRdsGrantService, gkRdsConfigService, scope, $state, $rootScope);
             controller.forms.awsInstanceForm = {
                 selectedAccount: {},
             };
