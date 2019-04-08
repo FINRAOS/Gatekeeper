@@ -88,7 +88,23 @@
                         <div layout="row" layout-padding layout-align="center center" >
                             <md-input-container layout-fill>
                                 <label ng-if="::!dialogCtrl.row.requestReason">No reason provided</label>
-                                <textarea ng-if="::dialogCtrl.row.requestReason" md-no-resize ng-if="::!dialogCtrl.row.requestReason" class="gk-textarea" rows="1" ng-model="dialogCtrl.row.requestReason" disabled></textarea>
+                                <textarea md-no-resize class="gk-textarea" rows="1" ng-model="dialogCtrl.row.requestReason" disabled></textarea>
+                            </md-input-container>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr></td>
+                </tr>
+                <tr layout-padding>
+                    <td valign="top"><span class="md-body-2">Ticket ID:</span></td>
+                </tr>
+                <tr>
+                    <td colspan="2" valign="top">
+                        <div layout="row" layout-padding layout-align="center center" >
+                            <md-input-container layout-fill>
+                                <label ng-if="::!dialogCtrl.row.ticketId">No ticket ID provided</label>
+                                <textarea md-no-resize class="gk-textarea" rows="1" ng-model="dialogCtrl.row.ticketId" disabled></textarea>
                             </md-input-container>
                         </div>
                     </td>

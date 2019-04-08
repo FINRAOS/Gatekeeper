@@ -15,26 +15,51 @@
  * limitations under the License.
  */
 
+import GatekeeperSubmissionDialogJustification from './model/GatekeeperSubmissionDialogJustification';
+import GatekeeperJustificationConfig from './model/GatekeeperJustificationConfig';
+
 let dialog;
 let explanation;
+let ticketId;
 let message;
 let requiresExplanation;
 let title;
+let ticketIdFieldMessage;
+let ticketIdFieldRequired;
+let explanationFieldRequired;
+let justificationConfig;
+let justification;
+
 class GatekeeperSubmissionDialogController{
-        constructor($mdDialog, $scope, message, requiresExplanation, title){
+        constructor($mdDialog, $scope, message, requiresExplanation, title, justificationConfig){
             dialog = $mdDialog;
-            message = message;
+            this.message = message;
             requiresExplanation = requiresExplanation;
-            title = title;
+            this.title = title;
+            this.justificationConfig = justificationConfig;
         }
 
         hide() {
-            dialog.hide(this.explanation);
+            justification = new GatekeeperSubmissionDialogJustification(this.explanation, this.ticketId);
+            dialog.hide(justification);
         };
 
         abort() {
             dialog.cancel();
         };
+
+        getTicketIdFieldMessage() {
+            let ticketIdFieldMessageToDisplay = 'Please provide a Ticket ID';
+            if(this.justificationConfig.ticketIdFieldMessage !== '') {
+                ticketIdFieldMessageToDisplay = this.justificationConfig.ticketIdFieldMessage;
+            }
+
+            if(!this.justificationConfig.ticketIdFieldRequired) {
+                ticketIdFieldMessageToDisplay += ' (Optional)';
+            }
+
+            return ticketIdFieldMessageToDisplay;
+        }
     }
 
 export default GatekeeperSubmissionDialogController;

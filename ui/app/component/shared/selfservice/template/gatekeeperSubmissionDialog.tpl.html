@@ -20,9 +20,12 @@
         <h2 class="md-title">{{ dialogCtrl.title }}</h2>
         <div class="md-dialog-content-body">
             {{dialogCtrl.message}}
-            <form name ="dialogCtrl.grantReason" ng-if="dialogCtrl.requiresExplanation" layout-margin layout-padding>
-                <md-input-container layout-fill flex md-no-float>
-                    <textarea name="explanation" placeholder="Please provide a reason" ng-model="dialogCtrl.explanation"></textarea>
+            <form name="dialogCtrl.grantReason" ng-if="dialogCtrl.requiresExplanation" layout-padding>
+                <md-input-container class="justification-field" layout-fill flex md-no-float>
+                    <textarea name="explanation" placeholder="Please provide a reason" ng-model="dialogCtrl.explanation" ng-required='dialogCtrl.justificationConfig.explanationFieldRequired'></textarea>
+                </md-input-container>
+                <md-input-container class="justification-field" layout-fill flex md-no-float>
+                    <textarea name="ticketId" placeholder="{{dialogCtrl.getTicketIdFieldMessage()}}" ng-model="dialogCtrl.ticketId" ng-required='dialogCtrl.justificationConfig.ticketIdFieldRequired'></textarea>
                 </md-input-container>
             </form>
         </div>
@@ -30,6 +33,6 @@
     <md-dialog-actions layout="row">
         <span flex></span>
         <md-button ng-click="dialogCtrl.abort()">No</md-button>
-        <md-button ng-click="dialogCtrl.hide()">Yes</md-button>
+        <md-button ng-click="dialogCtrl.hide()" ng-disabled="dialogCtrl.grantReason.$invalid">Yes</md-button>
     </md-dialog-actions>
 </md-dialog>

@@ -25,6 +25,7 @@ import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
+import org.finra.gatekeeper.common.services.properties.GatekeeperPropertiesService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller providing basic gatekeeper services
@@ -48,12 +50,15 @@ public class AccessRequestController {
 
     private final AccessRequestService accessRequestService;
     private final AccountInformationService accountInformationService;
+    private final GatekeeperPropertiesService gatekeeperPropertiesService;
 
     @Autowired
     public AccessRequestController(AccessRequestService accessRequestService,
-                                   AccountInformationService accountInformationService){
+                                   AccountInformationService accountInformationService,
+                                   GatekeeperPropertiesService gatekeeperPropertiesService){
         this.accessRequestService = accessRequestService;
         this.accountInformationService = accountInformationService;
+        this.gatekeeperPropertiesService = gatekeeperPropertiesService;
     }
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Account> getAccounts() throws Exception {
@@ -90,6 +95,11 @@ public class AccessRequestController {
     @RequestMapping(value = "/cancelRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object cancelRequest(@RequestBody ActiveAccessRequestWrapper request) {
         return accessRequestService.cancelRequest(request.getTaskId(), request.getId());
+    }
+
+    @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Object> getConfig() {
+        return gatekeeperPropertiesService.getJustificationConfig();
     }
 
 }

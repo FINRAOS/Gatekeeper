@@ -16,6 +16,7 @@
 
 package org.finra.gatekeeper.controllers;
 
+import org.finra.gatekeeper.common.services.properties.GatekeeperPropertiesService;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
@@ -32,6 +33,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controller providing basic gatekeeper services
@@ -44,11 +46,13 @@ public class AccessRequestController {
 
     private final AccessRequestService accessRequestService;
     private final AccountInformationService accountsService;
+    private final GatekeeperPropertiesService gatekeeperPropertiesService;
 
     @Autowired
-    public AccessRequestController(AccessRequestService accessRequestService, AccountInformationService accountsService){
+    public AccessRequestController(AccessRequestService accessRequestService, AccountInformationService accountsService, GatekeeperPropertiesService gatekeeperPropertiesService){
         this.accessRequestService = accessRequestService;
         this.accountsService = accountsService;
+        this.gatekeeperPropertiesService = gatekeeperPropertiesService;
     }
 
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -85,6 +89,11 @@ public class AccessRequestController {
     @RequestMapping(value = "/cancelRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object cancelRequest(@RequestBody ActiveAccessRequestWrapper request) {
         return accessRequestService.cancelRequest(request.getTaskId(), request.getId());
+    }
+
+    @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
+    public Map<String, Object> getConfig() {
+        return gatekeeperPropertiesService.getJustificationConfig();
     }
 
 }

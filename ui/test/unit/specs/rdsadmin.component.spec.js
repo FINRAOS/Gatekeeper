@@ -120,6 +120,7 @@ describe('GateKeeper RDS admin component', function () {
 
         describe('Test disableRow method', function(){
             it('should return true if the user does not begin with gk_', function(){
+                testInit(true);
                 let row = {
                     username: 'notaproperguy'
                 };
@@ -127,6 +128,7 @@ describe('GateKeeper RDS admin component', function () {
             });
 
             it('should return false if the user does not begin with gk_', function(){
+                testInit(true);
                 let row = {
                     username: 'gk_thishouldwork'
                 };
@@ -177,7 +179,7 @@ describe('GateKeeper RDS admin component', function () {
                    {username:'a_test1'},
                ];
 
-               spyOn(controller, 'spawnAlertDialog')
+               spyOn(controller, 'spawnAlertDialog');
 
                controller.showRawUsers();
                expect(controller.spawnAlertDialog).toHaveBeenCalledWith('Users for ' + selectedDb.name, ['a_test1', 'gk_test1']);

@@ -41,6 +41,7 @@ public class AccessRequest {
     private String approverComments;
     private String actionedByUserId;
     private String actionedByUserName;
+    private String ticketId;
     private String requestReason;
     private Integer days;
     private List<User> users;
@@ -200,6 +201,16 @@ public class AccessRequest {
         return this;
     }
 
+    @Column(length = 100)
+    public String getTicketId() {
+        return ticketId;
+    }
+
+    public AccessRequest setTicketId(String ticketId) {
+        this.ticketId = ticketId;
+        return this;
+    }
+
     /**
      * Getters / Setters for requestReason
      */
@@ -247,6 +258,7 @@ public class AccessRequest {
                 Objects.equal(approverComments, that.approverComments) &&
                 Objects.equal(actionedByUserId, that.actionedByUserId) &&
                 Objects.equal(actionedByUserName, that.actionedByUserName) &&
+                Objects.equal(ticketId, that.ticketId) &&
                 Objects.equal(requestReason, that.requestReason) &&
                 Objects.equal(days, that.days) &&
                 Objects.equal(users, that.users) &&
@@ -256,7 +268,7 @@ public class AccessRequest {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, accountSdlc, approverComments, actionedByUserId, actionedByUserName, requestReason, days, users, roles, awsRdsDatabases);
+        return Objects.hashCode(id, requestorId, requestorName, requestorEmail, account, region, accountSdlc, approverComments, actionedByUserId, actionedByUserName, ticketId, requestReason, days, users, roles, awsRdsDatabases);
     }
 
     @Override
@@ -273,6 +285,7 @@ public class AccessRequest {
                 .add("actionedByUserId", actionedByUserId)
                 .add("actionedByUserName", actionedByUserName)
                 .add("requestReason", requestReason)
+                .add("ticketId", ticketId)
                 .add("days", days)
                 .add("users", users)
                 .add("roles", roles)

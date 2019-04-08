@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
+import GatekeeperJustificationConfig from "../../shared/selfservice/model/GatekeeperJustificationConfig";
+
 const TOAST = Symbol();
+const CONFIG = Symbol();
 const AWS = Symbol();
 const GRANT = Symbol();
 
@@ -26,14 +29,15 @@ import GatekeeperSubmissionDialogController from '../../shared/selfservice/Gatek
 import GatekeeperSelfServiceController from '../../shared/selfservice/GatekeeperSelfServiceController';
 
 class Ec2SelfServiceController extends GatekeeperSelfServiceController {
-    constructor($mdDialog, $mdToast, gkADService, gkAWSService, gkGrantService, gkAccountService,$scope,$state,$rootScope){
-        super($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
+    constructor($mdDialog, $mdToast, gkADService, gkAWSService, gkGrantService, gkAccountService, gkEc2ConfigService,$scope,$state,$rootScope){
+        super($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope, gkEc2ConfigService);
         vm = this;
         vm.global = $rootScope;
 
         this[AWS] = gkAWSService;
         this[GRANT] = gkGrantService;
         this[TOAST] = $mdToast;
+        this[CONFIG] = gkEc2ConfigService;
 
         this.awsInstanceFilter = {
             onlineOnly:false
@@ -97,6 +101,15 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
             disableRow: this.disableRow,
             disableBackgroundColor: 'rgba(0,0,0,0.12)'
         };
+
+        gkEc2ConfigService.fetch().then((response) =>{
+            let data = response.data;
+            vm.ticketIdFieldMessage = data.ticketIdFieldMessage;
+            vm.ticketIdFieldRequired = data.ticketIdFieldRequired;
+            vm.explanationFieldRequired = data.explanationFieldRequired;
+        }).catch((error)=>{
+            console.log('Error retrieving justification config: ' + error);
+        });
 
     }
 
@@ -204,11 +217,11 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                 message += 'This request will require approval.'
             }
 
-            let config = {title:title, message:message, requiresExplanation:vm.approvalRequired};
+            let config = {title:title, message:message, requiresExplanation:vm.approvalRequired, justificationConfig:new GatekeeperJustificationConfig(vm.ticketIdFieldMessage, vm.ticketIdFieldRequired, vm.explanationFieldRequired)};
             vm.spawnTemplatedDialog(config)
-                .then((explanation) => {
+                .then((justification) => {
                     this.fetching.grant = true;
-                    vm[GRANT].post(vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.awsTable.selected, explanation, vm.forms.awsInstanceForm.selectedPlatform)
+                    vm[GRANT].post(vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.awsTable.selected, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             let msg = 'Access was requested for ' + vm.forms.grantForm.grantValue + ' hours. If your request required approval,'

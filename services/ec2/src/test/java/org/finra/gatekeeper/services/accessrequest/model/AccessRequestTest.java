@@ -189,6 +189,7 @@ public class AccessRequestTest {
         String requestorId = "testId";
         String requestorName = "Test Dude";
         String requestorEmail = "Test@email.com";
+        String ticketId = "TEST-123";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
         String approverName = "Test Approver";
@@ -209,6 +210,7 @@ public class AccessRequestTest {
                 .setRequestorEmail(requestorEmail)
                 .setUsers(users)
                 .setInstances(instances)
+                .setTicketId(ticketId)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
                 .setActionedByUserId(approverId)
@@ -225,6 +227,7 @@ public class AccessRequestTest {
                         approverComments,
                         approverId,
                         approverName,
+                        ticketId,
                         requestReason,
                         platform,
                         hours,
@@ -243,6 +246,7 @@ public class AccessRequestTest {
         String requestorId = "testId";
         String requestorName = "Test Dude";
         String requestorEmail = "Test@email.com";
+        String ticketId = "TEST-123";
         String requestReason = "Test Request Reason";
         String approverComments = "Test Approver Comments";
         String approverName = "Test Approver";
@@ -263,6 +267,7 @@ public class AccessRequestTest {
                 .setRequestorEmail(requestorEmail)
                 .setUsers(users)
                 .setInstances(instances)
+                .setTicketId(ticketId)
                 .setRequestReason(requestReason)
                 .setApproverComments(approverComments)
                 .setActionedByUserId(approverId)
@@ -279,6 +284,7 @@ public class AccessRequestTest {
                 .add("Hours", hours)
                 .add("Users", users)
                 .add("Instances", instances)
+                .add("Ticket ID", ticketId)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
                 .add("Actioned By Id", approverId)

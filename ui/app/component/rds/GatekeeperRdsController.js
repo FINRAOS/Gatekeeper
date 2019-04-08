@@ -155,8 +155,8 @@ class GatekeeperRdsController extends GatekeeperController{
                     return counter;
                 }
                 counter++;
-            })
-        }
+            });
+        };
 
     }
 }

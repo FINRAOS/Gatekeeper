@@ -40,6 +40,7 @@ public class AccessRequest {
     private String actionedByUserId;
     private String actionedByUserName;
     private String requestReason;
+    private String ticketId;
     private String platform;
     private Integer hours;
     private List<User> users;
@@ -186,6 +187,16 @@ public class AccessRequest {
         return this;
     }
 
+    @Column(length = 100)
+    public String getTicketId() {
+        return ticketId;
+    }
+
+    public AccessRequest setTicketId(String ticketId) {
+        this.ticketId = ticketId;
+        return this;
+    }
+
     /**
      * Getters / Setters for requestReason
      */
@@ -231,6 +242,7 @@ public class AccessRequest {
                 Objects.equal(approverComments, that.approverComments) &&
                 Objects.equal(actionedByUserId, that.actionedByUserId) &&
                 Objects.equal(actionedByUserName, that.actionedByUserName) &&
+                Objects.equal(ticketId, that.ticketId) &&
                 Objects.equal(requestReason, that.requestReason) &&
                 Objects.equal(platform, that.platform) &&
                 Objects.equal(hours, that.hours) &&
@@ -244,7 +256,7 @@ public class AccessRequest {
                 requestorId,
                 requestorName,
                 requestorEmail,
-                account, region, approverComments, actionedByUserId, actionedByUserName, requestReason, platform, hours, users, instances);
+                account, region, approverComments, actionedByUserId, actionedByUserName, ticketId, requestReason, platform, hours, users, instances);
     }
 
     @Override
@@ -259,6 +271,7 @@ public class AccessRequest {
                 .add("Hours", hours)
                 .add("Users", users)
                 .add("Instances", instances)
+                .add("Ticket ID", ticketId)
                 .add("Request Reason", requestReason)
                 .add("Approver Comments", approverComments)
                 .add("Actioned By Id", actionedByUserId)

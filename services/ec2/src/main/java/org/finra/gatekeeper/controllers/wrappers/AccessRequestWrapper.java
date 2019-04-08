@@ -19,6 +19,7 @@ package org.finra.gatekeeper.controllers.wrappers;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 
+import javax.persistence.Access;
 import java.util.List;
 
 /**
@@ -34,6 +35,7 @@ public class AccessRequestWrapper {
     private String account;
     private String region;
     private String requestReason;
+    private String ticketId;
     private String approverComments;
     private String platform;
     private List<User> users;
@@ -135,6 +137,15 @@ public class AccessRequestWrapper {
 
     public AccessRequestWrapper setRequestReason(String requestReason) {
         this.requestReason = requestReason;
+        return this;
+    }
+
+    public String getTicketId() {
+        return ticketId;
+    }
+
+    public AccessRequestWrapper setTicketId(String ticketId) {
+        this.ticketId = ticketId;
         return this;
     }
 
