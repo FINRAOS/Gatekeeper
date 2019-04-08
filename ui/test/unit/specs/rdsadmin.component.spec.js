@@ -120,6 +120,7 @@ describe('GateKeeper RDS admin component', function () {
 
         describe('Test disableRow method', function(){
             it('should return true if the user does not begin with gk_', function(){
+                testInit(true);
                 let row = {
                     username: 'notaproperguy'
                 };
@@ -127,6 +128,7 @@ describe('GateKeeper RDS admin component', function () {
             });
 
             it('should return false if the user does not begin with gk_', function(){
+                testInit(true);
                 let row = {
                     username: 'gk_thishouldwork'
                 };
