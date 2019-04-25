@@ -16,7 +16,11 @@
 
 package org.finra.gatekeeper.services.email.wrappers;
 
+import org.finra.gatekeeper.GatekeeperCommonConfig;
+import org.finra.gatekeeper.common.properties.GatekeeperSharedProperties;
+import org.finra.gatekeeper.configuration.GatekeeperConfig;
 import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
+import org.finra.gatekeeper.configuration.properties.GatekeeperProperties;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
@@ -71,6 +75,7 @@ public class EmailServiceWrapper {
             Map<String, Object> params = new HashMap<>();
             params.put("request", request);
             params.put("user", user);
+            params.put("approverDL", emailProperties.getApproverEmails());
             if(other != null){
                 other.forEach((k, v) -> params.put(k.toString(), v));
             }
@@ -89,7 +94,7 @@ public class EmailServiceWrapper {
      */
     public void notifyAdmins(AccessRequest request){
         logger.info("Notify the admins of: " + request);
-        emailHelper(emailProperties.getApproverEmails(), null, "GATEKEEPER: Access Requested", "accessRequested", request);
+        emailHelper(emailProperties.getApproverEmails(), null, String.format("GATEKEEPER: Access Requested (%s)", request.getId()), "accessRequested", request);
     }
 
     public void notifyExpired(AccessRequest request){

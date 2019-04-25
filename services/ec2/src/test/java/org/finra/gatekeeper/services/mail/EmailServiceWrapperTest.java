@@ -69,6 +69,13 @@ public class EmailServiceWrapperTest {
     @Mock
     private AWSInstance instance;
 
+    private String testUserEmail = "TestUser@company.com";
+    private String testUserId = "testuser";
+    private String approverEmail = "GKApprover@company.com";
+    private String fromEmail = "UNIT_FROM@company.com";
+    private String teamEmail = "DL-UNIT_TEAM@company.com";
+    private String opsEmail = "GKOps@company.com";
+    private String requestEmail = "Request@company.com";
 
     @Before
     public void initMocks() throws Exception {
@@ -77,8 +84,8 @@ public class EmailServiceWrapperTest {
         when(emailService.sendEmail(anyString(),anyString(),anyString(),anyString(),anyString(),anyMap())).thenReturn(null);
 
         //A mock user
-        when(testUser.getEmail()).thenReturn("TestUser@finra.org");
-        when(testUser.getUserId()).thenReturn("Test User");
+        when(testUser.getEmail()).thenReturn(testUserEmail);
+        when(testUser.getUserId()).thenReturn(testUserId);
 
         //The mock request
         List<User> users = new ArrayList<User>();
@@ -86,7 +93,7 @@ public class EmailServiceWrapperTest {
         when(request.getUsers()).thenReturn(users);
         when(request.getId()).thenReturn(125L);
         when(request.getAccount()).thenReturn("TEP");
-        when(request.getRequestorEmail()).thenReturn("Request@finra.org");
+        when(request.getRequestorEmail()).thenReturn(requestEmail);
         List<AWSInstance> instances = new ArrayList<AWSInstance>();
 
         when(instance.getIp()).thenReturn("127.0.0.1");
@@ -94,10 +101,10 @@ public class EmailServiceWrapperTest {
         when(request.getInstances()).thenReturn(instances);
 
         //Setting up the spring values
-        when(emailProperties.getApproverEmails()).thenReturn("DL-ProductivityEng@finra.org");
-        when(emailProperties.getFrom()).thenReturn("UNIT_FROM@finra.org");
-        when(emailProperties.getTeam()).thenReturn("DL-UNIT_TEAM@finra.org");
-        when(emailProperties.getOpsEmails()).thenReturn("DL-ProductivityOps@finra.org");
+        when(emailProperties.getApproverEmails()).thenReturn(approverEmail);
+        when(emailProperties.getFrom()).thenReturn(fromEmail);
+        when(emailProperties.getTeam()).thenReturn(teamEmail);
+        when(emailProperties.getOpsEmails()).thenReturn(opsEmail);
     }
 
 
@@ -117,7 +124,7 @@ public class EmailServiceWrapperTest {
         param.put("stacktrace", constructStackTrace(exception));
 
         mailServiceWrapper.notifyAdminsOfFailure(request, exception);
-        verify(emailService, times(1)).sendEmailWithAttachment("DL-UNIT_TEAM@finra.org", "UNIT_FROM@finra.org", null, "Failure executing process", "failure", contentMap, "Exception.txt", "exception", param, "text/plain");
+        verify(emailService, times(1)).sendEmailWithAttachment(teamEmail, fromEmail, null, "Failure executing process", "failure", contentMap, "Exception.txt", "exception", param, "text/plain");
 
 
 
@@ -148,8 +155,9 @@ public class EmailServiceWrapperTest {
         param.put("privatekey", privateKeyString);
 
         mailServiceWrapper.notifyOfCredentials(request, testUser, privateKeyString,createStatus);
-        verify(emailService, times(1)).sendEmailWithAttachment(testUser.getEmail(), "UNIT_FROM@finra.org", null, "Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
-        verify(emailService, times(1)).sendEmail("TestUser@finra.org", "UNIT_FROM@finra.org", null, "Access Request " + request.getId() + " - Your temporary username", "username", contentMap);
+        verify(emailService, times(1)).sendEmailWithAttachment(testUser.getEmail(), fromEmail, null, "Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
+        contentMap.put("approverDL", approverEmail);
+        verify(emailService, times(1)).sendEmail(testUserEmail, fromEmail, null, "Access Request " + request.getId() + " - Your temporary username", "username", contentMap);
 
     }
 
@@ -163,8 +171,9 @@ public class EmailServiceWrapperTest {
         Map<String, Object> contentMap = new HashMap<String, Object>();
         contentMap.put("request", request);
         contentMap.put("user", null);
+        contentMap.put("approverDL", approverEmail);
         mailServiceWrapper.notifyAdmins(request);
-        verify(emailService, times(1)).sendEmail("DL-ProductivityEng@finra.org", "UNIT_FROM@finra.org", null, "GATEKEEPER: Access Requested", "accessRequested", contentMap);
+        verify(emailService, times(1)).sendEmail(approverEmail, fromEmail, null, "GATEKEEPER: Access Requested ("+request.getId()+")", "accessRequested", contentMap);
     }
 
     /**
@@ -176,8 +185,9 @@ public class EmailServiceWrapperTest {
         Map<String, Object> contentMap = new HashMap<String, Object>();
         contentMap.put("request", request);
         contentMap.put("user", null);
+        contentMap.put("approverDL", approverEmail);
         mailServiceWrapper.notifyExpired(request);
-        verify(emailService, times(1)).sendEmail(testUser.getEmail(), "UNIT_FROM@finra.org", null, "Your Access has expired", "accessExpired", contentMap);
+        verify(emailService, times(1)).sendEmail(testUser.getEmail(), fromEmail, null, "Your Access has expired", "accessExpired", contentMap);
     }
 
     /**
@@ -190,8 +200,9 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("offlineInstances", Arrays.asList(new AWSInstance[]{instance}));
         contentMap.put("user", null);
+        contentMap.put("approverDL", approverEmail);
         mailServiceWrapper.notifyOps(request);
-        verify(emailService, times(1)).sendEmail("DL-ProductivityOps@finra.org", "UNIT_FROM@finra.org",  "DL-UNIT_TEAM@finra.org", "GATEKEEPER: Manual revoke access for expired request", "manualRemoval", contentMap);
+        verify(emailService, times(1)).sendEmail(opsEmail, fromEmail,  teamEmail, "GATEKEEPER: Manual revoke access for expired request", "manualRemoval", contentMap);
     }
 
     /**
@@ -203,8 +214,9 @@ public class EmailServiceWrapperTest {
         Map<String, Object> contentMap = new HashMap<String, Object>();
         contentMap.put("request", request);
         contentMap.put("user", null);
+        contentMap.put("approverDL", approverEmail);
         mailServiceWrapper.notifyApproved(request);
-        verify(emailService, times(1)).sendEmail("Request@finra.org", "UNIT_FROM@finra.org", null, "Access Request 125 was granted", "accessGranted", contentMap);
+        verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Access Request 125 was granted", "accessGranted", contentMap);
     }
 
     /**
@@ -216,8 +228,9 @@ public class EmailServiceWrapperTest {
         Map<String, Object> contentMap = new HashMap<String, Object>();
         contentMap.put("request", request);
         contentMap.put("user", null);
+        contentMap.put("approverDL", approverEmail);
         mailServiceWrapper.notifyCanceled(request);
-        verify(emailService, times(1)).sendEmail("DL-ProductivityEng@finra.org", "UNIT_FROM@finra.org", "Request@finra.org", "Access Request 125 was canceled", "requestCanceled", contentMap);
+        verify(emailService, times(1)).sendEmail(approverEmail, fromEmail, requestEmail, "Access Request 125 was canceled", "requestCanceled", contentMap);
     }
 
 
@@ -230,8 +243,9 @@ public class EmailServiceWrapperTest {
         Map<String, Object> contentMap = new HashMap<String, Object>();
         contentMap.put("request", request);
         contentMap.put("user", null);
+        contentMap.put("approverDL", approverEmail);
         mailServiceWrapper.notifyRejected(request);
-        verify(emailService, times(1)).sendEmail("Request@finra.org", "UNIT_FROM@finra.org", null, "Access Request 125 was denied", "accessDenied", contentMap);
+        verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Access Request 125 was denied", "accessDenied", contentMap);
     }
 
     private String constructStackTrace(Throwable exception) {
