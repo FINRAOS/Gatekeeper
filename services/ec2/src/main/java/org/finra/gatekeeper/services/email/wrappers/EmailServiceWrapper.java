@@ -16,11 +16,7 @@
 
 package org.finra.gatekeeper.services.email.wrappers;
 
-import org.finra.gatekeeper.GatekeeperCommonConfig;
-import org.finra.gatekeeper.common.properties.GatekeeperSharedProperties;
-import org.finra.gatekeeper.configuration.GatekeeperConfig;
 import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
-import org.finra.gatekeeper.configuration.properties.GatekeeperProperties;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
