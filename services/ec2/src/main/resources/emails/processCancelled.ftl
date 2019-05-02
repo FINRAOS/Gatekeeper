@@ -15,7 +15,5 @@
     <div>
         <p>Thanks!</p>
     </div>
-    <div>
-        <p>The Gatekeeper Admins</p>
-    </div>
+    <div><p>The Gatekeeper Admin Team</p></div>
 </html>
