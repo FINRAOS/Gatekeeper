@@ -67,7 +67,7 @@
         <intermediateCatchEvent id="waitForExpiration">
             <outgoing>sendExpiredNotification</outgoing>
             <timerEventDefinition>
-                <timeDuration>PT${accessRequest.getHours()}H</timeDuration>
+                <timeDuration>PT${accessRequest.getHours()}M</timeDuration>
             </timerEventDefinition>
         </intermediateCatchEvent>
         <sequenceFlow id="accessExpired" sourceRef="waitForExpiration" targetRef="revokeAccess" />
