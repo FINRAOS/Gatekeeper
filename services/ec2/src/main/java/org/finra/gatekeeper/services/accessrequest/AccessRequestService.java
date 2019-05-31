@@ -31,10 +31,11 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
-import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
-import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
-import org.finra.gatekeeper.services.accessrequest.model.AccessRequestRepository;
-import org.finra.gatekeeper.services.accessrequest.model.RequestStatus;
+import org.finra.gatekeeper.services.accessrequest.model.*;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveAccessConsolidated;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveAccessRequest;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveRequestUser;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.EventType;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.aws.SsmService;
@@ -294,6 +295,52 @@ public class AccessRequestService {
         return (List<CompletedAccessRequestWrapper>)filterResults(results);
     }
 
+
+    /**
+     *
+     * @param users         List of User IDs tto return live requests for
+     * @param eventType     Type of event that invokes this method. Allowed values are: "
+     * @return
+     */
+    public List<? extends ActiveRequestUser> getLiveRequests(List<User> users, EventType eventType) {
+
+    /*  This object is all of the Activiti Variables associated with the request
+        This map will contain the following:
+        When the request was opened
+        When the request was actioned by an approver (or canceled by a user/approver)
+        How many attempts it took to approve the user*/
+        Map<String, Map<String, Object>> historicData = new HashMap<>();
+
+        //we have to map the activiti hitory items to the gatekeeper requests map activiti objects to the access requests
+        Map<String, Long> activitiAccessRequestMap = new HashMap<>();
+        //map gatekeeper access request ids
+        Map<Long, AccessRequest> gkAccessRequestMap = new HashMap<>();
+
+    /*this gets all of the access requests history items. We exclude variable initialization
+        because activiti will break if we ever change the access request object so we'll just fetch the items
+        ourselves */
+        List<HistoricVariableInstance> accessRequests = getAllAccessRequests();
+
+        //we'll get all the access requests and store the created date into the historicData map
+        //as well as map the activiti item to the access request to which it corresponds
+        for(HistoricVariableInstance taskVar : accessRequests){
+            Map<String, Object> data = new HashMap<>();
+            data.put("created", taskVar.getCreateTime());
+            historicData.put(taskVar.getProcessInstanceId(), data);
+            activitiAccessRequestMap.put(taskVar.getProcessInstanceId(), Long.valueOf(((HistoricVariableInstanceEntity) taskVar).getTextValue2()));
+        }
+
+        //run a query to grab all of the access requests that we found in activiti (this pretty much returns all
+        //for now, until we implement it to use a time window)
+        accessRequestRepository.findAll(activitiAccessRequestMap.values()).forEach(accessRequest -> {
+            gkAccessRequestMap.put(accessRequest.getId(), accessRequest);
+        });
+
+        historicData = putRelevantData(historicData);
+
+        return compileLiveRequestList(historicData, activitiAccessRequestMap, gkAccessRequestMap, users, eventType);
+    }
+
     public AccessRequest updateInstanceStatus(AccessRequest accessRequest){
         AWSEnvironment environment = new AWSEnvironment(accessRequest.getAccount(),accessRequest.getRegion());
         List<AWSInstance> requestedInstances = accessRequest.getInstances();
@@ -356,6 +403,101 @@ public class AccessRequestService {
         return getActiveRequests();
     }
 
+
+    private List<HistoricVariableInstance> getAllAccessRequests() {
+        return historyService.createHistoricVariableInstanceQuery()
+                .excludeVariableInitialization()
+                .variableName("accessRequest")
+                .list();
+    }
+
+    private Map<String, Map<String, Object>> putRelevantData(Map<String, Map<String, Object>> historicData) {
+
+        /*  this one's kind of a hack but this query gets the RequestStatus value for a request
+            we do it like this because once again if the package name changes it won't update the database and will
+            activiti will try to instantiate the object using Reflection. to work around this we just pull out the value
+            for the enum and instantiate it ourselves
+
+            we also put the updated time into the historicData map here as this is when the request was updated
+         */
+        historyService.createNativeHistoricVariableInstanceQuery()
+                .sql("select a.*, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue\n" +
+                        " from act_hi_varinst a join act_ge_bytearray b on a.bytearray_id_ = b.id_;\n")
+                .list()
+                .forEach(item -> {
+                    historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), ((HistoricVariableInstanceEntity)item).getTextValue());
+                    historicData.get(item.getProcessInstanceId()).put("updated", item.getLastUpdatedTime());
+                });
+
+        //This gets all the attempts data for the requests and inserts it into the historicData map
+        historyService.createHistoricVariableInstanceQuery()
+                .excludeVariableInitialization()
+                .variableName("attempts")
+                .list()
+                .forEach(item -> {
+                    historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), item.getValue());
+                });
+
+        return historicData;
+    }
+
+    private List<ActiveRequestUser> compileLiveRequestList(Map<String, Map<String, Object>> historicData,
+                                                             Map<String, Long> activitiAccessRequestMap,
+                                                             Map<Long, AccessRequest> gkAccessRequestMap,
+                                                             List<User> users,
+                                                             EventType eventType){
+
+        List<ActiveRequestUser> results = new ArrayList<>();
+        ActiveAccessConsolidated accessRequestList = new ActiveAccessConsolidated();
+
+        Map<String, ActiveRequestUser> userMap = initializeUserMap(users);
+
+        //this section compiles the historicData into the response object for the UI to consume
+        for (String k : historicData.keySet()) {
+            Map<String, Object> varMap = historicData.get(k);
+            Long requestId = activitiAccessRequestMap.get(k);
+            AccessRequest request = gkAccessRequestMap.get(activitiAccessRequestMap.get(k));
+
+            if(request != null) {
+                List<User> usersToCheck = findUserIntersection(request.getUsers(), users);
+
+                //we instantiate the RequestStatus value here.
+                RequestStatus status = varMap.get("requestStatus") != null
+                        ? RequestStatus.valueOf((String) varMap.get("requestStatus"))
+                        : RequestStatus.APPROVAL_PENDING;
+
+                Date created = (Date) varMap.get("created");
+                Date updated = (Date) varMap.get("updated");
+
+                Calendar expireTime = Calendar.getInstance();
+                expireTime.setTime(updated);
+                expireTime.add(Calendar.HOUR_OF_DAY, request.getHours());
+
+                if ((status.equals(RequestStatus.APPROVAL_GRANTED) || status.equals(RequestStatus.GRANTED))
+                        && new Date().before(expireTime.getTime())){
+                    for (AWSInstance awsInstance : request.getInstances()) {
+                        for(User user : usersToCheck) {
+                            ActiveAccessConsolidated updatedActiveAccessConsolidated = addActiveAccessRequestToUser(
+                                    userMap.get(user.getUserId()),
+                                    requestId,
+                                    awsInstance
+                            );
+                            userMap.get(user.getUserId()).setActiveAccess(updatedActiveAccessConsolidated);
+                        }
+                    }
+                }
+            } else {
+                logger.warn("Could not get request details for AccessRequest with ID: " + requestId + ". This request will not be returned ");
+            }
+        }
+
+        for (String k : userMap.keySet()) {
+            results.add(userMap.get(k));
+        }
+        return results;
+    }
+
+
     /**
      * Cancels the request
      * @param taskId - the activiti task id
@@ -372,5 +514,48 @@ public class AccessRequestService {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRole.APPROVER)
                 || gatekeeperRoleService.getUserProfile().getUserId().equalsIgnoreCase(AccessRequestWrapper.getRequestorId()))
                 .collect(Collectors.toList());
+    }
+
+    private List<ActiveRequestUser> filterLiveResultsByUser(List<ActiveRequestUser> results, String userId) {
+        return results.stream().filter(ActiveRequestUser -> userId.equals(ActiveRequestUser.getUserId()))
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, ActiveRequestUser> initializeUserMap(List<User> users) {
+        Map<String, ActiveRequestUser> userMap = new HashMap<>();
+        for (User user : users) {
+
+            ActiveRequestUser activeRequestUser = new ActiveRequestUser()
+                    .setUserId(user.getUserId())
+                    .setGkUserId("gk-" + user.getUserId())
+                    .setEmail(user.getEmail())
+                    .setActiveAccess(new ActiveAccessConsolidated().setLinux(new ArrayList<>()).setWindows(new ArrayList<>()))
+                    .setExpiredAccess(new ActiveAccessConsolidated().setLinux(new ArrayList<>()).setWindows(new ArrayList<>()));
+
+            userMap.put(user.getUserId(), activeRequestUser);
+        }
+
+        return userMap;
+    }
+
+    private List<User> findUserIntersection(List<User> userList1, List<User> userList2) {
+        Set<User> commonUsers = new HashSet<>();
+        commonUsers.addAll(userList1);
+        commonUsers.addAll(userList2);
+        return new ArrayList<>(commonUsers);
+    }
+
+    private ActiveAccessConsolidated addActiveAccessRequestToUser(ActiveRequestUser activeRequestUser, Long requestId, AWSInstance awsInstance) {
+
+        List<ActiveAccessRequest> linuxRequests = activeRequestUser.getActiveAccess().getLinux();
+        List<ActiveAccessRequest> windowsRequests = activeRequestUser.getActiveAccess().getWindows();
+
+        if (awsInstance.getPlatform().equals("linux")) {
+            linuxRequests.add(new ActiveAccessRequest(requestId.toString(), awsInstance.getName(), awsInstance.getIp()));
+        } else if (awsInstance.getPlatform().equals("window")) {
+            windowsRequests.add(new ActiveAccessRequest(requestId.toString(), awsInstance.getName(), awsInstance.getIp()));
+        }
+
+        return new ActiveAccessConsolidated(linuxRequests, windowsRequests);
     }
 }
