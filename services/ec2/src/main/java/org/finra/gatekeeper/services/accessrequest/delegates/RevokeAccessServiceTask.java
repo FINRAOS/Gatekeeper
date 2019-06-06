@@ -122,6 +122,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                 List<ActiveRequestUser> liveAndExpiredRequests = accessRequestService.getLiveRequests(accessRequest.getUsers(), EventType.EXPIRATION, accessRequest);
                 logger.info("Live and expired requests: " + liveAndExpiredRequests);
             } catch (Exception e) {
+                e.printStackTrace();
                 logger.error("Error fetching live requests upon request expiration. Request ID: " + accessRequest.getId());
             }
 

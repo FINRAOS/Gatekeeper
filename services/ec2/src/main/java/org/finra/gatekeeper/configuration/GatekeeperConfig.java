@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.configuration;
 
 import freemarker.template.TemplateExceptionHandler;
+import org.activiti.engine.impl.persistence.StrongUuidGenerator;
 import org.finra.gatekeeper.services.email.EmailService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

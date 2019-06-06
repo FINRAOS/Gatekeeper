@@ -67,12 +67,11 @@
         <intermediateCatchEvent id="waitForExpiration">
             <outgoing>sendExpiredNotification</outgoing>
             <timerEventDefinition>
-                <timeDuration>PT${accessRequest.getHours()}H</timeDuration>
+                <timeDuration>PT${accessRequest.getHours()}M</timeDuration>
             </timerEventDefinition>
         </intermediateCatchEvent>
         <sequenceFlow id="accessExpired" sourceRef="waitForExpiration" targetRef="revokeAccess" />
-        <serviceTask id="revokeAccess" activiti:delegateExpression="${revokeAccessServiceTask}"
-                     activiti:async="true" >
+        <serviceTask id="revokeAccess" activiti:delegateExpression="${revokeAccessServiceTask}" activiti:async="true" >
             <extensionElements>
                 <activiti:failedJobRetryTimeCycle>R5/PT10S</activiti:failedJobRetryTimeCycle>
             </extensionElements>

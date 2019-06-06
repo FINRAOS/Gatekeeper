@@ -134,6 +134,7 @@ public class AccessRequestService {
             List<ActiveRequestUser> liveRequests = getLiveRequests(accessRequest.getUsers(), EventType.APPROVAL, null);
             logger.info("Live requests: " + liveRequests);
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("Error fetching live requests after approval.");
         }
         return accessRequest;
