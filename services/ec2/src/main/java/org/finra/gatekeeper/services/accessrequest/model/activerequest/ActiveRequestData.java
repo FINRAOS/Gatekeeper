@@ -32,4 +32,14 @@ public class ActiveRequestData {
     public void setUsers(List<ActiveRequestUser> users) {
         this.users = users;
     }
+
+
+    @Override
+    public String toString() {
+        return "ActiveRequestData{" +
+                "requestId='" + requestId + '\'' +
+                ", eventType='" + eventType + '\'' +
+                ", users=" + users +
+                '}';
+    }
 }

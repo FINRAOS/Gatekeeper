@@ -20,6 +20,10 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
+import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
+import org.finra.gatekeeper.services.accessrequest.model.User;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveRequestUser;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.EventType;
 import org.finra.gatekeeper.services.aws.Ec2LookupService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
@@ -31,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,16 +52,19 @@ public class RevokeAccessServiceTask implements JavaDelegate {
     private final SsmService ssmService;
     private final ManagementService managementService;
     private final Ec2LookupService ec2LookupService;
+    private final AccessRequestService accessRequestService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    SsmService ssmService,
                                    ManagementService managementService,
-                                   Ec2LookupService ec2LookupService){
+                                   Ec2LookupService ec2LookupService,
+                                   AccessRequestService accessRequestService){
         this.emailServiceWrapper = emailServiceWrapper;
         this.ssmService = ssmService;
         this.managementService = managementService;
         this.ec2LookupService = ec2LookupService;
+        this.accessRequestService = accessRequestService;
     }
 
     /**
@@ -108,6 +116,13 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             if(manualRemovalInstances.size() > 0){
                 logger.info("Could not revoke access for " + manualRemovalInstances + " send a notification to the ops team to investigate these instances");
                 emailServiceWrapper.notifyOps(accessRequest, manualRemovalInstances);
+            }
+
+            try {
+                List<ActiveRequestUser> liveAndExpiredRequests = accessRequestService.getLiveRequests(accessRequest.getUsers(), EventType.EXPIRATION, accessRequest);
+                logger.info("Live and expired requests: " + liveAndExpiredRequests);
+            } catch (Exception e) {
+                logger.error("Error fetching live requests upon request expiration. Request ID: " + accessRequest.getId());
             }
 
         }catch(Exception e){

@@ -54,4 +54,16 @@ public class ActiveRequestUser {
         this.expiredAccess = expiredAccess;
         return this;
     }
+
+
+    @Override
+    public String toString() {
+        return "{ " +
+                "userId: '" + userId + '\'' +
+                ", gkUserId: '" + gkUserId + '\'' +
+                ", email: '" + email + '\'' +
+                ", activeAccess: " + activeAccess +
+                ", expiredAccess: " + expiredAccess +
+                " }";
+    }
 }

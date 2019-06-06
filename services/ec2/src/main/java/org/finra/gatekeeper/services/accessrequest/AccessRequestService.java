@@ -16,6 +16,7 @@
 
 package org.finra.gatekeeper.services.accessrequest;
 
+import oracle.jrockit.jfr.ActiveRecordingEvent;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
@@ -32,10 +33,7 @@ import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.*;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveAccessConsolidated;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveAccessRequest;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveRequestUser;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.EventType;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.*;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.aws.SsmService;
@@ -131,6 +129,13 @@ public class AccessRequestService {
 
         // Verify that we started a new process instance
         logger.info("Number of process instances: " + runtimeService.createProcessInstanceQuery().count());
+
+        try {
+            List<ActiveRequestUser> liveRequests = getLiveRequests(accessRequest.getUsers(), EventType.APPROVAL, null);
+            logger.info("Live requests: " + liveRequests);
+        } catch (Exception e) {
+            logger.error("Error fetching live requests after approval.");
+        }
         return accessRequest;
     }
 
@@ -177,9 +182,16 @@ public class AccessRequestService {
     }
 
 
-
     public List<ActiveAccessRequestWrapper> getActiveRequests() {
-        List<Task> tasks = taskService.createTaskQuery().active().list();
+        return addRequestsToResponse(taskService.createTaskQuery().active().list());
+    }
+
+    public List<ActiveAccessRequestWrapper> getActiveRequests(List<Task> tasks) {
+
+        return addRequestsToResponse(tasks);
+    }
+
+    private List<ActiveAccessRequestWrapper> addRequestsToResponse(List<Task> tasks) {
         List<ActiveAccessRequestWrapper> response = new ArrayList<>();
         tasks.forEach(task -> {
             AccessRequest theRequest = updateInstanceStatus(
@@ -302,7 +314,7 @@ public class AccessRequestService {
      * @param eventType     Type of event that invokes this method. Allowed values are: "
      * @return
      */
-    public List<? extends ActiveRequestUser> getLiveRequests(List<User> users, EventType eventType) {
+    public List<ActiveRequestUser> getLiveRequests(List<User> users, EventType eventType, AccessRequest expiredRequest) {
 
     /*  This object is all of the Activiti Variables associated with the request
         This map will contain the following:
@@ -319,7 +331,8 @@ public class AccessRequestService {
     /*this gets all of the access requests history items. We exclude variable initialization
         because activiti will break if we ever change the access request object so we'll just fetch the items
         ourselves */
-        List<HistoricVariableInstance> accessRequests = getAllAccessRequests();
+        List<HistoricVariableInstance> accessRequests = getAllHistoricAccessRequests();
+        logger.info("Access requests: " + accessRequests.toString());
 
         //we'll get all the access requests and store the created date into the historicData map
         //as well as map the activiti item to the access request to which it corresponds
@@ -338,7 +351,17 @@ public class AccessRequestService {
 
         historicData = putRelevantData(historicData);
 
-        return compileLiveRequestList(historicData, activitiAccessRequestMap, gkAccessRequestMap, users, eventType);
+        logger.info("Compiling list of all live requests.");
+        List<ActiveRequestUser> activeRequestUserList = compileLiveRequestList(historicData, activitiAccessRequestMap, gkAccessRequestMap, users, eventType);
+
+        logger.info("Successfully compiled live requests.");
+        if(eventType == EventType.EXPIRATION) {
+            logger.info("Adding expired request to response object.");
+            activeRequestUserList = addExpiredRequest(activeRequestUserList, expiredRequest);
+            logger.info("Finished adding expired request to response object.");
+        }
+
+        return activeRequestUserList;
     }
 
     public AccessRequest updateInstanceStatus(AccessRequest accessRequest){
@@ -404,7 +427,7 @@ public class AccessRequestService {
     }
 
 
-    private List<HistoricVariableInstance> getAllAccessRequests() {
+    private List<HistoricVariableInstance> getAllHistoricAccessRequests() {
         return historyService.createHistoricVariableInstanceQuery()
                 .excludeVariableInitialization()
                 .variableName("accessRequest")
@@ -422,11 +445,14 @@ public class AccessRequestService {
          */
         historyService.createNativeHistoricVariableInstanceQuery()
                 .sql("select a.*, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue\n" +
-                        " from act_hi_varinst a join act_ge_bytearray b on a.bytearray_id_ = b.id_;\n")
+                        " from act_hi_varinst a join act_ge_bytearray b on a.bytearray_id_ = b.id_\n" +
+                        " and a.last_updated_time_ >= (NOW() - INTERVAL '168 hours')" +
+                        " order by a.last_updated_time_ ASC;\n")
                 .list()
                 .forEach(item -> {
                     historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), ((HistoricVariableInstanceEntity)item).getTextValue());
                     historicData.get(item.getProcessInstanceId()).put("updated", item.getLastUpdatedTime());
+                    logger.info("HistoricVariableInstanceEntity (" + item.getProcessInstanceId() + ")" + ": " + ((HistoricVariableInstanceEntity) item).toString() + " was last updated on: " + item.getLastUpdatedTime());
                 });
 
         //This gets all the attempts data for the requests and inserts it into the historicData map
@@ -448,7 +474,7 @@ public class AccessRequestService {
                                                              EventType eventType){
 
         List<ActiveRequestUser> results = new ArrayList<>();
-        ActiveAccessConsolidated accessRequestList = new ActiveAccessConsolidated();
+        ActiveAccessConsolidated updatedActiveAccessConsolidated = new ActiveAccessConsolidated();
 
         Map<String, ActiveRequestUser> userMap = initializeUserMap(users);
 
@@ -459,15 +485,17 @@ public class AccessRequestService {
             AccessRequest request = gkAccessRequestMap.get(activitiAccessRequestMap.get(k));
 
             if(request != null) {
-                List<User> usersToCheck = findUserIntersection(request.getUsers(), users);
+                List<UserNoId> usersToCheck = findUserIntersection(request.getUsers(), users);
 
                 //we instantiate the RequestStatus value here.
                 RequestStatus status = varMap.get("requestStatus") != null
                         ? RequestStatus.valueOf((String) varMap.get("requestStatus"))
                         : RequestStatus.APPROVAL_PENDING;
 
-                Date created = (Date) varMap.get("created");
                 Date updated = (Date) varMap.get("updated");
+                if (updated == null) {
+                    updated = (Date) varMap.get("created");
+                }
 
                 Calendar expireTime = Calendar.getInstance();
                 expireTime.setTime(updated);
@@ -476,8 +504,9 @@ public class AccessRequestService {
                 if ((status.equals(RequestStatus.APPROVAL_GRANTED) || status.equals(RequestStatus.GRANTED))
                         && new Date().before(expireTime.getTime())){
                     for (AWSInstance awsInstance : request.getInstances()) {
-                        for(User user : usersToCheck) {
-                            ActiveAccessConsolidated updatedActiveAccessConsolidated = addActiveAccessRequestToUser(
+                        for(UserNoId user : usersToCheck) {
+                            logger.info("Historic data: " + k + ", awsInstance from request: " + awsInstance.getName() + ", user: " + user);
+                            updatedActiveAccessConsolidated = addActiveAccessRequestToUser(
                                     userMap.get(user.getUserId()),
                                     requestId,
                                     awsInstance
@@ -495,6 +524,31 @@ public class AccessRequestService {
             results.add(userMap.get(k));
         }
         return results;
+    }
+
+
+    private List<ActiveRequestUser> addExpiredRequest(List<ActiveRequestUser> activeRequestUserList, AccessRequest expiredRequest) {
+        if (expiredRequest != null) {
+            List<ActiveAccessRequest> linuxRequests = new ArrayList<>();
+            List<ActiveAccessRequest> windowsRequests = new ArrayList<>();
+
+            for(AWSInstance awsInstance : expiredRequest.getInstances()) {
+                if(awsInstance.getPlatform().equals("Linux")) {
+                    linuxRequests.add(new ActiveAccessRequest(expiredRequest.getId().toString(), awsInstance.getName(), awsInstance.getIp()));
+                }
+                if(awsInstance.getPlatform().equals("Windows")) {
+                    windowsRequests.add(new ActiveAccessRequest(expiredRequest.getId().toString(), awsInstance.getName(), awsInstance.getIp()));
+                }
+            }
+            ActiveAccessConsolidated expiredRequestsConsolidated = new ActiveAccessConsolidated(linuxRequests, windowsRequests);
+
+            for(ActiveRequestUser activeRequestUser : activeRequestUserList) {
+                activeRequestUser.setExpiredAccess(expiredRequestsConsolidated);
+            }
+
+        }
+
+        return activeRequestUserList;
     }
 
 
@@ -516,18 +570,13 @@ public class AccessRequestService {
                 .collect(Collectors.toList());
     }
 
-    private List<ActiveRequestUser> filterLiveResultsByUser(List<ActiveRequestUser> results, String userId) {
-        return results.stream().filter(ActiveRequestUser -> userId.equals(ActiveRequestUser.getUserId()))
-                .collect(Collectors.toList());
-    }
-
     private Map<String, ActiveRequestUser> initializeUserMap(List<User> users) {
         Map<String, ActiveRequestUser> userMap = new HashMap<>();
         for (User user : users) {
 
             ActiveRequestUser activeRequestUser = new ActiveRequestUser()
-                    .setUserId(user.getUserId())
-                    .setGkUserId("gk-" + user.getUserId())
+                    .setUserId(user.getUserId().substring(3))
+                    .setGkUserId(user.getUserId())
                     .setEmail(user.getEmail())
                     .setActiveAccess(new ActiveAccessConsolidated().setLinux(new ArrayList<>()).setWindows(new ArrayList<>()))
                     .setExpiredAccess(new ActiveAccessConsolidated().setLinux(new ArrayList<>()).setWindows(new ArrayList<>()));
@@ -538,10 +587,11 @@ public class AccessRequestService {
         return userMap;
     }
 
-    private List<User> findUserIntersection(List<User> userList1, List<User> userList2) {
-        Set<User> commonUsers = new HashSet<>();
-        commonUsers.addAll(userList1);
-        commonUsers.addAll(userList2);
+    private List<UserNoId> findUserIntersection(List<User> userList1, List<User> userList2) {
+        Set<UserNoId> commonUsers = new HashSet<>();
+        userList1.addAll(userList2);
+        for(User user : userList1)
+            commonUsers.add(new UserNoId(user));
         return new ArrayList<>(commonUsers);
     }
 
@@ -550,9 +600,9 @@ public class AccessRequestService {
         List<ActiveAccessRequest> linuxRequests = activeRequestUser.getActiveAccess().getLinux();
         List<ActiveAccessRequest> windowsRequests = activeRequestUser.getActiveAccess().getWindows();
 
-        if (awsInstance.getPlatform().equals("linux")) {
+        if(awsInstance.getPlatform().equals("Linux")){
             linuxRequests.add(new ActiveAccessRequest(requestId.toString(), awsInstance.getName(), awsInstance.getIp()));
-        } else if (awsInstance.getPlatform().equals("window")) {
+        } else if (awsInstance.getPlatform().equals("Windows")) {
             windowsRequests.add(new ActiveAccessRequest(requestId.toString(), awsInstance.getName(), awsInstance.getIp()));
         }
 

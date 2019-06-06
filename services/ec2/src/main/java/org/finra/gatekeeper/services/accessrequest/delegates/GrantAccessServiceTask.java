@@ -20,6 +20,8 @@ import com.amazonaws.services.simplesystemsmanagement.model.CommandStatus;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveRequestUser;
+import org.finra.gatekeeper.services.accessrequest.model.activerequest.EventType;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;

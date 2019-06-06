@@ -32,4 +32,12 @@ public class ActiveAccessConsolidated {
         this.windows = windows;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return "{ " +
+                "linux: " + linux + ", " +
+                "windows: " + windows +
+                " }";
+    }
 }

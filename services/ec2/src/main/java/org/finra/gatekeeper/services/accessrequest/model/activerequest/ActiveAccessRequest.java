@@ -1,6 +1,6 @@
 package org.finra.gatekeeper.services.accessrequest.model.activerequest;
 
-public class ActiveAccessRequest {
+public class ActiveAccessRequest{
     private String requestId;
     private String name;
     private String ip;
@@ -37,5 +37,15 @@ public class ActiveAccessRequest {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+
+    @Override
+    public String toString() {
+        return "{ " +
+                "requestId: '" + requestId + '\'' +
+                ", name: '" + name + '\'' +
+                ", ip: '" + ip + '\'' +
+                " }";
     }
 }
