@@ -311,9 +311,10 @@ public class AccessRequestService {
 
     /**
      *
-     * @param users         List of User IDs tto return live requests for
-     * @param eventType     Type of event that invokes this method. Allowed values are: "
-     * @return
+     * @param users         List of User IDs to return live requests for
+     * @param eventType     Type of event that invokes this method. Allowed values are: EventType.APPROVAL and EventType.EXPIRATION
+     * @param expiredRequest If a request is expiring, this parameter contains the request information for the expired request.
+     * @return              A list of all live and recently expired access requests.
      */
     public List<ActiveRequestUser> getLiveRequests(List<User> users, EventType eventType, AccessRequest expiredRequest) {
 
@@ -544,7 +545,41 @@ public class AccessRequestService {
             ActiveAccessConsolidated expiredRequestsConsolidated = new ActiveAccessConsolidated(linuxRequests, windowsRequests);
 
             for(ActiveRequestUser activeRequestUser : activeRequestUserList) {
+                ActiveAccessConsolidated activeRequestsConsolidated = activeRequestUser.getActiveAccess();
                 activeRequestUser.setExpiredAccess(expiredRequestsConsolidated);
+
+                for(AWSInstance awsInstance : expiredRequest.getInstances()) {
+                    List<ActiveAccessRequest> requests = new ArrayList<>();
+                    ActiveAccessRequest expiredAccessRequest = new ActiveAccessRequest(expiredRequest.getId().toString(), awsInstance.getName(), awsInstance.getIp());
+
+                    if(awsInstance.getPlatform().equals("Linux")) {
+                        requests = activeRequestUser.getActiveAccess().getLinux();
+                    }
+                    else if(awsInstance.getPlatform().equals("Windows")) {
+                        requests = activeRequestUser.getActiveAccess().getWindows();
+                    }
+
+                    Iterator<ActiveAccessRequest> requestIterator = requests.iterator();
+                    while(requestIterator.hasNext()) {
+                        ActiveAccessRequest activeAccessRequest = requestIterator.next();
+                        logger.info("Checking for expired access request here: " + activeAccessRequest + ", expired access request: " + expiredAccessRequest);
+                        if(activeAccessRequest.equals(expiredAccessRequest)) {
+                            logger.info("Removing expired access request: " + expiredAccessRequest);
+                            requestIterator.remove();
+                        }
+                    }
+
+                    if(awsInstance.getPlatform().equals("Linux")) {
+                        activeRequestsConsolidated.setLinux(requests);
+                    }
+                    else if(awsInstance.getPlatform().equals("Windows")) {
+                        activeRequestsConsolidated.setWindows(requests);
+                    }
+
+                }
+
+                activeRequestUser.setActiveAccess(activeRequestsConsolidated);
+
             }
 
         }
@@ -590,8 +625,9 @@ public class AccessRequestService {
 
     private List<UserNoId> findUserIntersection(List<User> userList1, List<User> userList2) {
         Set<UserNoId> commonUsers = new HashSet<>();
-        userList1.addAll(userList2);
-        for(User user : userList1)
+        List<User> commonList = new ArrayList<>(userList1);
+        commonList.addAll(userList2);
+        for(User user : commonList)
             commonUsers.add(new UserNoId(user));
         return new ArrayList<>(commonUsers);
     }

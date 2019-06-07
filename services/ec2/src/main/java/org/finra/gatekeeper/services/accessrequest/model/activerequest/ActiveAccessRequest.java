@@ -1,5 +1,7 @@
 package org.finra.gatekeeper.services.accessrequest.model.activerequest;
 
+import java.util.Objects;
+
 public class ActiveAccessRequest{
     private String requestId;
     private String name;
@@ -47,5 +49,20 @@ public class ActiveAccessRequest{
                 ", name: '" + name + '\'' +
                 ", ip: '" + ip + '\'' +
                 " }";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ActiveAccessRequest that = (ActiveAccessRequest) o;
+        return Objects.equals(requestId, that.requestId) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(ip, that.ip);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(requestId, name, ip);
     }
 }
