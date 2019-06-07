@@ -16,7 +16,6 @@
 
 package org.finra.gatekeeper.services.accessrequest;
 
-import oracle.jrockit.jfr.ActiveRecordingEvent;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
