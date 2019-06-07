@@ -316,6 +316,7 @@ public class AccessRequestService {
      * @return              A list of all live and recently expired access requests.
      */
     public List<ActiveRequestUser> getLiveRequests(List<User> users, EventType eventType, AccessRequest expiredRequest) {
+        logger.info("Fetching live requests.");
 
     /*  This object is all of the Activiti Variables associated with the request
         This map will contain the following:
@@ -333,7 +334,6 @@ public class AccessRequestService {
         because activiti will break if we ever change the access request object so we'll just fetch the items
         ourselves */
         List<HistoricVariableInstance> accessRequests = getAllHistoricAccessRequests();
-        logger.info("Access requests: " + accessRequests.toString());
 
         //we'll get all the access requests and store the created date into the historicData map
         //as well as map the activiti item to the access request to which it corresponds
@@ -359,7 +359,7 @@ public class AccessRequestService {
         if(eventType == EventType.EXPIRATION) {
             logger.info("Adding expired request to response object.");
             activeRequestUserList = addExpiredRequest(activeRequestUserList, expiredRequest);
-            logger.info("Finished adding expired request to response object.");
+            logger.info("Successfully added expired request to response object.");
         }
 
         return activeRequestUserList;
@@ -453,7 +453,6 @@ public class AccessRequestService {
                 .forEach(item -> {
                     historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), ((HistoricVariableInstanceEntity)item).getTextValue());
                     historicData.get(item.getProcessInstanceId()).put("updated", item.getLastUpdatedTime());
-                    logger.info("HistoricVariableInstanceEntity (" + item.getProcessInstanceId() + ")" + ": " + ((HistoricVariableInstanceEntity) item).toString() + " was last updated on: " + item.getLastUpdatedTime());
                 });
 
         //This gets all the attempts data for the requests and inserts it into the historicData map
@@ -506,7 +505,6 @@ public class AccessRequestService {
                         && new Date().before(expireTime.getTime())){
                     for (AWSInstance awsInstance : request.getInstances()) {
                         for(UserNoId user : usersToCheck) {
-                            logger.info("Historic data: " + k + ", awsInstance from request: " + awsInstance.getName() + ", user: " + user);
                             updatedActiveAccessConsolidated = addActiveAccessRequestToUser(
                                     userMap.get(user.getUserId()),
                                     requestId,
@@ -561,7 +559,6 @@ public class AccessRequestService {
                     Iterator<ActiveAccessRequest> requestIterator = requests.iterator();
                     while(requestIterator.hasNext()) {
                         ActiveAccessRequest activeAccessRequest = requestIterator.next();
-                        logger.info("Checking for expired access request here: " + activeAccessRequest + ", expired access request: " + expiredAccessRequest);
                         if(activeAccessRequest.equals(expiredAccessRequest)) {
                             logger.info("Removing expired access request: " + expiredAccessRequest);
                             requestIterator.remove();
