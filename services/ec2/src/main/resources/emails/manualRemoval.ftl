@@ -19,5 +19,5 @@
         <p>Can somebody please investigate the following instances and determine whether manual removal of access is needed for each user?</p>
     </div>
     <div><p>Thanks!</p></div>
-    <div><p>The Gatekeeper Admins</p></div>
+    <div><p>The Gatekeeper Admin Team</p></div>
 </html>

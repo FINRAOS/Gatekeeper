@@ -1,6 +1,6 @@
 <img src="/img/logo.png" alt="drawing" width="500px"/>
 
-[![CircleCI](https://circleci.com/gh/FINRAOS/Gatekeeper/tree/master.svg?style=svg)](https://circleci.com/gh/FINRAOS/Gatekeeper/tree/master)
+[![CircleCI](https://circleci.com/gh/FINRAOS/Gatekeeper/tree/master.svg?style=svg)](https://circleci.com/gh/FINRAOS/Gatekeeper/tree/master) [![Join the chat at https://gitter.im/FINRAOS/Gatekeeper](https://badges.gitter.im/FINRAOS/Gatekeeper.svg)](https://gitter.im/FINRAOS/Gatekeeper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## What is Gatekeeper?
 Gatekeeper is self-serviced web application allowing users to make requests for temporary access to EC2/RDS instances running in AWS and gain access instantly.

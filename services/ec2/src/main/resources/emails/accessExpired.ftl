@@ -10,6 +10,11 @@
     <div>
         <p>If you need more time on the box please go to Gatekeeper and request more access.</p>
     </div>
+
+    <div>
+        <p style="color: darkred">If you have any questions or concerns please reach out to the Gatekeeper approvers at: ${approverDL}</p>
+    </div>
+
     <div><p>Thanks!</p></div>
-    <div><p>The Gatekeeper Admins</p></div>
+    <div><p>The Gatekeeper Admin Team</p></div>
 </html>

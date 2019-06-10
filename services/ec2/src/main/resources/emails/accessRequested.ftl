@@ -14,6 +14,16 @@
             <li><b>${instance.getIp()?has_content?string(instance.getIp(),'Unknown IP')}</b> -- ${instance.getName()?has_content?string(instance.getName(), 'Unknown')} -- ${instance.getInstanceId()}</li>
         </#list>
     </ul>
+
+    <h4>Ticket for request</h4>
+    <div>
+        <#if request.getTicketId()??>
+            <blockquote>${request.getTicketId()?has_content?string(request.getTicketId()!?replace('\n', '<br>'),'No ticket was provided')}</blockquote>
+        <#else>
+            <blockquote>No ticket was provided</blockquote>
+        </#if>
+    </div>
+
     <h4>Reason for request</h4>
     <div>
         <#if request.getRequestReason()??>
@@ -23,9 +33,7 @@
         </#if>
     </div>
 
-    <div>
-        <p>Please review and action this request on the gatekeeper app.</p>
-    </div>
+
     <div><p>Thanks!</p></div>
-    <div><p>The Gatekeeper Admins</p></div>
+    <div><p>The Gatekeeper Admin Team</p></div>
 </html>
