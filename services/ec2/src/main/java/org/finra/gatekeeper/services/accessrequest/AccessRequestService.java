@@ -429,9 +429,11 @@ public class AccessRequestService {
 
 
     private List<HistoricVariableInstance> getAllHistoricAccessRequests() {
-        return historyService.createHistoricVariableInstanceQuery()
-                .excludeVariableInitialization()
-                .variableName("accessRequest")
+        return historyService.createNativeHistoricVariableInstanceQuery()
+                .sql("select a.*, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue\n" +
+                        " from act_hi_varinst a join act_ge_bytearray b on a.name_ = 'accessRequest'\n" +
+                        " and a.last_updated_time_ >= (NOW() - INTERVAL '168 hours')" +
+                        " order by a.last_updated_time_ ASC;\n")
                 .list();
     }
 
@@ -456,9 +458,11 @@ public class AccessRequestService {
                 });
 
         //This gets all the attempts data for the requests and inserts it into the historicData map
-        historyService.createHistoricVariableInstanceQuery()
-                .excludeVariableInitialization()
-                .variableName("attempts")
+        historyService.createNativeHistoricVariableInstanceQuery()
+                .sql("select a.*, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue\n" +
+                        " from act_hi_varinst a join act_ge_bytearray b on a.name_ = 'attempts'\n" +
+                        " and a.last_updated_time_ >= (NOW() - INTERVAL '168 hours')" +
+                        " order by a.last_updated_time_ ASC;\n")
                 .list()
                 .forEach(item -> {
                     historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), item.getValue());
@@ -474,9 +478,10 @@ public class AccessRequestService {
                                                              EventType eventType){
 
         List<ActiveRequestUser> results = new ArrayList<>();
-        ActiveAccessConsolidated updatedActiveAccessConsolidated = new ActiveAccessConsolidated();
+        ActiveAccessConsolidated updatedActiveAccessConsolidated;
 
         Map<String, ActiveRequestUser> userMap = initializeUserMap(users);
+
 
         //this section compiles the historicData into the response object for the UI to consume
         for (String k : historicData.keySet()) {
@@ -546,30 +551,16 @@ public class AccessRequestService {
                 activeRequestUser.setExpiredAccess(expiredRequestsConsolidated);
 
                 for(AWSInstance awsInstance : expiredRequest.getInstances()) {
-                    List<ActiveAccessRequest> requests = new ArrayList<>();
+                    List<ActiveAccessRequest> requests;
                     ActiveAccessRequest expiredAccessRequest = new ActiveAccessRequest(expiredRequest.getId().toString(), awsInstance.getName(), awsInstance.getIp());
 
                     if(awsInstance.getPlatform().equals("Linux")) {
                         requests = activeRequestUser.getActiveAccess().getLinux();
+                        activeRequestsConsolidated.setLinux(removeExpiredRequestFromActiveRequestList(requests, expiredAccessRequest));
                     }
                     else if(awsInstance.getPlatform().equals("Windows")) {
                         requests = activeRequestUser.getActiveAccess().getWindows();
-                    }
-
-                    Iterator<ActiveAccessRequest> requestIterator = requests.iterator();
-                    while(requestIterator.hasNext()) {
-                        ActiveAccessRequest activeAccessRequest = requestIterator.next();
-                        if(activeAccessRequest.equals(expiredAccessRequest)) {
-                            logger.info("Removing expired access request: " + expiredAccessRequest);
-                            requestIterator.remove();
-                        }
-                    }
-
-                    if(awsInstance.getPlatform().equals("Linux")) {
-                        activeRequestsConsolidated.setLinux(requests);
-                    }
-                    else if(awsInstance.getPlatform().equals("Windows")) {
-                        activeRequestsConsolidated.setWindows(requests);
+                        activeRequestsConsolidated.setWindows(removeExpiredRequestFromActiveRequestList(requests, expiredAccessRequest));
                     }
 
                 }
@@ -581,6 +572,18 @@ public class AccessRequestService {
         }
 
         return activeRequestUserList;
+    }
+
+    private List<ActiveAccessRequest> removeExpiredRequestFromActiveRequestList(List<ActiveAccessRequest> activeAccessRequests, ActiveAccessRequest expiredAccessRequest) {
+        Iterator<ActiveAccessRequest> requestIterator = activeAccessRequests.iterator();
+        while(requestIterator.hasNext()) {
+            ActiveAccessRequest activeAccessRequest = requestIterator.next();
+            if(activeAccessRequest.equals(expiredAccessRequest)) {
+                logger.info("Removing expired access request: " + expiredAccessRequest);
+                requestIterator.remove();
+            }
+        }
+        return activeAccessRequests;
     }
 
 
@@ -610,8 +613,8 @@ public class AccessRequestService {
                     .setUserId(user.getUserId().substring(3))
                     .setGkUserId(user.getUserId())
                     .setEmail(user.getEmail())
-                    .setActiveAccess(new ActiveAccessConsolidated().setLinux(new ArrayList<>()).setWindows(new ArrayList<>()))
-                    .setExpiredAccess(new ActiveAccessConsolidated().setLinux(new ArrayList<>()).setWindows(new ArrayList<>()));
+                    .setActiveAccess(new ActiveAccessConsolidated())
+                    .setExpiredAccess(new ActiveAccessConsolidated());
 
             userMap.put(user.getUserId(), activeRequestUser);
         }

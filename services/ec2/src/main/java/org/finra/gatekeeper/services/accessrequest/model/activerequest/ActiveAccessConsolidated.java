@@ -1,5 +1,6 @@
 package org.finra.gatekeeper.services.accessrequest.model.activerequest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ActiveAccessConsolidated {
@@ -8,6 +9,8 @@ public class ActiveAccessConsolidated {
     private List<ActiveAccessRequest> windows;
 
     public ActiveAccessConsolidated() {
+        this.linux = new ArrayList<>();
+        this.windows = new ArrayList<>();
     }
 
     public ActiveAccessConsolidated(List<ActiveAccessRequest> linux, List<ActiveAccessRequest> windows) {
