@@ -22,6 +22,7 @@ import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
+import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
@@ -66,6 +67,9 @@ public class GatekeeperRoleServiceTest {
     @Mock
     private GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties;
 
+    @Mock
+    private GatekeeperApprovalProperties gatekeeperApprovalProperties;
+
     private Set<String> memberships;
     
     private List<GatekeeperUserEntry> users;
@@ -101,7 +105,8 @@ public class GatekeeperRoleServiceTest {
 
         gatekeeperRoleService = new GatekeeperRoleService(gatekeeperAuthorizationService,
                 gatekeeperAuthProperties,
-                gatekeeperRdsAuthProperties);
+                gatekeeperRdsAuthProperties,
+                gatekeeperApprovalProperties);
 
     }
 

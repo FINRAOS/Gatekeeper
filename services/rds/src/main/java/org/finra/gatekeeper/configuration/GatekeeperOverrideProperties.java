@@ -19,6 +19,7 @@ package org.finra.gatekeeper.configuration;
 
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
+import org.finra.gatekeeper.services.auth.model.RoleMembership;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +53,29 @@ public class GatekeeperOverrideProperties {
     }
 
     public Map<String, Map<String, Integer>> getOverridePolicy(GatekeeperRdsRole role) {
-        return (Map<String, Map<String, Integer>>)this.overrides.get(role.toString().toLowerCase());
+        return (Map<String, Map<String, Integer>>) this.overrides.get(role.toString().toLowerCase());
+    }
+
+    public Map<String, Map<String, Map<String, Integer>>> getOverridePolicy(Map<String, RoleMembership> roleMemberships, boolean isApprover) {
+        Map<String, Map<String, Map<String, Integer>>> overridePolicy = new HashMap<>();
+        for(String application : roleMemberships.keySet()) {
+            overridePolicy.put(application, getOverridePolicyByApplication(roleMemberships.get(application), isApprover));
+        }
+        return overridePolicy;
+    }
+
+    private Map<String, Map<String, Integer>> getOverridePolicyByApplication(RoleMembership roleMembership, boolean isApprover){
+
+        if(isApprover)
+            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.APPROVER.toString().toLowerCase());
+        if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DBA))
+            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.DBA.toString().toLowerCase());
+        if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DEV))
+            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.DEV.toString().toLowerCase());
+        if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.OPS))
+            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.OPS.toString().toLowerCase());
+
+        return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.UNAUTHORIZED.toString().toLowerCase());
     }
 
     public Integer getMaxDaysForRequest(GatekeeperRdsRole requestorRole, List<UserRole> roleList, String sdlc){
