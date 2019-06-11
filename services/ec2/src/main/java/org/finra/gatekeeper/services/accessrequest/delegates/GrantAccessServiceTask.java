@@ -20,6 +20,7 @@ import com.amazonaws.services.simplesystemsmanagement.model.CommandStatus;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
@@ -50,9 +51,11 @@ public class GrantAccessServiceTask implements JavaDelegate {
     private final KeypairService keypairService;
     private final EmailServiceWrapper emailServiceWrapper;
     private final AccessRequestService accessRequestService;
+    private final SnsService snsService;
 
     @Autowired
     public GrantAccessServiceTask(SsmService ssmService,
+                                  SnsService snsService,
                                   KeypairService keypairService,
                                   EmailServiceWrapper emailServiceWrapper,
                                   AccessRequestService accessRequestService){
@@ -60,6 +63,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
         this.keypairService = keypairService;
         this.emailServiceWrapper = emailServiceWrapper;
         this.accessRequestService = accessRequestService;
+        this.snsService = snsService;
     }
 
     /**
@@ -113,6 +117,8 @@ public class GrantAccessServiceTask implements JavaDelegate {
         if (execution.getVariable("requestStatus") == null) {
             execution.setVariable("requestStatus", RequestStatus.GRANTED);
         }
+
+        snsService.pushToSNSTopic(accessRequest.toString());
     }
 
     /**

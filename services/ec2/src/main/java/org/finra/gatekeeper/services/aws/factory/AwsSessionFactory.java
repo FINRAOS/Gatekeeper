@@ -17,9 +17,15 @@
 package org.finra.gatekeeper.services.aws.factory;
 
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,11 +42,30 @@ public class AwsSessionFactory {
         this.clientConfiguration = clientConfiguration;
     }
 
-    public AmazonEC2Client createEc2Session(BasicSessionCredentials basicSessionCredentials){
-        return new AmazonEC2Client(basicSessionCredentials, clientConfiguration);
+    public AmazonEC2 createEc2Session(BasicSessionCredentials basicSessionCredentials, String region){
+        return AmazonEC2ClientBuilder
+                .standard()
+                .withRegion(Regions.fromName(region))
+                .withCredentials(setCredentials(basicSessionCredentials))
+                .build();
     }
 
-    public AWSSimpleSystemsManagementClient createSsmSession(BasicSessionCredentials basicSessionCredentials){
-        return new AWSSimpleSystemsManagementClient(basicSessionCredentials, clientConfiguration);
+    public AWSSimpleSystemsManagement createSsmSession(BasicSessionCredentials basicSessionCredentials, String region){
+        return AWSSimpleSystemsManagementClientBuilder
+                .standard()
+                .withRegion(Regions.fromName(region))
+                .withCredentials(setCredentials(basicSessionCredentials))
+                .build();
     }
+
+    public AmazonSNS createSnsSession(){
+         return AmazonSNSClientBuilder
+                 .standard()
+                 .build();
+    }
+
+    private AWSStaticCredentialsProvider setCredentials(BasicSessionCredentials basicSessionCredentials){
+        return new AWSStaticCredentialsProvider(basicSessionCredentials);
+    }
+
 }

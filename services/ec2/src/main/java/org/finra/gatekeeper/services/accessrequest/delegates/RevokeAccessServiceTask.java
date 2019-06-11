@@ -20,7 +20,9 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
+import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
 import org.finra.gatekeeper.services.aws.Ec2LookupService;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
@@ -45,18 +47,24 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final SsmService ssmService;
+    private final SnsService snsService;
     private final ManagementService managementService;
     private final Ec2LookupService ec2LookupService;
+    private final AccessRequestService accessRequestService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    SsmService ssmService,
+                                   SnsService snsService,
                                    ManagementService managementService,
-                                   Ec2LookupService ec2LookupService){
+                                   Ec2LookupService ec2LookupService,
+                                   AccessRequestService accessRequestService){
         this.emailServiceWrapper = emailServiceWrapper;
         this.ssmService = ssmService;
+        this.snsService = snsService;
         this.managementService = managementService;
         this.ec2LookupService = ec2LookupService;
+        this.accessRequestService = accessRequestService;
     }
 
     /**
@@ -109,6 +117,8 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                 logger.info("Could not revoke access for " + manualRemovalInstances + " send a notification to the ops team to investigate these instances");
                 emailServiceWrapper.notifyOps(accessRequest, manualRemovalInstances);
             }
+
+            snsService.pushToSNSTopic("REVOKED" + accessRequest.toString());
 
         }catch(Exception e){
             //Since we avoid bad SSM configurations, this code generally only gets called if there's an exception because of something in our code.
