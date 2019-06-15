@@ -31,10 +31,12 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
-import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
-import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
-import org.finra.gatekeeper.services.accessrequest.model.AccessRequestRepository;
-import org.finra.gatekeeper.services.accessrequest.model.RequestStatus;
+import org.finra.gatekeeper.services.accessrequest.model.*;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.RequestEventDTO;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.ActiveAccessRequestDTO;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.UserInstancesDTO;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.ActiveRequestUserDTO;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.aws.SsmService;
@@ -294,6 +296,38 @@ public class AccessRequestService {
         return (List<CompletedAccessRequestWrapper>)filterResults(results);
     }
 
+
+    /**
+     *
+     * @param eventType     Type of event that invokes this method. Allowed values are: EventType.APPROVAL and EventType.EXPIRATION
+     * @param request If a request is expiring, this parameter contains the request information for the expired request.
+     * @return              A list of all live and recently expired access requests.
+     */
+    public RequestEventDTO getLiveRequestsForUsersInRequest(EventType eventType, AccessRequest request) {
+        logger.info("Fetching live requests.");
+
+        // This will get back all request data that is in the current time - maximum_request_value time window
+        logger.info("Compiling list of all live requests.");
+        List<CompletedAccessRequestWrapper> activitiData = getLiveRequests();
+        logger.info("There are " + activitiData.size() + " Requests that are live");
+
+        if(eventType == EventType.APPROVAL) {
+            activitiData.add(new CompletedAccessRequestWrapper(request));
+        }
+        List<ActiveRequestUserDTO> activeRequestUserList = constructLiveRequestMessageForUsers(activitiData, request.getUsers());
+        logger.info("Successfully compiled live requests.");
+        if(eventType == EventType.EXPIRATION) {
+            logger.info("Adding expired request to response object.");
+            activeRequestUserList = addExpiredRequest(activeRequestUserList, request);
+            logger.info("Successfully added expired request to response object.");
+        }
+
+        return new RequestEventDTO()
+                .setRequestId(request.getId())
+                .setEventType(eventType.getValue())
+                .setUsers(activeRequestUserList);
+    }
+
     public AccessRequest updateInstanceStatus(AccessRequest accessRequest){
         AWSEnvironment environment = new AWSEnvironment(accessRequest.getAccount(),accessRequest.getRegion());
         List<AWSInstance> requestedInstances = accessRequest.getInstances();
@@ -356,6 +390,85 @@ public class AccessRequestService {
         return getActiveRequests();
     }
 
+    private List<CompletedAccessRequestWrapper> getLiveRequests() {
+
+        final Map<Long, Map<String, Object>> historicData = new HashMap<>();
+        final String updated = "updated";
+        final String status = "requestStatus";
+
+        historyService.createNativeHistoricVariableInstanceQuery()
+                .sql("select * from (select id_, proc_inst_id_, execution_id_, task_id_, text2_ from gatekeeper_ec2.act_hi_varinst a where a.name_ = 'accessRequest') a " +
+                        "    join (select a.id_, a.proc_inst_id_, a.execution_id_, a.task_id_, a.last_updated_time_, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue " +
+                        "        from gatekeeper_ec2.act_hi_varinst a join gatekeeper_ec2.act_ge_bytearray b on a.bytearray_id_ = b.id_ " +
+                        "          where a.last_updated_time_ >= ((current_timestamp at time zone 'US/Eastern') - INTERVAL '168 minutes')) b on a.proc_inst_id_ = b.proc_inst_id_")
+                .list()
+                .forEach(item -> {
+                    Map<String, Object> activitiData = new HashMap<>();
+                    activitiData.put(updated, item.getLastUpdatedTime());
+                    activitiData.put(status, ((HistoricVariableInstanceEntity) item).getTextValue());
+                    historicData.put(Long.valueOf(((HistoricVariableInstanceEntity) item).getTextValue2()), activitiData);
+                });
+
+        List<CompletedAccessRequestWrapper> requests = new ArrayList<>();
+        accessRequestRepository.findAll(historicData.keySet()).forEach(accessRequest -> {
+            Map<String, Object> data = historicData.get(accessRequest.getId());
+            CompletedAccessRequestWrapper completedAccessRequestWrapper = new CompletedAccessRequestWrapper(accessRequest);
+            completedAccessRequestWrapper.setUpdated((Date)data.get(updated));
+            completedAccessRequestWrapper.setStatus(RequestStatus.valueOf((String)data.get(status)));
+            requests.add(completedAccessRequestWrapper);
+        });
+
+        // only get requests that got granted.
+        return requests.stream()
+                .filter(item -> (item.getStatus() == RequestStatus.GRANTED || item.getStatus() == RequestStatus.APPROVAL_GRANTED)) // only GRANTED status requests
+                .filter(item -> {
+                    Calendar expireTime = Calendar.getInstance();
+                    expireTime.setTime(item.getUpdated());
+                    expireTime.add(Calendar.MINUTE, item.getHours());
+
+                    Date currentDate = new Date();
+                    boolean isLive = currentDate.before(expireTime.getTime());
+                    logger.info("Request " + item.getId() + " is live: " + isLive);
+                    return isLive; // the request is live if the difference in time is earlier than updated + request duration
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<ActiveRequestUserDTO> constructLiveRequestMessageForUsers(List<CompletedAccessRequestWrapper> liveRequests, List<User> users){
+
+        Map<String, ActiveRequestUserDTO> userMap = new HashMap<>();
+
+        users.forEach(user -> {
+            final String userId = user.getUserId().substring(3);
+            final ActiveRequestUserDTO activeRequestUser = new ActiveRequestUserDTO()
+                    .setUserId(userId)
+                    .setGkUserId(user.getUserId())
+                    .setEmail(user.getEmail());
+
+            liveRequests.forEach(liveRequest -> {
+                if(liveRequest.getUsers().stream()
+                        .anyMatch(requestUser -> requestUser.getUserId().equals(user.getUserId()))){
+                    logger.info(user.getUserId() + " Is part of request " + user.getId() + " adding the instances to this user's object");
+                    liveRequest.getInstances()
+                            .forEach(instance -> addRequestData(activeRequestUser.getActiveAccess(), liveRequest.getId(), instance));
+                }
+            });
+
+            userMap.put(userId, activeRequestUser);
+        });
+
+        return new ArrayList<>(userMap.values());
+    }
+
+
+    private List<ActiveRequestUserDTO> addExpiredRequest(List<ActiveRequestUserDTO> activeRequestUserList, AccessRequest expiredRequest) {
+        activeRequestUserList.forEach(activeRequestUser ->
+                expiredRequest.getInstances()
+                        .forEach(instance -> addRequestData(activeRequestUser.getExpiredAccess(), expiredRequest.getId(), instance)));
+
+        return activeRequestUserList;
+    }
+
     /**
      * Cancels the request
      * @param taskId - the activiti task id
@@ -372,5 +485,19 @@ public class AccessRequestService {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRole.APPROVER)
                 || gatekeeperRoleService.getUserProfile().getUserId().equalsIgnoreCase(AccessRequestWrapper.getRequestorId()))
                 .collect(Collectors.toList());
+    }
+
+    private UserInstancesDTO addRequestData(UserInstancesDTO instanceDetail, Long requestId, AWSInstance awsInstance) {
+
+        List<ActiveAccessRequestDTO> linux = instanceDetail.getLinux();
+        List<ActiveAccessRequestDTO> windows = instanceDetail.getWindows();
+
+        if(awsInstance.getPlatform().equals("Linux")){
+            linux.add(new ActiveAccessRequestDTO(requestId.toString(), awsInstance.getName(), awsInstance.getIp()));
+        } else if (awsInstance.getPlatform().equals("Windows")) {
+            windows.add(new ActiveAccessRequestDTO(requestId.toString(), awsInstance.getName(), awsInstance.getIp()));
+        }
+
+        return new UserInstancesDTO(linux, windows);
     }
 }

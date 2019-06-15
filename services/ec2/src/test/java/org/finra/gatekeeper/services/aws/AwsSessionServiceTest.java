@@ -48,7 +48,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -130,14 +130,14 @@ public class AwsSessionServiceTest {
     public void testGetEc2Session(){
         AmazonEC2 client = awsSessionService.getEC2Session(awsEnvironment);
         Assert.assertNotNull("Verify EC2 Session is fetched", client );
-        Mockito.verify(amazonEC2Client, times(1)).setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(awsEnvironment.getRegion())));
+        Mockito.verify(awsSessionFactory, times(1)).createEc2Session(anyObject(), eq(awsEnvironment.getRegion()));
     }
 
     @Test
     public void testGetSsmSession(){
         AWSSimpleSystemsManagement client = awsSessionService.getSsmSession(awsEnvironment);
         Assert.assertNotNull("Verify Ssm Session is fetched", client);
-        Mockito.verify(awsSimpleSystemsManagementClient, times(1)).setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(awsEnvironment.getRegion())));
+        Mockito.verify(awsSessionFactory, times(1)).createSsmSession(anyObject(), eq(awsEnvironment.getRegion()));
     }
 
     /**

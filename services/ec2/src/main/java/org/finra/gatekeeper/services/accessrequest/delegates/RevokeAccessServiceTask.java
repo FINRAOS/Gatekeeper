@@ -21,6 +21,7 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
 import org.finra.gatekeeper.services.aws.Ec2LookupService;
 import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
@@ -118,7 +119,12 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                 emailServiceWrapper.notifyOps(accessRequest, manualRemovalInstances);
             }
 
-            snsService.pushToSNSTopic("REVOKED" + accessRequest.toString());
+            try {
+                snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
+            } catch (Exception e) {
+                e.printStackTrace();
+                logger.error("Error fetching live requests upon request expiration. Request ID: " + accessRequest.getId());
+            }
 
         }catch(Exception e){
             //Since we avoid bad SSM configurations, this code generally only gets called if there's an exception because of something in our code.

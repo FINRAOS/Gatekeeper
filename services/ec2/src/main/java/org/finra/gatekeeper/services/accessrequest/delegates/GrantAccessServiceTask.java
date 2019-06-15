@@ -21,6 +21,7 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.aws.SnsService;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
@@ -118,7 +119,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
             execution.setVariable("requestStatus", RequestStatus.GRANTED);
         }
 
-        snsService.pushToSNSTopic(accessRequest.toString());
+        snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
     }
 
     /**
