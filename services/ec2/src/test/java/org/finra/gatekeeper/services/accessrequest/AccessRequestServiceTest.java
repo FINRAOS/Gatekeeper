@@ -27,16 +27,11 @@ import org.activiti.engine.impl.persistence.entity.VariableInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.account.model.Region;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveAccessConsolidated;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveAccessRequest;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveRequestUser;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.EventType;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
@@ -45,9 +40,6 @@ import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.junit.Assert;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,27 +87,6 @@ public class AccessRequestServiceTest {
 
     @Mock
     private AccessRequest nonOwnerRequest;
-
-    @Mock
-    private AccessRequest adminRequest;
-
-    @Mock
-    private ActiveRequestUser activeRequestUser;
-
-    @Mock
-    private ActiveAccessConsolidated activeAccessConsolidated;
-
-    @Mock
-    private ActiveAccessConsolidated expiringAccessConsolidated;
-
-    private ActiveAccessRequest activeAccessRequest;
-
-    private ActiveAccessRequest expiringAccessRequest;
-
-    List<ActiveAccessRequest> liveLinuxAccessRequests;
-    List<ActiveAccessRequest> liveWindowsAccessRequests;
-    List<ActiveAccessRequest> expiringLinuxAccessRequests;
-    List<ActiveAccessRequest> expiringWindowsAccessRequests;
 
     @Mock
     private AWSInstance awsInstance;
@@ -182,7 +153,6 @@ public class AccessRequestServiceTest {
 
     private Date testDate;
 
-
     @Before
     public void initMocks() {
         testDate = new Date();
@@ -214,8 +184,8 @@ public class AccessRequestServiceTest {
         List<AWSInstance> instances = new ArrayList<>();
         when(awsInstance.getApplication()).thenReturn("TestApp");
         when(awsInstance.getInstanceId()).thenReturn("testId");
-        when(awsInstance.getName()).thenReturn("testName");
-        when(awsInstance.getIp()).thenReturn("1.2.3.4");
+//        when(awsInstance.getName()).thenReturn("testName");
+//        when(awsInstance.getIp()).thenReturn("1.2.3.4");
         when(awsInstance.getPlatform()).thenReturn("testPlatform");
         instances.add(awsInstance);
 
@@ -235,23 +205,8 @@ public class AccessRequestServiceTest {
         when(nonOwnerRequest.getRequestorId()).thenReturn("non-owner");
         when(nonOwnerRequest.getId()).thenReturn(2L);
         when(nonOwnerRequest.getPlatform()).thenReturn("testPlatform");
-
-        //Live request mock
-        activeAccessRequest = new ActiveAccessRequest("1", "testName", "1.2.3.4");
-        expiringAccessRequest = new ActiveAccessRequest("2", "testName", "1.2.3.4");
-        liveLinuxAccessRequests = new ArrayList<>();
-        liveWindowsAccessRequests = new ArrayList<>();
-        expiringLinuxAccessRequests = new ArrayList<>();
-        expiringWindowsAccessRequests = new ArrayList<>();
-        when(activeRequestUser.getUserId()).thenReturn("tUserId");
-        when(activeRequestUser.getGkUserId()).thenReturn("testUserId");
-        when(activeRequestUser.getEmail()).thenReturn("testEmail@finra.org");
-        when(activeRequestUser.getActiveAccess()).thenReturn(activeAccessConsolidated);
-        when(activeRequestUser.getExpiredAccess()).thenReturn(expiringAccessConsolidated);
-        when(activeRequestUser.getActiveAccess().getLinux()).thenReturn(liveLinuxAccessRequests);
-        when(activeRequestUser.getActiveAccess().getWindows()).thenReturn(liveWindowsAccessRequests);
-        when(activeRequestUser.getExpiredAccess().getLinux()).thenReturn(expiringLinuxAccessRequests);
-        when(activeRequestUser.getExpiredAccess().getWindows()).thenReturn(expiringWindowsAccessRequests);
+//        when(nonOwnerRequest.getUsers()).thenReturn(Arrays.asList(new User().setId(1L).setUserId("user").setEmail("user@email").setName("username")));
+//
 
         Set<String> ownerMemberships = new HashSet<String>();
         ownerMemberships.add("TestApp");
@@ -657,86 +612,6 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(nonOwnerRequest.getCreated().toString(), new Date(45002).toString());
         Assert.assertEquals(nonOwnerRequest.getUpdated().toString(), new Date(45003).toString());
 
-    }
-
-    private void initializeGetLiveRequestsMocks(String platform) {
-        when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("owner");
-        when(awsInstance.getPlatform()).thenReturn(platform);
-        when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.DEV);
-        when(nonOwnerRequest.getPlatform()).thenReturn("Linux");
-
-        when(ownerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(testDate);
-        when(ownerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(testDate);
-        when(ownerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(testDate);
-        when(ownerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(testDate);
-        when(nonOwnerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(testDate);
-        when(nonOwnerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(testDate);
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(testDate);
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(testDate);
-        when(ownerOneTask.getCreateTime()).thenReturn(testDate);
-        when(ownerTwoTask.getCreateTime()).thenReturn(testDate);
-    }
-
-
-    @Test
-    public void testGetLiveLinuxRequests() {
-        initializeGetLiveRequestsMocks("Linux");
-        liveLinuxAccessRequests.add(activeAccessRequest);
-        liveLinuxAccessRequests.add(expiringAccessRequest);
-        expiringLinuxAccessRequests.add(expiringAccessRequest);
-
-        List<ActiveAccessRequest> expectedActiveRequestUser = new ArrayList<>();
-        expectedActiveRequestUser.add(activeAccessRequest);
-
-        List<ActiveRequestUser> liveRequests = accessRequestService.getLiveRequests(ownerRequest.getUsers(), EventType.EXPIRATION, nonOwnerRequest);
-        Assert.assertEquals(liveRequests.size(), 1);
-        ActiveRequestUser liveRequestUser = liveRequests.get(0);
-        Assert.assertEquals(expectedActiveRequestUser, liveRequestUser.getActiveAccess().getLinux());
-        Assert.assertEquals(activeRequestUser.getActiveAccess().getWindows(), liveRequestUser.getActiveAccess().getWindows());
-        Assert.assertEquals(activeRequestUser.getExpiredAccess().getLinux(), liveRequestUser.getExpiredAccess().getLinux());
-        Assert.assertEquals(activeRequestUser.getExpiredAccess().getWindows(), liveRequestUser.getExpiredAccess().getWindows());
-        Assert.assertEquals(activeRequestUser.getUserId(), "tUserId");
-        Assert.assertEquals(activeRequestUser.getGkUserId(), "testUserId");
-        Assert.assertEquals(activeRequestUser.getEmail(), "testEmail@finra.org");
-    }
-
-
-    @Test
-    public void testGetLiveWindowsRequests() {
-        initializeGetLiveRequestsMocks("Windows");
-        liveWindowsAccessRequests.add(activeAccessRequest);
-        expiringWindowsAccessRequests.add(expiringAccessRequest);
-
-        List<ActiveRequestUser> liveRequests = accessRequestService.getLiveRequests(ownerRequest.getUsers(), EventType.EXPIRATION, nonOwnerRequest);
-        Assert.assertEquals(liveRequests.size(), 1);
-        ActiveRequestUser liveRequestUser = liveRequests.get(0);
-        Assert.assertEquals(activeRequestUser.getActiveAccess().getLinux(), liveRequestUser.getActiveAccess().getLinux());
-        Assert.assertEquals(activeRequestUser.getActiveAccess().getWindows(), liveRequestUser.getActiveAccess().getWindows());
-        Assert.assertEquals(activeRequestUser.getExpiredAccess().getLinux(), liveRequestUser.getExpiredAccess().getLinux());
-        Assert.assertEquals(activeRequestUser.getExpiredAccess().getWindows(), liveRequestUser.getExpiredAccess().getWindows());
-        Assert.assertEquals(activeRequestUser.getUserId(), "tUserId");
-        Assert.assertEquals(activeRequestUser.getGkUserId(), "testUserId");
-        Assert.assertEquals(activeRequestUser.getEmail(), "testEmail@finra.org");
-    }
-
-    @Test
-    public void testGetLiveRequestsRemovingExpiredRequest() {
-        initializeGetLiveRequestsMocks("Linux");
-        liveLinuxAccessRequests.add(activeAccessRequest);
-        liveLinuxAccessRequests.add(expiringAccessRequest);
-        expiringLinuxAccessRequests.add(activeAccessRequest);
-
-        List<ActiveAccessRequest> expectedActiveRequestUser = new ArrayList<>();
-
-        List<ActiveRequestUser> liveRequests = accessRequestService.getLiveRequests(ownerRequest.getUsers(), EventType.EXPIRATION, ownerRequest);
-        Assert.assertEquals(liveRequests.size(), 1);
-        ActiveRequestUser liveRequestUser = liveRequests.get(0);
-
-        when(activeRequestUser.getActiveAccess().getLinux()).thenReturn(liveLinuxAccessRequests);
-        Assert.assertEquals(expectedActiveRequestUser, liveRequestUser.getActiveAccess().getLinux());
-        Assert.assertEquals(activeRequestUser.getActiveAccess().getWindows(), liveRequestUser.getActiveAccess().getWindows());
-        Assert.assertEquals(expiringLinuxAccessRequests, liveRequestUser.getExpiredAccess().getLinux());
-        Assert.assertEquals(activeRequestUser.getExpiredAccess().getWindows(), liveRequestUser.getExpiredAccess().getWindows());
     }
 
     /**

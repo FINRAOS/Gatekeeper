@@ -21,10 +21,9 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
-import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.ActiveRequestUser;
-import org.finra.gatekeeper.services.accessrequest.model.activerequest.EventType;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
 import org.finra.gatekeeper.services.aws.Ec2LookupService;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
@@ -35,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,6 +48,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final SsmService ssmService;
+    private final SnsService snsService;
     private final ManagementService managementService;
     private final Ec2LookupService ec2LookupService;
     private final AccessRequestService accessRequestService;
@@ -57,11 +56,13 @@ public class RevokeAccessServiceTask implements JavaDelegate {
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    SsmService ssmService,
+                                   SnsService snsService,
                                    ManagementService managementService,
                                    Ec2LookupService ec2LookupService,
                                    AccessRequestService accessRequestService){
         this.emailServiceWrapper = emailServiceWrapper;
         this.ssmService = ssmService;
+        this.snsService = snsService;
         this.managementService = managementService;
         this.ec2LookupService = ec2LookupService;
         this.accessRequestService = accessRequestService;
@@ -119,11 +120,11 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             }
 
             try {
-                List<ActiveRequestUser> liveAndExpiredRequests = accessRequestService.getLiveRequests(accessRequest.getUsers(), EventType.EXPIRATION, accessRequest);
-                logger.info("Live and expired requests: " + liveAndExpiredRequests);
+                snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
             } catch (Exception e) {
                 e.printStackTrace();
-                logger.error("Error fetching live requests upon request expiration. Request ID: " + accessRequest.getId());
+                emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
+                logger.error("Error pushing to SNS topic upon request expiration. Request ID: " + accessRequest.getId());
             }
 
         }catch(Exception e){

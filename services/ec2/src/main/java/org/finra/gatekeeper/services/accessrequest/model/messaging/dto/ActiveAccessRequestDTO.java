@@ -1,17 +1,17 @@
-package org.finra.gatekeeper.services.accessrequest.model.activerequest;
+package org.finra.gatekeeper.services.accessrequest.model.messaging.dto;
 
 import java.util.Objects;
 
-public class ActiveAccessRequest{
+public class ActiveAccessRequestDTO {
     private String requestId;
     private String name;
     private String ip;
 
 
-    public ActiveAccessRequest() {
+    public ActiveAccessRequestDTO() {
     }
 
-    public ActiveAccessRequest(String requestId, String name, String ip) {
+    public ActiveAccessRequestDTO(String requestId, String name, String ip) {
         this.requestId = requestId;
         this.name = name;
         this.ip = ip;
@@ -55,7 +55,7 @@ public class ActiveAccessRequest{
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ActiveAccessRequest that = (ActiveAccessRequest) o;
+        ActiveAccessRequestDTO that = (ActiveAccessRequestDTO) o;
         return Objects.equals(requestId, that.requestId) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(ip, that.ip);

@@ -21,6 +21,8 @@ import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
+import org.finra.gatekeeper.services.email.model.GatekeeperWindowsNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,22 +139,22 @@ public class EmailServiceWrapper {
         emailHelper(request.getRequestorEmail(), null, "Access Request " + request.getId() + " was granted", "accessGranted", request);
     }
 
-    public void notifyOfCredentials(AccessRequest request, User user, String privateKeyString, Map<String, String> createStatus){
+    public void notifyOfCredentials(AccessRequest request, GatekeeperLinuxNotification notification){
         logger.info("Send user their fresh credentials: " +  request);
         try {
 
             Map<String,Object> param = new HashMap<>();
-            param.put("privatekey", privateKeyString);
+            param.put("privatekey", notification.getKey());
             Map<String, Object> contentMap = new HashMap<String,Object>();
             contentMap.put("request", request);
-            contentMap.put("user", user);
-            contentMap.put("instanceStatus", createStatus);
+            contentMap.put("user", notification.getUser());
+            contentMap.put("instanceStatus", notification.getCreateStatus());
 
             //Send out just the username
-            emailHelper(user.getEmail(), null, "Access Request " + request.getId() + " - Your temporary username", "username", request, contentMap);
+            emailHelper(notification.getUser().getEmail(), null, "Access Request " + request.getId() + " - Your temporary username", "username", request, contentMap);
             
             //Send out just the pem
-            emailService.sendEmailWithAttachment(user.getEmail(), emailProperties.getFrom(), null,"Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
+            emailService.sendEmailWithAttachment(notification.getUser().getEmail(), emailProperties.getFrom(), null,"Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
 
         }catch(Exception e){
             logger.error("Error sending the team an email",e);
@@ -160,13 +162,13 @@ public class EmailServiceWrapper {
 
     }
 
-    public void notifyOfCancellation(AccessRequest request, User user,  List<String> cancelledInstances){
+    public void notifyOfCancellation(AccessRequest request, GatekeeperWindowsNotification notification){
         logger.info("Notify user that adding temporary user was cancelled: " +  request);
         try {
             Map<String, Object> contentMap = new HashMap<String,Object>();
-            contentMap.put("instances", cancelledInstances);
+            contentMap.put("instances", notification.getCancelledInstances());
 
-            emailHelper(user.getEmail(),  null, "Could not add user", "processCancelled", request, user, contentMap);
+            emailHelper(notification.getUser().getEmail(),  null, "Could not add user", "processCancelled", request, notification.getUser(), contentMap);
 
         }catch(Exception e){
             logger.error("Error sending the team an email",e);

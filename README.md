@@ -342,6 +342,17 @@ These configurations are specific to Gatekeeper RDS
 | gatekeeper.auth.opsGroupsPattern | A regular expression to extract group(s) of Ops Members from ldap groups. requires one capture | string
 | gatekeeper.auth.devGroupsPattern | A regular expression to extract group(s) of Dev Members from ldap groups. requires one capture | string
 
+### SNS
+Gatekeeper supports the publishing of Approval/Expiration events to an SNS topic, this can be useful if you have other applications that need to react to an event from the gatekeeper service
+
+| Property | Description | Type | 
+|----------|-------------|------|
+| gatekeeper.sns.topicARN | (required) The ARN of the SNS topic that you want gatekeeper to publish updates to. | string
+| gatekeeper.sns.retryCount | The number of times gatekeeper will re-try publishing to the given SNS topic  (Defaults to 5) | number
+| gatekeeper.sns.retryIntervalMillis | The time in milliseconds to wait before trying again (Defaults to 1000) | number
+| gatekeeper.sns.retryIntervalMultiplier | The multiplier in which gatekeeper will apply on subsequent retries (if this is set to 2 then gatekeeper will multiply the retry interval by 2 every time it fails up until the maximum retry count is reached) (Defaults to 1) | number
+
+
 #### APPROVALS
 
 Like the EC2 service, the RDS approval criteria needs to be set, however this configuration is handled at a more granular level.

@@ -17,13 +17,12 @@
 package org.finra.gatekeeper.services.aws;
 
 import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import com.amazonaws.services.sns.AmazonSNS;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -119,17 +118,15 @@ public class AwsSessionService {
         return sb.toString();
     }
 
-    public AmazonEC2Client getEC2Session(AWSEnvironment environment){
-        BasicSessionCredentials creds = credentialCache.getUnchecked(environment);
-        AmazonEC2Client ec2 = awsSessionFactory.createEc2Session(creds);
-        ec2.setRegion(Region.getRegion(Regions.fromName(environment.getRegion())));
-        return ec2;
+    public AmazonEC2 getEC2Session(AWSEnvironment environment){
+        return awsSessionFactory.createEc2Session(credentialCache.getUnchecked(environment), environment.getRegion());
     }
 
-    public AWSSimpleSystemsManagementClient getSsmSession(AWSEnvironment environment) {
-        BasicSessionCredentials creds = credentialCache.getUnchecked(environment);
-        AWSSimpleSystemsManagementClient ssm = awsSessionFactory.createSsmSession(creds);
-        ssm.setRegion(Region.getRegion(Regions.fromName(environment.getRegion())));
-        return ssm;
+    public AWSSimpleSystemsManagement getSsmSession(AWSEnvironment environment) {
+        return awsSessionFactory.createSsmSession(credentialCache.getUnchecked(environment), environment.getRegion());
+    }
+
+    public AmazonSNS getSnsSession() {
+        return awsSessionFactory.createSnsSession();
     }
 }

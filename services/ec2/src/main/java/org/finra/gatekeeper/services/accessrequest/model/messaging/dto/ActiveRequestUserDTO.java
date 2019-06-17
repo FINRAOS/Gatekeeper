@@ -1,19 +1,23 @@
-package org.finra.gatekeeper.services.accessrequest.model.activerequest;
+package org.finra.gatekeeper.services.accessrequest.model.messaging.dto;
 
-public class ActiveRequestUser {
+public class ActiveRequestUserDTO {
 
     private String userId;
     private String gkUserId;
     private String email;
-    private ActiveAccessConsolidated activeAccess;
-    private ActiveAccessConsolidated expiredAccess;
+    private UserInstancesDTO activeAccess;
+    private UserInstancesDTO expiredAccess;
 
+    public ActiveRequestUserDTO(){
+        this.activeAccess = new UserInstancesDTO();
+        this.expiredAccess = new UserInstancesDTO();
+    }
 
     public String getUserId() {
         return userId;
     }
 
-    public ActiveRequestUser setUserId(String userId) {
+    public ActiveRequestUserDTO setUserId(String userId) {
         this.userId = userId;
         return this;
     }
@@ -22,7 +26,7 @@ public class ActiveRequestUser {
         return gkUserId;
     }
 
-    public ActiveRequestUser setGkUserId(String gkUserId) {
+    public ActiveRequestUserDTO setGkUserId(String gkUserId) {
         this.gkUserId = gkUserId;
         return this;
     }
@@ -31,26 +35,26 @@ public class ActiveRequestUser {
         return email;
     }
 
-    public ActiveRequestUser setEmail(String email) {
+    public ActiveRequestUserDTO setEmail(String email) {
         this.email = email;
         return this;
     }
 
 
-    public ActiveAccessConsolidated getActiveAccess() {
+    public UserInstancesDTO getActiveAccess() {
         return activeAccess;
     }
 
-    public ActiveRequestUser setActiveAccess(ActiveAccessConsolidated activeAccess) {
+    public ActiveRequestUserDTO setActiveAccess(UserInstancesDTO activeAccess) {
         this.activeAccess = activeAccess;
         return this;
     }
 
-    public ActiveAccessConsolidated getExpiredAccess() {
+    public UserInstancesDTO getExpiredAccess() {
         return expiredAccess;
     }
 
-    public ActiveRequestUser setExpiredAccess(ActiveAccessConsolidated expiredAccess) {
+    public ActiveRequestUserDTO setExpiredAccess(UserInstancesDTO expiredAccess) {
         this.expiredAccess = expiredAccess;
         return this;
     }
