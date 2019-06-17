@@ -27,10 +27,41 @@ import java.util.Map;
 @Component
 @ConfigurationProperties(prefix="gatekeeper.sns")
 public class GatekeeperSnsProperties {
+
+    private int retryPolicy = -1;
+    private int retryIntervalMillis = -1;
+    private int retryIntervalMultiplier = -1;
     private String topicARN;
 
     public String getTopicARN() {
         return topicARN;
+    }
+
+    public int getRetryPolicy() {
+        return retryPolicy;
+    }
+
+    public int getRetryIntervalMillis() {
+        return retryIntervalMillis;
+    }
+
+    public GatekeeperSnsProperties setRetryIntervalMillis(int retryIntervalMillis) {
+        this.retryIntervalMillis = retryIntervalMillis;
+        return this;
+    }
+
+    public int getRetryIntervalMultiplier() {
+        return retryIntervalMultiplier;
+    }
+
+    public GatekeeperSnsProperties setRetryIntervalMultiplier(int retryIntervalMultiplier) {
+        this.retryIntervalMultiplier = retryIntervalMultiplier;
+        return this;
+    }
+
+    public GatekeeperSnsProperties setRetryPolicy(int retryPolicy) {
+        this.retryPolicy = retryPolicy;
+        return this;
     }
 
     public GatekeeperSnsProperties setTopicARN(String topicARN) {

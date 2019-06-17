@@ -22,6 +22,7 @@ import com.amazonaws.services.sns.model.PublishResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.finra.gatekeeper.configuration.properties.GatekeeperSnsProperties;
+import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.RequestEventDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,17 +61,32 @@ public class SnsService {
     }
 
     private void pushToSNSTopic(RequestEventDTO message, String topicARN) throws Exception {
+        int attempts = gatekeeperSnsProperties.getRetryPolicy() == -1 ? 5 : gatekeeperSnsProperties.getRetryPolicy();
+        int retryInterval = gatekeeperSnsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getRetryIntervalMillis();
+        int retryMultiplier = gatekeeperSnsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getRetryIntervalMultiplier();
+
         ObjectWriter jsonWriter = new ObjectMapper().writer();
-
         logger.info("Pushing " + jsonWriter.withDefaultPrettyPrinter().writeValueAsString(message) + " to " + topicARN);
-        AmazonSNS snsClient = awsSessionService.getSnsSession();
+        String messageId = "";
+        do {
+            try {
+                AmazonSNS snsClient = awsSessionService.getSnsSession();
 
-        Map<String, RequestEventDTO> messagePayload = new HashMap<>();
-        messagePayload.put("default", message);
-        PublishResult result = snsClient.publish(new PublishRequest()
-                .withTopicArn(topicARN)
-                .withMessage(jsonWriter.writeValueAsString(message)));
-        logger.info(result.toString());
+                Map<String, RequestEventDTO> messagePayload = new HashMap<>();
+                messagePayload.put("default", message);
+                messageId = snsClient.publish(new PublishRequest()
+                        .withTopicArn(topicARN)
+                        .withMessage(jsonWriter.writeValueAsString(message))).getMessageId();
+                logger.info("SNS Transaction ID: " + messageId);
+            } catch (Exception e ) {
+                logger.error("Error occurred trying to push to SNS topic. (there are " + attempts + " attempts(s) remaining, next attempt in " + retryInterval +" ms)", e);
+                Thread.sleep(retryInterval);
+                retryInterval *= retryMultiplier;
+            }
+        } while ( --attempts > 0 && messageId.isEmpty());
 
+        if(attempts == 0) {
+            throw new GatekeeperException("Could not publish the request data to SNS topic. \n" + jsonWriter.withDefaultPrettyPrinter().writeValueAsString(message));
+        }
     }
 }

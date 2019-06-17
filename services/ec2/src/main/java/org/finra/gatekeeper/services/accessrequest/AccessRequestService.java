@@ -400,7 +400,8 @@ public class AccessRequestService {
                 .sql("select * from (select id_, proc_inst_id_, execution_id_, task_id_, text2_ from gatekeeper_ec2.act_hi_varinst a where a.name_ = 'accessRequest') a " +
                         "    join (select a.id_, a.proc_inst_id_, a.execution_id_, a.task_id_, a.last_updated_time_, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue " +
                         "        from gatekeeper_ec2.act_hi_varinst a join gatekeeper_ec2.act_ge_bytearray b on a.bytearray_id_ = b.id_ " +
-                        "          where a.last_updated_time_ >= ((current_timestamp at time zone 'US/Eastern') - INTERVAL '168 hours')) b on a.proc_inst_id_ = b.proc_inst_id_")
+                        "          where a.last_updated_time_ >= ((current_timestamp at time zone 'US/Eastern') - INTERVAL '168 hours')) b on a.proc_inst_id_ = b.proc_inst_id_ " +
+                        "             where textValue like '%GRANTED%'")
                 .list()
                 .forEach(item -> {
                     Map<String, Object> activitiData = new HashMap<>();
@@ -420,11 +421,10 @@ public class AccessRequestService {
 
         // only get requests that got granted.
         return requests.stream()
-                .filter(item -> (item.getStatus() == RequestStatus.GRANTED || item.getStatus() == RequestStatus.APPROVAL_GRANTED)) // only GRANTED status requests
                 .filter(item -> {
                     Calendar expireTime = Calendar.getInstance();
                     expireTime.setTime(item.getUpdated());
-                    expireTime.add(Calendar.HOUR_OF_DAY, item.getHours());
+                    expireTime.add(Calendar.HOUR, item.getHours());
 
                     Date currentDate = new Date();
                     boolean isLive = currentDate.before(expireTime.getTime());
@@ -448,7 +448,7 @@ public class AccessRequestService {
             liveRequests.forEach(liveRequest -> {
                 if(liveRequest.getUsers().stream()
                         .anyMatch(requestUser -> requestUser.getUserId().equals(user.getUserId()))){
-                    logger.info(user.getUserId() + " Is part of request " + user.getId() + " adding the instances to this user's object");
+                    logger.info(user.getUserId() + " Is part of request " + liveRequest.getId() + " adding the instances to this user's object");
                     liveRequest.getInstances()
                             .forEach(instance -> addRequestData(activeRequestUser.getActiveAccess(), liveRequest.getId(), instance));
                 }

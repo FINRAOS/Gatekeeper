@@ -123,7 +123,8 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                 snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
             } catch (Exception e) {
                 e.printStackTrace();
-                logger.error("Error fetching live requests upon request expiration. Request ID: " + accessRequest.getId());
+                emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
+                logger.error("Error pushing to SNS topic upon request expiration. Request ID: " + accessRequest.getId());
             }
 
         }catch(Exception e){
