@@ -19,8 +19,6 @@ package org.finra.gatekeeper.configuration.properties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 /**
  * Configuration properties relating to the sns service for gatekeeper
  */
@@ -28,7 +26,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix="gatekeeper.sns")
 public class GatekeeperSnsProperties {
 
-    private int retryPolicy = -1;
+    private int retryCount = -1;
     private int retryIntervalMillis = -1;
     private int retryIntervalMultiplier = -1;
     private String topicARN;
@@ -37,8 +35,8 @@ public class GatekeeperSnsProperties {
         return topicARN;
     }
 
-    public int getRetryPolicy() {
-        return retryPolicy;
+    public int getRetryCount() {
+        return retryCount;
     }
 
     public int getRetryIntervalMillis() {
@@ -59,8 +57,8 @@ public class GatekeeperSnsProperties {
         return this;
     }
 
-    public GatekeeperSnsProperties setRetryPolicy(int retryPolicy) {
-        this.retryPolicy = retryPolicy;
+    public GatekeeperSnsProperties setRetryCount(int retryCount) {
+        this.retryCount = retryCount;
         return this;
     }
 

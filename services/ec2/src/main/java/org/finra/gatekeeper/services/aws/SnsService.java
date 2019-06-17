@@ -18,7 +18,6 @@ package org.finra.gatekeeper.services.aws;
 
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.PublishResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.finra.gatekeeper.configuration.properties.GatekeeperSnsProperties;
@@ -61,7 +60,7 @@ public class SnsService {
     }
 
     private void pushToSNSTopic(RequestEventDTO message, String topicARN) throws Exception {
-        int attempts = gatekeeperSnsProperties.getRetryPolicy() == -1 ? 5 : gatekeeperSnsProperties.getRetryPolicy();
+        int attempts = gatekeeperSnsProperties.getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getRetryCount();
         int retryInterval = gatekeeperSnsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getRetryIntervalMillis();
         int retryMultiplier = gatekeeperSnsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getRetryIntervalMultiplier();
 
