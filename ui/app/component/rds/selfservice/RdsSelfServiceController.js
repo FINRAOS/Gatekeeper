@@ -103,7 +103,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         //first lets make sure they are members of what they are requesting for
         vm.selectedItems.forEach((item) => {
             let resource = vm.global.userInfo.roleMemberships;
-            approvalRequired = !resource || !resource[item.application];
+            approvalRequired = !resource || !resource[item.application] || (resource[item.application].roles.DEV && !resource[item.application].roles.DEV.includes(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()));
         });
 
         //if the user isn't part of what he is requesting for warn for approval.
@@ -146,13 +146,15 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         let thresholds = vm.global.rdsOverridePolicy;
         let max = vm.global.rdsMaxDays;
         if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
-            vm.getSelectedRoles().forEach((role) => {
-                if(thresholds[role] && thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
-                    let overrideVal = thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
-                    if (overrideVal < max) {
-                        max = overrideVal;
+            vm.selectedItems.forEach((item) => {
+                vm.getSelectedRoles().forEach((role) => {
+                    if(thresholds[item.application] && thresholds[item.application][role] && thresholds[item.application][role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
+                        let overrideVal = thresholds[item.application][role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
+                        if (overrideVal < max) {
+                            max = overrideVal;
+                        }
                     }
-                }
+                });
             });
         }
 

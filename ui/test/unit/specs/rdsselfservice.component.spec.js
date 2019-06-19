@@ -62,57 +62,155 @@ describe('GateKeeper RDS SelfService component', function () {
 
 
             $rootScope.userInfo = {
-                role: 'DEV',
                 userId:'testId',
                 user:'test',
                 email:'test@email.com',
-                memberships: {
-                    APP: ['DEV', 'QA'],
-                    APP2: ['DEV']
+                roleMemberships: {
+                    APP: {
+                        roles: {
+                            DEV: [
+                                'DEV',
+                                'QA'
+                            ]
+                        }
+                    },
+                    APP2: {
+                        roles: {
+                            DEV: [
+                                'DEV'
+                            ]
+                        }
+                    }
                 }
             };
 
             $rootScope.rdsMaxDays = 100;
             $rootScope.rdsOverridePolicy = {
-                datafix: {
-                    prod: 10
+                APP: {
+                    datafix: {
+                        prod: 10
+                    },
+                    dba: {
+                        prod: 5
+                    },
+                    dba_confidential: {
+                        prod: 2
+                    },
+                    readonly_confidential: {
+                        prod: 4
+                    }
                 },
-                dba: {
-                    prod: 5
+                APP2: {
+                    datafix: {
+                        prod: 10
+                    },
+                    dba: {
+                        prod: 5
+                    },
+                    dba_confidential: {
+                        prod: 2
+                    },
+                    readonly_confidential: {
+                        prod: 4
+                    }
                 },
-                dba_confidential: {
-                    prod: 2
-                },
-                readonly_confidential: {
-                    prod: 4
+                APP3: {
+                    datafix: {
+                        prod: 10
+                    },
+                    dba: {
+                        prod: 5
+                    },
+                    dba_confidential: {
+                        prod: 2
+                    },
+                    readonly_confidential: {
+                        prod: 4
+                    }
                 }
             };
 
             $rootScope.userInfo.approvalThreshold = {
-                datafix: {
-                    dev: 99,
-                    qa: 50,
-                    prod: 1
+                APP: {
+                    datafix: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    },
+                    dba: {
+                        dev: 76,
+                        qa: 50,
+                        prod: 1
+                    },
+                    readonly: {
+                        dev: 65,
+                        qa: 50,
+                        prod: 1
+                    },
+                    readonly_confidential: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    },
+                    dba_confidential: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    }
                 },
-                dba: {
-                    dev: 76,
-                    qa: 50,
-                    prod: 1
+                APP2: {
+                    datafix: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    },
+                    dba: {
+                        dev: 76,
+                        qa: 50,
+                        prod: 1
+                    },
+                    readonly: {
+                        dev: 65,
+                        qa: 50,
+                        prod: 1
+                    },
+                    readonly_confidential: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    },
+                    dba_confidential: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    }
                 },
-                readonly: {
-                    dev: 65,
-                    qa: 50,
-                    prod: 1
-                },
-                readonly_confidential: {
-                    dev: 99,
-                    qa: 50,
-                    prod: 1
-                },
-                dba_confidential: {
-                    dev: 99,
-                    qa: 50,
-                    prod: 1
+                APP3: {
+                    datafix: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    },
+                    dba: {
+                        dev: 76,
+                        qa: 50,
+                        prod: 1
+                    },
+                    readonly: {
+                        dev: 65,
+                        qa: 50,
+                        prod: 1
+                    },
+                    readonly_confidential: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    },
+                    dba_confidential: {
+                        dev: 99,
+                        qa: 50,
+                        prod: 1
+                    }
                 }
             };
 
@@ -214,7 +312,7 @@ describe('GateKeeper RDS SelfService component', function () {
             });
 
             it('should return maximum days if the user is an approver', () => {
-              $rootScope.userInfo.role = 'APPROVER';
+              $rootScope.userInfo.isApprover = true;
               let bound = controller.getApprovalBounds();
               expect(bound).toEqual(100);
             });
@@ -307,6 +405,15 @@ describe('GateKeeper RDS SelfService component', function () {
                     sdlc: 'prod'
                 };
 
+                controller.selectedItems = [
+                    {
+                        application: 'APP'
+                    },
+                    {
+                        application: 'APP2'
+                    },
+                ];
+
                 controller.forms.grantForm.selectedRoles = {
                     datafix: true,
                     readonly: false
@@ -321,6 +428,14 @@ describe('GateKeeper RDS SelfService component', function () {
                 controller.forms.awsInstanceForm.selectedAccount = {
                     sdlc: 'prod'
                 };
+                controller.selectedItems = [
+                    {
+                        application: 'APP'
+                    },
+                    {
+                        application: 'APP2'
+                    },
+                ];
 
                 controller.forms.grantForm.selectedRoles = {
                     datafix: true,
