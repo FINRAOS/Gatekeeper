@@ -89,35 +89,39 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         return vm.forms.grantForm.grantValue > vm.getApprovalBounds() || vm.getApprovalBounds() === -1;
     }
 
+
+
     //Get the lowest threshold value across all selected roles for provided sdlc
-    getApprovalBounds(){
+    getApprovalBounds() {
 
         //approvers don't need approval
-        if(vm.global.userInfo.role.toLowerCase() === 'approver'){
+        if (vm.global.userInfo.isApprover) {
             return vm.global.rdsMaxDays;
         }
 
         let approvalRequired = true;
         //first lets make sure they are members of what they are requesting for
         vm.selectedItems.forEach((item) => {
-            let resource = vm.global.userInfo.memberships[item.application];
-            approvalRequired = !resource || resource.indexOf(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()) === -1;
+            let resource = vm.global.userInfo.roleMemberships;
+            approvalRequired = !resource || !resource[item.application];
         });
 
         //if the user isn't part of what he is requesting for warn for approval.
-        if(approvalRequired){
+        if (approvalRequired) {
             return -1;
         }
 
         let values = [];
 
         angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
-            if(v){
-                values.push(vm.global.userInfo.approvalThreshold[k][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
-            }
+            vm.selectedItems.forEach( (item) => {
+                if (v) {
+                    values.push(vm.global.userInfo.approvalThreshold[item.application][k][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
+                }
+            });
         });
 
-        return  Math.min.apply(Math, values)
+        return Math.min.apply(Math, values);
 
     }
 

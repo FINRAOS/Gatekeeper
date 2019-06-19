@@ -6,7 +6,7 @@ import java.util.Map;
 public class GetRoleResponseDTO {
     private String userId;
     private String name;
-    private boolean isApprover;
+    private Boolean isApprover;
     private Map<String, RoleMembership> roleMemberships;
     private String email;
     private Map<String, Map<String, Map<String, Integer>>> approvalThreshold;
@@ -36,11 +36,11 @@ public class GetRoleResponseDTO {
         this.name = name;
     }
 
-    public boolean isApprover() {
+    public Boolean isApprover() {
         return isApprover;
     }
 
-    public void setApprover(boolean approver) {
+    public void setApprover(Boolean approver) {
         isApprover = approver;
     }
 

@@ -7,6 +7,8 @@ import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.services.auth.model.GetRoleResponseDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +29,7 @@ public class AuthController {
     private final GatekeeperRoleService gatekeeperRoleService;
     private final GatekeeperApprovalProperties approvalThreshold;
     private final GatekeeperOverrideProperties gatekeeperOverrideProperties;
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     public AuthController(GatekeeperRoleService gatekeeperRoleService, GatekeeperApprovalProperties gatekeeperApprovalProperties, GatekeeperOverrideProperties gatekeeperOverrideProperties) {
@@ -48,26 +51,7 @@ public class AuthController {
         result.setApprovalThreshold(gatekeeperRoleService.getApprovalPolicy(result.getRoleMemberships()));
         result.setMaxDays(gatekeeperOverrideProperties.getMaxDays());
         result.setOverridePolicy(gatekeeperOverrideProperties.getOverridePolicy(result.getRoleMemberships(), result.isApprover()));
+        logger.info("/getRole response: " + result);
         return result;
-//        result.put("userId", user.getUserId());
-//        result.put("name", user.getName());
-//        result.put("isApprover", gatekeeperRoleService.isApprover());
-//        result.put("roleMemberships", gatekeeperRoleService.getRoleMemberships());
-//        result.put("email", user.getEmail());
-////        GatekeeperRdsRole role = gatekeeperRoleService.getRole();
-//        result.put("approvalThreshold", approvalThreshold.getApprovalPolicy(role));
-//        result.put("maxDays", gatekeeperOverrideProperties.getMaxDays());
-//        result.put("overridePolicy", gatekeeperOverrideProperties.getOverridePolicy(role));
-//        result.put("role", role);
-//        switch(role){
-//            case APPROVER:
-//            case DBA:
-//                result.put("memberships", gatekeeperRoleService.getDbaMemberships());
-//                return result;
-//            default:{
-//                result.put("memberships", gatekeeperRoleService.getSdlcs());
-//                return result;
-//            }
-//        }
     }
 }
