@@ -103,7 +103,7 @@ public class AccessRequestService {
     public AccessRequestCreationResponse storeAccessRequest(AccessRequestWrapper request) throws GatekeeperException{
         GatekeeperUserEntry requestor = gatekeeperRoleService.getUserProfile();
 
-        Integer maxDays = overridePolicy.getMaxDaysForRequest(gatekeeperRoleService.getRole(), request.getRoles(), request.getAccountSdlc());
+        Integer maxDays = overridePolicy.getMaxDaysForRequest(gatekeeperRoleService.getRoleMemberships().get(request.getApplication()), request.getRoles(), request.getAccountSdlc());
 
         if(request.getDays() > maxDays){
             throw new GatekeeperException("Days requested (" + request.getDays() + ") exceeded the maximum of " + maxDays + " for roles " + request.getRoles() + " on account with SDLC " + request.getAccountSdlc());

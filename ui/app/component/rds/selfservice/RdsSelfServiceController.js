@@ -188,7 +188,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 .then((justification) => {
                     this.fetching.grant = true;
                     let roles = [];
-                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
+                    let application = vm.selectedItems[0].application;
+                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), application, vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             var msg;

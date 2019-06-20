@@ -351,7 +351,7 @@ describe('GateKeeper RDS SelfService component', function () {
                     },
                     {
                         application: 'APP3'
-                    },
+                    }
                 ];
                 controller.forms.grantForm.selectedRoles = {
                     readonly: true

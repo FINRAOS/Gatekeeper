@@ -52,10 +52,6 @@ public class GatekeeperOverrideProperties {
         return overrides;
     }
 
-    public Map<String, Map<String, Integer>> getOverridePolicy(GatekeeperRdsRole role) {
-        return (Map<String, Map<String, Integer>>) this.overrides.get(role.toString().toLowerCase());
-    }
-
     public Map<String, Map<String, Map<String, Integer>>> getOverridePolicy(Map<String, RoleMembership> roleMemberships, boolean isApprover) {
         Map<String, Map<String, Map<String, Integer>>> overridePolicy = new HashMap<>();
         for(String application : roleMemberships.keySet()) {
@@ -67,23 +63,23 @@ public class GatekeeperOverrideProperties {
     private Map<String, Map<String, Integer>> getOverridePolicyByApplication(RoleMembership roleMembership, boolean isApprover){
 
         if(isApprover)
-            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.APPROVER.toString().toLowerCase());
+            return this.overrides.get(GatekeeperRdsRole.APPROVER.toString().toLowerCase());
         if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DBA))
-            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.DBA.toString().toLowerCase());
+            return this.overrides.get(GatekeeperRdsRole.DBA.toString().toLowerCase());
         if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DEV))
-            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.DEV.toString().toLowerCase());
+            return this.overrides.get(GatekeeperRdsRole.DEV.toString().toLowerCase());
         if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.OPS))
-            return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.OPS.toString().toLowerCase());
+            return this.overrides.get(GatekeeperRdsRole.OPS.toString().toLowerCase());
 
-        return (Map<String, Map<String, Integer>>)this.overrides.get(GatekeeperRdsRole.UNAUTHORIZED.toString().toLowerCase());
+        return this.overrides.get(GatekeeperRdsRole.UNAUTHORIZED.toString().toLowerCase());
     }
 
-    public Integer getMaxDaysForRequest(GatekeeperRdsRole requestorRole, List<UserRole> roleList, String sdlc){
+    public Integer getMaxDaysForRequest(RoleMembership roleMembership, List<UserRole> roleList, String sdlc){
         Integer currMax = maxDays;
 
         //For each role let's check if there was some override value set.
         for(UserRole role : roleList){
-            Map<String, Map<String, Integer>> overridePolicy = getOverridePolicy(requestorRole);
+            Map<String, Map<String, Integer>> overridePolicy = getOverridePolicyByApplication(roleMembership, false);
 
             //if there's a policy then lets keep going
             if(overridePolicy != null
