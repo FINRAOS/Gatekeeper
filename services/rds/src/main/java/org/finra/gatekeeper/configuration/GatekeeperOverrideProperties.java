@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.configuration;
 
+import org.finra.gatekeeper.configuration.model.AppSpecificOverridePolicy;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
@@ -52,26 +54,12 @@ public class GatekeeperOverrideProperties {
         return overrides;
     }
 
-    public Map<String, Map<String, Map<String, Integer>>> getOverridePolicy(Map<String, RoleMembership> roleMemberships, boolean isApprover) {
-        Map<String, Map<String, Map<String, Integer>>> overridePolicy = new HashMap<>();
+    public Map<String, AppSpecificOverridePolicy> getOverridePolicy(Map<String, RoleMembership> roleMemberships, boolean isApprover) {
+        Map<String, AppSpecificOverridePolicy> overridePolicy = new HashMap<>();
         for(String application : roleMemberships.keySet()) {
             overridePolicy.put(application, getOverridePolicyByApplication(roleMemberships.get(application), isApprover));
         }
         return overridePolicy;
-    }
-
-    private Map<String, Map<String, Integer>> getOverridePolicyByApplication(RoleMembership roleMembership, boolean isApprover){
-
-        if(isApprover)
-            return this.overrides.get(GatekeeperRdsRole.APPROVER.toString().toLowerCase());
-        if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DBA))
-            return this.overrides.get(GatekeeperRdsRole.DBA.toString().toLowerCase());
-        if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DEV))
-            return this.overrides.get(GatekeeperRdsRole.DEV.toString().toLowerCase());
-        if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.OPS))
-            return this.overrides.get(GatekeeperRdsRole.OPS.toString().toLowerCase());
-
-        return this.overrides.get(GatekeeperRdsRole.UNAUTHORIZED.toString().toLowerCase());
     }
 
     public Integer getMaxDaysForRequest(RoleMembership roleMembership, List<UserRole> roleList, String sdlc){
@@ -79,14 +67,14 @@ public class GatekeeperOverrideProperties {
 
         //For each role let's check if there was some override value set.
         for(UserRole role : roleList){
-            Map<String, Map<String, Integer>> overridePolicy = getOverridePolicyByApplication(roleMembership, false);
+            AppSpecificOverridePolicy appSpecificOverridePolicy = getOverridePolicyByApplication(roleMembership, false);
 
             //if there's a policy then lets keep going
-            if(overridePolicy != null
-                    && overridePolicy.containsKey(role.getRole())
-                    && overridePolicy.containsValue(overridePolicy.get(role.getRole()))){
+            if(appSpecificOverridePolicy != null
+                    && appSpecificOverridePolicy.getAppSpecificOverridePolicy().containsKey(RoleType.valueOf(role.getRole().toUpperCase()))
+                    && appSpecificOverridePolicy.getAppSpecificOverridePolicy().containsValue(appSpecificOverridePolicy.getAppSpecificOverridePolicy().get(RoleType.valueOf(role.getRole().toUpperCase())))){
 
-                Map<String, Integer> env = overridePolicy.get(role.getRole());
+                Map<String, Integer> env = appSpecificOverridePolicy.getAppSpecificOverridePolicy().get(RoleType.valueOf(role.getRole().toUpperCase()));
                 Integer max = env.get(sdlc) != null ? env.get(sdlc) : maxDays;
 
                 currMax = max < currMax ? max : currMax;
@@ -95,5 +83,29 @@ public class GatekeeperOverrideProperties {
 
         }
         return currMax;
+    }
+
+    private AppSpecificOverridePolicy getOverridePolicyByApplication(RoleMembership roleMembership, boolean isApprover){
+        AppSpecificOverridePolicy appSpecificOverridePolicy = new AppSpecificOverridePolicy();
+        Map<String, Map<String, Integer>> overridePolicyStringFormat;
+        Map<RoleType, Map<String, Integer>> overridePolicyEnumFormat = new HashMap<>();
+
+        if(isApprover)
+            overridePolicyStringFormat = this.overrides.get(GatekeeperRdsRole.APPROVER.toString().toLowerCase());
+        else if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DBA))
+            overridePolicyStringFormat = this.overrides.get(GatekeeperRdsRole.DBA.toString().toLowerCase());
+        else if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.DEV))
+            overridePolicyStringFormat = this.overrides.get(GatekeeperRdsRole.DEV.toString().toLowerCase());
+        else if(roleMembership.getRoles().containsKey(GatekeeperRdsRole.OPS))
+            overridePolicyStringFormat = this.overrides.get(GatekeeperRdsRole.OPS.toString().toLowerCase());
+        else
+            overridePolicyStringFormat = this.overrides.get(GatekeeperRdsRole.UNAUTHORIZED.toString().toLowerCase());
+
+        overridePolicyStringFormat.forEach((roleType, policy) -> {
+            overridePolicyEnumFormat.put(RoleType.valueOf(roleType.toUpperCase()), policy);
+        });
+
+        appSpecificOverridePolicy.setAppSpecificOverridePolicy(overridePolicyEnumFormat);
+        return appSpecificOverridePolicy;
     }
 }

@@ -1,5 +1,8 @@
 package org.finra.gatekeeper.services.auth.model;
 
+import org.finra.gatekeeper.configuration.model.AppSpecificApprovalThreshold;
+import org.finra.gatekeeper.configuration.model.AppSpecificOverridePolicy;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,9 +12,9 @@ public class GetRoleResponseDTO {
     private Boolean isApprover;
     private Map<String, RoleMembership> roleMemberships;
     private String email;
-    private Map<String, Map<String, Map<String, Integer>>> approvalThreshold;
     private Integer maxDays;
-    private Map<String, Map<String, Map<String, Integer>>> overridePolicy;
+    private Map<String, AppSpecificApprovalThreshold> approvalThreshold;
+    private Map<String, AppSpecificOverridePolicy> overridePolicy;
 
     public GetRoleResponseDTO() {
         roleMemberships = new HashMap<>();
@@ -60,14 +63,6 @@ public class GetRoleResponseDTO {
         this.email = email;
     }
 
-    public Map<String, Map<String, Map<String, Integer>>> getApprovalThreshold() {
-        return approvalThreshold;
-    }
-
-    public void setApprovalThreshold(Map<String, Map<String, Map<String, Integer>>> approvalThreshold) {
-        this.approvalThreshold = approvalThreshold;
-    }
-
     public Integer getMaxDays() {
         return maxDays;
     }
@@ -76,14 +71,21 @@ public class GetRoleResponseDTO {
         this.maxDays = maxDays;
     }
 
-    public Map<String, Map<String, Map<String, Integer>>> getOverridePolicy() {
+    public Map<String, AppSpecificApprovalThreshold> getApprovalThreshold() {
+        return approvalThreshold;
+    }
+
+    public void setApprovalThreshold(Map<String, AppSpecificApprovalThreshold> approvalThreshold) {
+        this.approvalThreshold = approvalThreshold;
+    }
+
+    public Map<String, AppSpecificOverridePolicy> getOverridePolicy() {
         return overridePolicy;
     }
 
-    public void setOverridePolicy(Map<String, Map<String, Map<String, Integer>>> overridePolicy) {
+    public void setOverridePolicy(Map<String, AppSpecificOverridePolicy> overridePolicy) {
         this.overridePolicy = overridePolicy;
     }
-
 
     @Override
     public String toString() {

@@ -82,7 +82,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             });
         }
 
-        return vm.usersTable.selected.length === 0 || vm.selectedItems.length === 0 || !valueChecked
+        return vm.usersTable.selected.length === 0 || vm.selectedItems.length === 0 || !valueChecked;
     }
 
     checkIfApprovalNeeded(){
@@ -116,7 +116,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
             vm.selectedItems.forEach( (item) => {
                 if (v) {
-                    values.push(vm.global.userInfo.approvalThreshold[item.application][k][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
+                    let appSpecificApprovalThreshold = vm.global.userInfo.approvalThreshold[item.application]['appSpecificApprovalThresholds'][k.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
+                    values.push(appSpecificApprovalThreshold);
                 }
             });
         });
@@ -148,8 +149,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
             vm.selectedItems.forEach((item) => {
                 vm.getSelectedRoles().forEach((role) => {
-                    if(thresholds[item.application] && thresholds[item.application][role] && thresholds[item.application][role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
-                        let overrideVal = thresholds[item.application][role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
+                    if(thresholds[item.application] && thresholds[item.application]['appSpecificOverridePolicy'][role.toUpperCase()] && thresholds[item.application]['appSpecificOverridePolicy'][role.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]) {
+                        let overrideVal = thresholds[item.application]['appSpecificOverridePolicy'][role.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
                         if (overrideVal < max) {
                             max = overrideVal;
                         }
@@ -180,7 +181,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             let message = 'This will request access for ' + vm.forms.grantForm.grantValue + ' day(s) for the selected users and instances. ';
             let approvalRequired = vm.checkIfApprovalNeeded();
             if(approvalRequired){
-                message += 'This request will require approval.'
+                message += 'This request will require approval.';
             }
 
             let config = {title:title, message:message, requiresExplanation: approvalRequired, justificationConfig:new GatekeeperJustificationConfig(vm.ticketIdFieldMessage, vm.ticketIdFieldRequired, vm.explanationFieldRequired)};
@@ -227,7 +228,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                     .textContent(msg)
                                     .position('bottom right')
                                     .hideDelay(10000));
-                    })
+                    });
             });
         }
     }

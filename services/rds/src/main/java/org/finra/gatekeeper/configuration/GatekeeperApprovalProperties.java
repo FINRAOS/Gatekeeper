@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.configuration;
 
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -69,18 +70,29 @@ public class GatekeeperApprovalProperties {
         return this;
     }
 
-    public Map<String, Map<String, Integer>> getApprovalPolicy(GatekeeperRdsRole role) {
+    public Map<RoleType, Map<String, Integer>> getApprovalPolicy(GatekeeperRdsRole role) {
+        Map<RoleType, Map<String, Integer>> approvalPolicy = new HashMap<>();
         switch (role) {
             case DEV:
-                return dev;
+                dev.forEach((roleType, policy) -> {
+                    approvalPolicy.put(RoleType.valueOf(roleType.toUpperCase()), policy);
+                });
+                break;
             case OPS:
-                return ops;
+                ops.forEach((roleType, policy) -> {
+                    approvalPolicy.put(RoleType.valueOf(roleType.toUpperCase()), policy);
+                });
+                break;
             case DBA:
-                return dba;
+                dba.forEach((roleType, policy) -> {
+                    approvalPolicy.put(RoleType.valueOf(roleType.toUpperCase()), policy);
+                });
+                break;
             case APPROVER:
-                return new HashMap<>();
+                break;
             default:
                 return null;
         }
+        return approvalPolicy;
     }
 }

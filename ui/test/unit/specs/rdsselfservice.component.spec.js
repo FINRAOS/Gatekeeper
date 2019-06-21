@@ -87,129 +87,141 @@ describe('GateKeeper RDS SelfService component', function () {
             $rootScope.rdsMaxDays = 100;
             $rootScope.rdsOverridePolicy = {
                 APP: {
-                    datafix: {
-                        prod: 10
-                    },
-                    dba: {
-                        prod: 5
-                    },
-                    dba_confidential: {
-                        prod: 2
-                    },
-                    readonly_confidential: {
-                        prod: 4
+                    appSpecificOverridePolicy: {
+                        DATAFIX: {
+                            prod: 10
+                        },
+                        DBA: {
+                            prod: 5
+                        },
+                        DBA_CONFIDENTIAL: {
+                            prod: 2
+                        },
+                        READONLY_CONFIDENTIAL: {
+                            prod: 4
+                        }
                     }
                 },
                 APP2: {
-                    datafix: {
-                        prod: 10
-                    },
-                    dba: {
-                        prod: 5
-                    },
-                    dba_confidential: {
-                        prod: 2
-                    },
-                    readonly_confidential: {
-                        prod: 4
+                    appSpecificOverridePolicy: {
+                        DATAFIX: {
+                            prod: 10
+                        },
+                        DBA: {
+                            prod: 5
+                        },
+                        DBA_CONFIDENTIAL: {
+                            prod: 2
+                        },
+                        READONLY_CONFIDENTIAL: {
+                            prod: 4
+                        }
                     }
                 },
                 APP3: {
-                    datafix: {
-                        prod: 10
-                    },
-                    dba: {
-                        prod: 5
-                    },
-                    dba_confidential: {
-                        prod: 2
-                    },
-                    readonly_confidential: {
-                        prod: 4
+                    appSpecificOverridePolicy: {
+                        DATAFIX: {
+                            prod: 10
+                        },
+                        DBA: {
+                            prod: 5
+                        },
+                        DBA_CONFIDENTIAL: {
+                            prod: 2
+                        },
+                        READONLY_CONFIDENTIAL: {
+                            prod: 4
+                        }
                     }
                 }
             };
 
             $rootScope.userInfo.approvalThreshold = {
                 APP: {
-                    datafix: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
-                    },
-                    dba: {
-                        dev: 76,
-                        qa: 50,
-                        prod: 1
-                    },
-                    readonly: {
-                        dev: 65,
-                        qa: 50,
-                        prod: 1
-                    },
-                    readonly_confidential: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
-                    },
-                    dba_confidential: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
+                    appSpecificApprovalThresholds: {
+                        DATAFIX: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        },
+                        DBA: {
+                            dev: 76,
+                            qa: 50,
+                            prod: 1
+                        },
+                        READONLY: {
+                            dev: 65,
+                            qa: 50,
+                            prod: 1
+                        },
+                        READONLY_CONFIDENTIAL: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        },
+                        DBA_CONFIDENTIAL: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        }
                     }
                 },
                 APP2: {
-                    datafix: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
-                    },
-                    dba: {
-                        dev: 76,
-                        qa: 50,
-                        prod: 1
-                    },
-                    readonly: {
-                        dev: 65,
-                        qa: 50,
-                        prod: 1
-                    },
-                    readonly_confidential: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
-                    },
-                    dba_confidential: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
+                    appSpecificApprovalThresholds: {
+                        DATAFIX: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        },
+                        DBA: {
+                            dev: 76,
+                            qa: 50,
+                            prod: 1
+                        },
+                        READONLY: {
+                            dev: 65,
+                            qa: 50,
+                            prod: 1
+                        },
+                        READONLY_CONFIDENTIAL: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        },
+                        DBA_CONFIDENTIAL: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        }
                     }
                 },
                 APP3: {
-                    datafix: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
-                    },
-                    dba: {
-                        dev: 76,
-                        qa: 50,
-                        prod: 1
-                    },
-                    readonly: {
-                        dev: 65,
-                        qa: 50,
-                        prod: 1
-                    },
-                    readonly_confidential: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
-                    },
-                    dba_confidential: {
-                        dev: 99,
-                        qa: 50,
-                        prod: 1
+                    appSpecificApprovalThresholds: {
+                        DATAFIX: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        },
+                        DBA: {
+                            dev: 76,
+                            qa: 50,
+                            prod: 1
+                        },
+                        READONLY: {
+                            dev: 65,
+                            qa: 50,
+                            prod: 1
+                        },
+                        READONLY_CONFIDENTIAL: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        },
+                        DBA_CONFIDENTIAL: {
+                            dev: 99,
+                            qa: 50,
+                            prod: 1
+                        }
                     }
                 }
             };

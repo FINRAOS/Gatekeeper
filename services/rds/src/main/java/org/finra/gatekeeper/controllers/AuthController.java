@@ -49,8 +49,10 @@ public class AuthController {
         result.setRoleMemberships(gatekeeperRoleService.getRoleMemberships());
         result.setEmail(user.getEmail());
         result.setApprovalThreshold(gatekeeperRoleService.getApprovalPolicy(result.getRoleMemberships()));
+        logger.info("Approval threshold: " + result.getApprovalThreshold());
         result.setMaxDays(gatekeeperOverrideProperties.getMaxDays());
         result.setOverridePolicy(gatekeeperOverrideProperties.getOverridePolicy(result.getRoleMemberships(), result.isApprover()));
+        logger.info("Override Policy: " + result.getOverridePolicy());
         return result;
     }
 }

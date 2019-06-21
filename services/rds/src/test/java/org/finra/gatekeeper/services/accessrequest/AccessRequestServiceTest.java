@@ -37,6 +37,7 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
@@ -169,12 +170,12 @@ public class AccessRequestServiceTest {
         testDate = new Date();
         Integer mockMaximum = 180;
         //Setting up the spring values
-        Map<String, Map<String, Integer>> mockDev = new HashMap<>();
+        Map<RoleType, Map<String, Integer>> mockDev = new HashMap<>();
         Map<String, Integer> mockDba = new HashMap<>();
         mockDba.put("dev",180);
         mockDba.put("qa",180);
         mockDba.put("prod",180);
-        mockDev.put("datafix", mockDba);
+        mockDev.put(RoleType.DATAFIX, mockDba);
 
         Region[] regions = new Region[]{ new Region("us-east-1") };
         Account mockAccount = new Account("1234", "Dev Test", "dev", "dev-test", Arrays.asList(regions));
@@ -708,7 +709,7 @@ public class AccessRequestServiceTest {
         roles.add(userRole);
         when(ownerRequest.getRoles()).thenReturn(roles);
         
-        Map<String, Map<String, Integer>> mockDev = new HashMap<>();
+        Map<RoleType, Map<String, Integer>> mockDev = new HashMap<>();
         Map<String, Integer> mockReadOnly = new HashMap<>();
         mockReadOnly.put("dev",1);
         mockReadOnly.put("qa",2);
@@ -721,9 +722,9 @@ public class AccessRequestServiceTest {
         mockDatafix.put("dev",7);
         mockDatafix.put("qa",8);
         mockDatafix.put("prod",9);
-        mockDev.put("readonly", mockReadOnly);
-        mockDev.put("datafix", mockDba);
-        mockDev.put("dba", mockDatafix);
+        mockDev.put(RoleType.READONLY, mockReadOnly);
+        mockDev.put(RoleType.DATAFIX, mockDba);
+        mockDev.put(RoleType.DBA, mockDatafix);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.DEV)).thenReturn(mockDev);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.OPS)).thenReturn(mockDev);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.DBA)).thenReturn(mockDev);

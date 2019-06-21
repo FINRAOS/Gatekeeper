@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.configuration;
 
+import org.finra.gatekeeper.configuration.model.AppSpecificOverridePolicy;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
@@ -41,82 +43,24 @@ public class PropertyConfigOverridePolicyTest {
 
     private Map<String, RoleMembership> roleMembershipMap;
     private RoleMembership roleMembership;
-    private Map<String, Map<String, Integer>> mockDevOverridePolicy;
-    private Map<String, Map<String, Integer>> mockOpsOverridePolicy;
-    private Map<String, Map<String, Integer>> mockDbaOverridePolicy;
-    private Map<String, Map<String, Integer>> mockApproverOverridePolicy;
-    private Map<String, Map<String, Integer>> mockUnauthorizedOverridePolicy;
+    private AppSpecificOverridePolicy mockDevOverridePolicy;
+    private AppSpecificOverridePolicy mockOpsOverridePolicy;
+    private AppSpecificOverridePolicy mockDbaOverridePolicy;
+    private AppSpecificOverridePolicy mockApproverOverridePolicy;
+    private AppSpecificOverridePolicy mockUnauthorizedOverridePolicy;
 
     @Before
     public void init(){
-        ReflectionTestUtils.setField(overridePolicy,"maxDays", 180);
-        Map<String, Map<String, Map<String, Integer>>> mockOverrides = new  HashMap<>();
-        mockDevOverridePolicy = new HashMap<>();
-        mockOpsOverridePolicy = new HashMap<>();
-        mockDbaOverridePolicy = new HashMap<>();
-        mockApproverOverridePolicy = new HashMap<>();
-        mockUnauthorizedOverridePolicy = new HashMap<>();
-
-        Map<String, Integer> mockDevDba = new HashMap<>();
-        mockDevDba.put("dev",1);
-        Map<String, Integer> mockDevDatafix = new HashMap<>();
-        mockDevDatafix.put("dev",7);
-        Map<String, Integer> mockDevReadonly = new HashMap<>();
-        mockDevReadonly.put("dev",180);
-
-        mockDevOverridePolicy.put("dba", mockDevDba);
-        mockDevOverridePolicy.put("datafix", mockDevDatafix);
-        mockDevOverridePolicy.put("readonly", mockDevReadonly);
-
-        Map<String, Integer> mockOpsDba = new HashMap<>();
-        Map<String, Integer> mockOpsDatafix = new HashMap<>();
-        Map<String, Integer> mockOpsReadonly = new HashMap<>();
-        mockOpsDba.put("dev",2);
-        mockOpsDatafix.put("dev",3);
-        mockOpsReadonly.put("dev",4);
-
-        mockOpsOverridePolicy.put("dba", mockOpsDba);
-        mockOpsOverridePolicy.put("datafix", mockOpsDatafix);
-        mockOpsOverridePolicy.put("readonly", mockOpsReadonly);
-
-        Map<String, Integer> mockDbaDba = new HashMap<>();
-        Map<String, Integer> mockDbaDatafix = new HashMap<>();
-        Map<String, Integer> mockDbaReadonly = new HashMap<>();
-
-        mockDbaDba.put("dev",5);
-        mockDbaDatafix.put("dev",6);
-        mockDbaReadonly.put("dev",7);
-
-        mockDbaOverridePolicy.put("dba", mockDbaDba);
-        mockDbaOverridePolicy.put("datafix", mockDbaDatafix);
-        mockDbaOverridePolicy.put("readonly", mockDbaReadonly);
-
-        Map<String, Integer> mockApproverDba = new HashMap<>();
-        Map<String, Integer> mockApproverDatafix = new HashMap<>();
-        Map<String, Integer> mockApproverReadonly = new HashMap<>();
-
-        mockApproverDba.put("dev",8);
-        mockApproverDatafix.put("dev",9);
-        mockApproverReadonly.put("dev",10);
-
-        mockApproverOverridePolicy.put("dba", mockApproverDba);
-        mockApproverOverridePolicy.put("datafix", mockApproverDatafix);
-        mockApproverOverridePolicy.put("readonly", mockApproverReadonly);
-
-
-        mockOverrides.put("dev", mockDevOverridePolicy);
-        mockOverrides.put("dba", mockDbaOverridePolicy);
-        mockOverrides.put("ops", mockOpsOverridePolicy);
-        mockOverrides.put("approver", mockApproverOverridePolicy);
-        mockOverrides.put("unauthorized", mockUnauthorizedOverridePolicy);
-
         roleMembershipMap = new HashMap<>();
         roleMembership = new RoleMembership();
 
+        initMockDevOverridePolicy();
+        initMockOpsOverridePolicy();
+        initMockDbaOverridePolicy();
+        initMockApproverOverridePolicy();
+        initMockUnauthorizedOverridePolicy();
 
-
-        ReflectionTestUtils.setField(overridePolicy,"overrides", mockOverrides);
-
+        setMockOverridePolicy();
     }
 
     /*
@@ -153,7 +97,7 @@ public class PropertyConfigOverridePolicyTest {
         initOpsRoleMembershipMap();
         roleMembershipMap.put("TEST", roleMembership);
 
-        Map<String, Map<String, Map<String, Integer>>> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, true);
+        Map<String, AppSpecificOverridePolicy> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, true);
         Assert.assertEquals(mockApproverOverridePolicy, actualOverridePolicy.get("TEST"));
     }
 
@@ -162,7 +106,7 @@ public class PropertyConfigOverridePolicyTest {
         initDbaRoleMembershipMap();
         roleMembershipMap.put("TEST", roleMembership);
 
-        Map<String, Map<String, Map<String, Integer>>> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
+        Map<String, AppSpecificOverridePolicy> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
         Assert.assertEquals(mockDbaOverridePolicy, actualOverridePolicy.get("TEST"));
     }
 
@@ -170,7 +114,7 @@ public class PropertyConfigOverridePolicyTest {
     public void testGetOverridePolicyDev() {
         initDevRoleMembershipMap();
 
-        Map<String, Map<String, Map<String, Integer>>> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
+        Map<String, AppSpecificOverridePolicy> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
         Assert.assertEquals(mockDevOverridePolicy, actualOverridePolicy.get("TEST"));
     }
 
@@ -178,7 +122,7 @@ public class PropertyConfigOverridePolicyTest {
     public void testGetOverridePolicyOps() {
         initOpsRoleMembershipMap();
 
-        Map<String, Map<String, Map<String, Integer>>> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
+        Map<String, AppSpecificOverridePolicy> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
         Assert.assertEquals(mockOpsOverridePolicy, actualOverridePolicy.get("TEST"));
     }
 
@@ -186,7 +130,7 @@ public class PropertyConfigOverridePolicyTest {
     public void testGetOverridePolicyUnauthorized() {
         initUnauthorizedMembershipMap();
 
-        Map<String, Map<String, Map<String, Integer>>> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
+        Map<String, AppSpecificOverridePolicy> actualOverridePolicy = overridePolicy.getOverridePolicy(roleMembershipMap, false);
         Assert.assertEquals(mockUnauthorizedOverridePolicy, actualOverridePolicy.get("TEST"));
     }
 
@@ -219,5 +163,97 @@ public class PropertyConfigOverridePolicyTest {
 
     private void initUnauthorizedMembershipMap() {
         roleMembershipMap.put("TEST", roleMembership);
+    }
+
+    private void initMockDevOverridePolicy() {
+        mockDevOverridePolicy = new AppSpecificOverridePolicy();
+
+        Map<String, Integer> mockDevDba = new HashMap<>();
+        Map<String, Integer> mockDevDatafix = new HashMap<>();
+        Map<String, Integer> mockDevReadonly = new HashMap<>();
+        mockDevDba.put("dev",1);
+        mockDevDatafix.put("dev",7);
+        mockDevReadonly.put("dev",180);
+        Map<RoleType, Map<String, Integer>> mockDevOverridePolicyMap = new HashMap<>();
+        mockDevOverridePolicyMap.put(RoleType.DBA, mockDevDba);
+        mockDevOverridePolicyMap.put(RoleType.DATAFIX, mockDevDatafix);
+        mockDevOverridePolicyMap.put(RoleType.READONLY, mockDevReadonly);
+        mockDevOverridePolicy.setAppSpecificOverridePolicy(mockDevOverridePolicyMap);
+    }
+
+    private void initMockOpsOverridePolicy() {
+        mockOpsOverridePolicy = new AppSpecificOverridePolicy();
+
+        Map<String, Integer> mockOpsDba = new HashMap<>();
+        Map<String, Integer> mockOpsDatafix = new HashMap<>();
+        Map<String, Integer> mockOpsReadonly = new HashMap<>();
+        mockOpsDba.put("dev",2);
+        mockOpsDatafix.put("dev",3);
+        mockOpsReadonly.put("dev",4);
+        Map<RoleType, Map<String, Integer>> mockOpsOverridePolicyMap = new HashMap<>();
+        mockOpsOverridePolicyMap.put(RoleType.DBA, mockOpsDba);
+        mockOpsOverridePolicyMap.put(RoleType.DATAFIX, mockOpsDatafix);
+        mockOpsOverridePolicyMap.put(RoleType.READONLY, mockOpsReadonly);
+        mockOpsOverridePolicy.setAppSpecificOverridePolicy(mockOpsOverridePolicyMap);
+    }
+
+    private void initMockDbaOverridePolicy() {
+        mockDbaOverridePolicy = new AppSpecificOverridePolicy();
+
+        Map<String, Integer> mockDbaDba = new HashMap<>();
+        Map<String, Integer> mockDbaDatafix = new HashMap<>();
+        Map<String, Integer> mockDbaReadonly = new HashMap<>();
+        mockDbaDba.put("dev",5);
+        mockDbaDatafix.put("dev",6);
+        mockDbaReadonly.put("dev",7);
+        Map<RoleType, Map<String, Integer>> mockDbaOverridePolicyMap = new HashMap<>();
+        mockDbaOverridePolicyMap.put(RoleType.DBA, mockDbaDba);
+        mockDbaOverridePolicyMap.put(RoleType.DATAFIX, mockDbaDatafix);
+        mockDbaOverridePolicyMap.put(RoleType.READONLY, mockDbaReadonly);
+        mockDbaOverridePolicy.setAppSpecificOverridePolicy(mockDbaOverridePolicyMap);
+    }
+
+    private void initMockApproverOverridePolicy() {
+        mockApproverOverridePolicy = new AppSpecificOverridePolicy();
+
+        Map<String, Integer> mockApproverDba = new HashMap<>();
+        Map<String, Integer> mockApproverDatafix = new HashMap<>();
+        Map<String, Integer> mockApproverReadonly = new HashMap<>();
+        mockApproverDba.put("dev",8);
+        mockApproverDatafix.put("dev",9);
+        mockApproverReadonly.put("dev",10);
+        Map<RoleType, Map<String, Integer>> mockApproverOverridePolicyMap = new HashMap<>();
+        mockApproverOverridePolicyMap.put(RoleType.DBA, mockApproverDba);
+        mockApproverOverridePolicyMap.put(RoleType.DATAFIX, mockApproverDatafix);
+        mockApproverOverridePolicyMap.put(RoleType.READONLY, mockApproverReadonly);
+        mockApproverOverridePolicy.setAppSpecificOverridePolicy(mockApproverOverridePolicyMap);
+    }
+
+    private void initMockUnauthorizedOverridePolicy() {
+        mockUnauthorizedOverridePolicy = new AppSpecificOverridePolicy();
+    }
+
+    private void setMockOverridePolicy() {
+        ReflectionTestUtils.setField(overridePolicy,"maxDays", 180);
+
+        Map<String, Map<String, Map<String, Integer>>> mockOverrides = new HashMap<>();
+
+        mockOverrides.put("dev", stringifyRoleTypeInMap(mockDevOverridePolicy.getAppSpecificOverridePolicy()));
+        mockOverrides.put("dba", stringifyRoleTypeInMap(mockDbaOverridePolicy.getAppSpecificOverridePolicy()));
+        mockOverrides.put("ops", stringifyRoleTypeInMap(mockOpsOverridePolicy.getAppSpecificOverridePolicy()));
+        mockOverrides.put("approver", stringifyRoleTypeInMap(mockApproverOverridePolicy.getAppSpecificOverridePolicy()));
+        mockOverrides.put("unauthorized", stringifyRoleTypeInMap(mockUnauthorizedOverridePolicy.getAppSpecificOverridePolicy()));
+
+        ReflectionTestUtils.setField(overridePolicy,"overrides", mockOverrides);
+
+    }
+
+    private Map<String, Map<String, Integer>> stringifyRoleTypeInMap(Map<RoleType, Map<String, Integer>> mapRoleTypeForm) {
+        Map<String, Map<String,Integer>> mapStringForm = new HashMap<>();
+        mapRoleTypeForm.forEach((roleType, policy) -> {
+            mapStringForm.put(roleType.toString(), policy);
+        });
+
+        return mapStringForm;
     }
 }

@@ -31,6 +31,7 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationOutcome;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
@@ -206,10 +207,10 @@ public class AccessRequestService {
     //returns false if one of the thresholds arent met
     private boolean isRequestedDaysWithinPolicy(List<UserRole> roles, String sdlc, Integer days){
         //Getting the crazy approval policy
-        Map<String, Map<String, Integer>> crazyApprovalPolicy = approvalThreshold.getApprovalPolicy(gatekeeperRoleService.getRole());
+        Map<RoleType, Map<String, Integer>> crazyApprovalPolicy = approvalThreshold.getApprovalPolicy(gatekeeperRoleService.getRole());
 
         //if one requirement is not
-        return roles.stream().allMatch(role -> days <= crazyApprovalPolicy.get(role.getRole().toLowerCase()).get(sdlc.toLowerCase()));
+        return roles.stream().allMatch(role -> days <= crazyApprovalPolicy.get(RoleType.valueOf(role.getRole().toUpperCase())).get(sdlc.toLowerCase()));
     }
 
 
