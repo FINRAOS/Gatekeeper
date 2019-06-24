@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @ConfigurationProperties(prefix="gatekeeper.approvalThreshold")
@@ -71,28 +72,29 @@ public class GatekeeperApprovalProperties {
     }
 
     public Map<RoleType, Map<String, Integer>> getApprovalPolicy(GatekeeperRdsRole role) {
-        Map<RoleType, Map<String, Integer>> approvalPolicy = new HashMap<>();
         switch (role) {
             case DEV:
-                dev.forEach((roleType, policy) -> {
-                    approvalPolicy.put(RoleType.valueOf(roleType.toUpperCase()), policy);
-                });
-                break;
+                return addApprovalPolicyToMap(dev);
             case OPS:
-                ops.forEach((roleType, policy) -> {
-                    approvalPolicy.put(RoleType.valueOf(roleType.toUpperCase()), policy);
-                });
-                break;
+                return addApprovalPolicyToMap(ops);
             case DBA:
-                dba.forEach((roleType, policy) -> {
-                    approvalPolicy.put(RoleType.valueOf(roleType.toUpperCase()), policy);
-                });
-                break;
+                return addApprovalPolicyToMap(dba);
             case APPROVER:
-                break;
+                return new HashMap<>();
             default:
                 return null;
         }
+    }
+
+    public Set<String> getAllSdlcs() {
+        return dev.get(RoleType.values()[0].toString().toLowerCase()).keySet();
+    }
+
+    private Map<RoleType, Map<String, Integer>> addApprovalPolicyToMap(Map<String, Map<String, Integer>> approvalThresholdsFromConfig) {
+        Map<RoleType, Map<String, Integer>> approvalPolicy = new HashMap<>();
+        approvalThresholdsFromConfig.forEach((role, policy) -> {
+            approvalPolicy.put(RoleType.valueOf(role.toUpperCase()), policy);
+        });
         return approvalPolicy;
     }
 }

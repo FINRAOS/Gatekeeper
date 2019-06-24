@@ -55,7 +55,7 @@ public class GatekeeperRoleService {
     private final Pattern devPattern;
 
     private List<RoleType> gatekeeperRoles;
-    private List<String> sdlcs;
+    private Set<String> sdlcs;
 
     private LoadingCache<String, Optional<Set<String>>> ldapUserDbaApplicationCache = CacheBuilder.newBuilder()
             .maximumSize(1000L)
@@ -181,9 +181,9 @@ public class GatekeeperRoleService {
         dbaMemberships.forEach(membership -> {
             roleMemberships.put(membership, new RoleMembership());
             roleMemberships.get(membership).getRoles().put(GatekeeperRdsRole.DBA, new HashSet<>());
-            roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DBA).add("DEV");
-            roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DBA).add("QA");
-            roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DBA).add("PROD");
+            sdlcs.forEach(sdlc -> {
+                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DBA).add(sdlc.toUpperCase());
+            });
         });
 
         opsMemberships.forEach(membership -> {
@@ -191,9 +191,9 @@ public class GatekeeperRoleService {
                 roleMemberships.put(membership, new RoleMembership());
             }
             roleMemberships.get(membership).getRoles().put(GatekeeperRdsRole.OPS, new HashSet<>());
-            roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.OPS).add("DEV");
-            roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.OPS).add("QA");
-            roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.OPS).add("PROD");
+            sdlcs.forEach(sdlc -> {
+                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.OPS).add(sdlc.toUpperCase());
+            });
         });
 
         devMemberships.forEach((membership, sdlcs) -> {
@@ -230,19 +230,16 @@ public class GatekeeperRoleService {
 
     public Map<String, AppSpecificApprovalThreshold> getApprovalPolicy(Map<String, RoleMembership> roleMemberships) {
         Map<String, AppSpecificApprovalThreshold> approvalPolicy = new HashMap<>();
-        for(String application : roleMemberships.keySet()) {
+        roleMemberships.forEach((application, roleMembership) -> {
             approvalPolicy.put(application, getApprovalPolicyByApplication(roleMemberships.get(application)));
-        }
+        });
         return approvalPolicy;
     }
 
     private AppSpecificApprovalThreshold getApprovalPolicyByApplication(RoleMembership roleMembership) {
-        gatekeeperRoles = new ArrayList<>();
+        gatekeeperRoles = new ArrayList<>(Arrays.asList(RoleType.values()));
 
-        gatekeeperRoles.addAll(Arrays.asList(RoleType.values()));
-
-        sdlcs = new ArrayList<>();
-        sdlcs.addAll(gatekeeperApprovalProperties.getDev().get("readonly").keySet());
+        sdlcs = gatekeeperApprovalProperties.getAllSdlcs();
 
         AppSpecificApprovalThreshold applicationApprovalPolicy = initializeApprovalPolicy();
 
@@ -251,7 +248,6 @@ public class GatekeeperRoleService {
             applicationApprovalPolicy = mergeApprovalPolicies(applicationApprovalPolicy, roleApprovalPolicyToCompareTo);
         }
 
-
         return applicationApprovalPolicy;
     }
 
@@ -259,13 +255,12 @@ public class GatekeeperRoleService {
         AppSpecificApprovalThreshold initialApprovalPolicy = new AppSpecificApprovalThreshold();
         Map<RoleType, Map<String, Integer>> thresholds = new HashMap<>();
 
-        for(RoleType gatekeeperRole : gatekeeperRoles) {
+        gatekeeperRoles.forEach(gatekeeperRole -> {
             thresholds.put(gatekeeperRole, new HashMap<>());
-            for(String sdlc : sdlcs) {
+            sdlcs.forEach(sdlc -> {
                 thresholds.get(gatekeeperRole).put(sdlc, -1);
-            }
-
-        }
+            });
+        });
 
         initialApprovalPolicy.setAppSpecificApprovalThresholds(thresholds);
         return initialApprovalPolicy;
