@@ -28,6 +28,8 @@ import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.configuration.model.AppSpecificApprovalThreshold;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +58,7 @@ public class GatekeeperRoleService {
 
     private List<RoleType> gatekeeperRoles;
     private Set<String> sdlcs;
+    private static final Logger logger = LoggerFactory.getLogger(GatekeeperRoleService.class);
 
     private LoadingCache<String, Optional<Set<String>>> ldapUserDbaApplicationCache = CacheBuilder.newBuilder()
             .maximumSize(1000L)
@@ -177,6 +180,7 @@ public class GatekeeperRoleService {
         Set<String> dbaMemberships = getDbaMemberships();
         Set<String> opsMemberships = getOpsMemberships();
         Map<String, Set<String>> devMemberships = getDevMemberships();
+        sdlcs = gatekeeperApprovalProperties.getAllSdlcs();
 
         dbaMemberships.forEach(membership -> {
             roleMemberships.put(membership, new RoleMembership());
@@ -254,6 +258,7 @@ public class GatekeeperRoleService {
     private AppSpecificApprovalThreshold initializeApprovalPolicy() {
         AppSpecificApprovalThreshold initialApprovalPolicy = new AppSpecificApprovalThreshold();
         Map<RoleType, Map<String, Integer>> thresholds = new HashMap<>();
+        sdlcs = gatekeeperApprovalProperties.getAllSdlcs();
 
         gatekeeperRoles.forEach(gatekeeperRole -> {
             thresholds.put(gatekeeperRole, new HashMap<>());

@@ -58,7 +58,7 @@ public class GatekeeperOverrideProperties {
         Map<String, AppSpecificOverridePolicy> overridePolicy = new HashMap<>();
         roleMemberships.forEach((application, roleMembership) -> {
             overridePolicy.put(application, getOverridePolicyByApplication(roleMemberships.get(application), isApprover));
-        })
+        });
         return overridePolicy;
     }
 
