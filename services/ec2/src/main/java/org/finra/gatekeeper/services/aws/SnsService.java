@@ -51,6 +51,10 @@ public class SnsService {
         this.gatekeeperSnsProperties = gatekeeperSnsProperties;
     }
 
+    public boolean isTopicSet(){
+        return gatekeeperSnsProperties.getTopicARN() != null;
+    }
+
     public void pushToSNSTopic(RequestEventDTO message) throws Exception {
         if(gatekeeperSnsProperties.getTopicARN() != null){
             pushToSNSTopic(message, gatekeeperSnsProperties.getTopicARN());

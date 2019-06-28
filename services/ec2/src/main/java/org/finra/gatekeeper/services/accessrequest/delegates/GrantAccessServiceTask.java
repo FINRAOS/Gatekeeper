@@ -111,7 +111,12 @@ public class GrantAccessServiceTask implements JavaDelegate {
                         throw new GatekeeperException("Unsupported platform " + platform);
                 }
 
-                snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
+                // If an SNS topic is provided run the queries, otherwise lets skip this step.
+                if(snsService.isTopicSet()) {
+                    snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
+                } else {
+                    logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+                }
 
                 linuxNotifications.forEach(notification -> emailServiceWrapper.notifyOfCredentials(accessRequest, notification)); // pass along the key to the user(s)
                 windowsNotifications.forEach(notification -> emailServiceWrapper.notifyOfCancellation(accessRequest, notification)); // pass along any cancelled executions to the user(s)
