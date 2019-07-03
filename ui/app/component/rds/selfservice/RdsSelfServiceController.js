@@ -82,42 +82,47 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             });
         }
 
-        return vm.usersTable.selected.length === 0 || vm.selectedItems.length === 0 || !valueChecked
+        return vm.usersTable.selected.length === 0 || vm.selectedItems.length === 0 || !valueChecked;
     }
 
     checkIfApprovalNeeded(){
         return vm.forms.grantForm.grantValue > vm.getApprovalBounds() || vm.getApprovalBounds() === -1;
     }
 
+
+
     //Get the lowest threshold value across all selected roles for provided sdlc
-    getApprovalBounds(){
+    getApprovalBounds() {
 
         //approvers don't need approval
-        if(vm.global.userInfo.role.toLowerCase() === 'approver'){
+        if (vm.global.userInfo.isApprover) {
             return vm.global.rdsMaxDays;
         }
 
         let approvalRequired = true;
         //first lets make sure they are members of what they are requesting for
         vm.selectedItems.forEach((item) => {
-            let resource = vm.global.userInfo.memberships[item.application];
-            approvalRequired = !resource || resource.indexOf(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()) === -1;
+            let resource = vm.global.userInfo.roleMemberships;
+            approvalRequired = !resource || !resource[item.application] || (resource[item.application].roles.DEV && !resource[item.application].roles.DEV.includes(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()));
         });
 
         //if the user isn't part of what he is requesting for warn for approval.
-        if(approvalRequired){
+        if (approvalRequired) {
             return -1;
         }
 
         let values = [];
 
         angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
-            if(v){
-                values.push(vm.global.userInfo.approvalThreshold[k][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
-            }
+            vm.selectedItems.forEach( (item) => {
+                if (v) {
+                    let appSpecificApprovalThreshold = vm.global.userInfo.approvalThreshold[item.application]['appSpecificApprovalThresholds'][k.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
+                    values.push(appSpecificApprovalThreshold);
+                }
+            });
         });
 
-        return  Math.min.apply(Math, values)
+        return Math.min.apply(Math, values);
 
     }
 
@@ -142,13 +147,15 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         let thresholds = vm.global.rdsOverridePolicy;
         let max = vm.global.rdsMaxDays;
         if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
-            vm.getSelectedRoles().forEach((role) => {
-                if(thresholds[role] && thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
-                    let overrideVal = thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
-                    if (overrideVal < max) {
-                        max = overrideVal;
+            vm.selectedItems.forEach((item) => {
+                vm.getSelectedRoles().forEach((role) => {
+                    if(thresholds[item.application] && thresholds[item.application]['appSpecificOverridePolicy'][role.toUpperCase()] && thresholds[item.application]['appSpecificOverridePolicy'][role.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]) {
+                        let overrideVal = thresholds[item.application]['appSpecificOverridePolicy'][role.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
+                        if (overrideVal < max) {
+                            max = overrideVal;
+                        }
                     }
-                }
+                });
             });
         }
 
@@ -174,7 +181,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             let message = 'This will request access for ' + vm.forms.grantForm.grantValue + ' day(s) for the selected users and instances. ';
             let approvalRequired = vm.checkIfApprovalNeeded();
             if(approvalRequired){
-                message += 'This request will require approval.'
+                message += 'This request will require approval.';
             }
 
             let config = {title:title, message:message, requiresExplanation: approvalRequired, justificationConfig:new GatekeeperJustificationConfig(vm.ticketIdFieldMessage, vm.ticketIdFieldRequired, vm.explanationFieldRequired)};
@@ -182,7 +189,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 .then((justification) => {
                     this.fetching.grant = true;
                     let roles = [];
-                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
+                    let application = vm.selectedItems[0].application;
+                    vm[GRANT].post(vm.getSelectedRoles(), vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), application, vm.forms.awsInstanceForm.selectedRegion.name, vm.selectedItems, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             var msg;
@@ -220,7 +228,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                     .textContent(msg)
                                     .position('bottom right')
                                     .hideDelay(10000));
-                    })
+                    });
             });
         }
     }
