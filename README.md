@@ -343,7 +343,11 @@ These configurations are specific to Gatekeeper RDS
 | gatekeeper.auth.devGroupsPattern | A regular expression to extract group(s) of Dev Members from ldap groups. requires one capture | string
 
 ### SNS
-Gatekeeper supports the publishing of Approval/Expiration events to an SNS topic, this can be useful if you have other applications that need to react to an event from the gatekeeper service
+Gatekeeper supports the publishing of Approval/Expiration events to an SNS topic, this can be useful if you have other applications that need to react to an event from the gatekeeper service. 
+
+Here's an example of how we are leveraging this feature from our AWS RE:Inforce 2019 session:
+
+<a href="https://www.youtube.com/watch?feature=player_embedded&v=d1V0RNJOFeE" target="_blank"><img src="http://img.youtube.com/vi/d1V0RNJOFeE/hqdefault.jpg" alt="Gatekeeper @ RE:INFORCE 2019" width="480" height="360" border="10" /></a>  
 
 | Property | Description | Type | 
 |----------|-------------|------|
