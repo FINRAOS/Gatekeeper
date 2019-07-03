@@ -20,10 +20,14 @@ import com.amazonaws.services.simplesystemsmanagement.model.CommandStatus;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.services.aws.SnsService;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
 import org.finra.gatekeeper.services.accessrequest.model.*;
+import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
+import org.finra.gatekeeper.services.email.model.GatekeeperWindowsNotification;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.finra.gatekeeper.services.keypairs.KeypairService;
 import org.slf4j.Logger;
@@ -50,9 +54,11 @@ public class GrantAccessServiceTask implements JavaDelegate {
     private final KeypairService keypairService;
     private final EmailServiceWrapper emailServiceWrapper;
     private final AccessRequestService accessRequestService;
+    private final SnsService snsService;
 
     @Autowired
     public GrantAccessServiceTask(SsmService ssmService,
+                                  SnsService snsService,
                                   KeypairService keypairService,
                                   EmailServiceWrapper emailServiceWrapper,
                                   AccessRequestService accessRequestService){
@@ -60,6 +66,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
         this.keypairService = keypairService;
         this.emailServiceWrapper = emailServiceWrapper;
         this.accessRequestService = accessRequestService;
+        this.snsService = snsService;
     }
 
     /**
@@ -87,22 +94,34 @@ public class GrantAccessServiceTask implements JavaDelegate {
                     .map(AWSInstance::getInstanceId)
                     .collect(Collectors.toList());
 
-
             // Do all of this for each user in the request
             if(instances.size()>0) {
+                List<GatekeeperLinuxNotification> linuxNotifications = new ArrayList<>();
+                List<GatekeeperWindowsNotification> windowsNotifications = new ArrayList<>();
+
                 String platform = accessRequest.getPlatform();
                 switch(platform){
                     case "Linux":
-                        createLinuxUser(accessRequest, env, instances, platform);
+                        linuxNotifications = createLinuxUser(accessRequest, env, instances, platform);
                         break;
                     case "Windows":
-                        createWindowsUser(accessRequest, env, instances, platform);
-                        break;
+                        windowsNotifications = createWindowsUser(accessRequest, env, instances, platform);
+                    break;
                     default:
                         throw new GatekeeperException("Unsupported platform " + platform);
-
                 }
+
+                // If an SNS topic is provided run the queries, otherwise lets skip this step.
+                if(snsService.isTopicSet()) {
+                    snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
+                } else {
+                    logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+                }
+
+                linuxNotifications.forEach(notification -> emailServiceWrapper.notifyOfCredentials(accessRequest, notification)); // pass along the key to the user(s)
+                windowsNotifications.forEach(notification -> emailServiceWrapper.notifyOfCancellation(accessRequest, notification)); // pass along any cancelled executions to the user(s)
             }
+
 
         } catch (Exception e) {
             emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
@@ -124,8 +143,9 @@ public class GrantAccessServiceTask implements JavaDelegate {
      * @param platform - used to determine document, should always be Linux on this call
      * @throws GatekeeperException
      */
-    private void createLinuxUser(AccessRequest accessRequest, AWSEnvironment env, List<String> instances, String platform) throws GatekeeperException{
+    private List<GatekeeperLinuxNotification> createLinuxUser(AccessRequest accessRequest, AWSEnvironment env, List<String> instances, String platform) throws GatekeeperException{
         Map<String, Boolean> userStatus = new HashMap<>();
+        List<GatekeeperLinuxNotification> notifications = new ArrayList<>();
         for (User u : accessRequest.getUsers()) {
             // Generate keypair
             KeyPair kp = keypairService.createKeypair();
@@ -148,13 +168,18 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
             // Send email with private key
             if(userStatus.get(u.getName())) {
-                emailServiceWrapper.notifyOfCredentials(accessRequest, u, privateKeyString, createStatus);
+                notifications.add(new GatekeeperLinuxNotification()
+                    .setUser(u)
+                    .setKey(privateKeyString)
+                    .setCreateStatus(createStatus));
             }
         }
 
         if(!userStatus.containsValue(true)){
             throw new GatekeeperException("Could not create user account on one or more "+ platform +" instances");
         }
+
+        return notifications;
 
     }
 
@@ -166,7 +191,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
      * @param platform - used to determine document, should always be Windows on this call
      * @throws GatekeeperException
      */
-    private void createWindowsUser(AccessRequest accessRequest, AWSEnvironment env, List<String> instances, String platform) throws GatekeeperException{
+    private List<GatekeeperWindowsNotification> createWindowsUser(AccessRequest accessRequest, AWSEnvironment env, List<String> instances, String platform) throws GatekeeperException{
         Map<String, Boolean> userStatus = new HashMap<>();
         
         Map<User, List<String>> cancellations = new HashMap<>();
@@ -189,13 +214,13 @@ public class GrantAccessServiceTask implements JavaDelegate {
             throw new GatekeeperException("Could not create user account on one or more "+ platform +" instances");
         }
 
-
-        
-        //Need to notify of cancelled requests
-        for(User user : cancellations.keySet()){
-            emailServiceWrapper.notifyOfCancellation(accessRequest, user, cancellations.get(user));    
-        }
-        
+        return cancellations.keySet()
+                .stream()
+                .map(user -> new GatekeeperWindowsNotification()
+                    .setAccessRequest(accessRequest)
+                    .setUser(user)
+                    .setCancelledInstances(cancellations.get(user)))
+                .collect(Collectors.toList());
 
     }
 }

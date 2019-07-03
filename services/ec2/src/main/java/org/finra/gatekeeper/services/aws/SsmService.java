@@ -17,7 +17,7 @@
 package org.finra.gatekeeper.services.aws;
 
 
-import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.model.*;
 import com.google.common.collect.Lists;
 import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
@@ -58,7 +58,7 @@ public class SsmService {
     public Map<String, String> checkInstancesWithSsm(AWSEnvironment environment, List<String> instanceIds){
         Map<String,String> instanceStatuses = new HashMap<>();
 
-        AWSSimpleSystemsManagementClient ssmClient = awsSessionService.getSsmSession(environment);
+        AWSSimpleSystemsManagement ssmClient = awsSessionService.getSsmSession(environment);
         for(int i = 0; i < instanceIds.size(); i+=50){
             //since we're partitioning 50 at a time we need to make sure that we don't go over the index of the actual size of the set itself
             //if we do then we will use the upper value of the set.
@@ -171,7 +171,7 @@ public class SsmService {
     }
 
     private  Map<String, String> executeSsm(AWSEnvironment environment, List<String> instanceIds, String platform, Map<String, ArrayList<String>> parameters, GatekeeperSsmProperties.SsmDocument documentProperties){
-        AWSSimpleSystemsManagementClient ssmClient = awsSessionService.getSsmSession(environment);
+        AWSSimpleSystemsManagement ssmClient = awsSessionService.getSsmSession(environment);
 
         SendCommandRequest scr = new SendCommandRequest()
                 .withInstanceIds(instanceIds)
@@ -217,7 +217,7 @@ public class SsmService {
     }
 
 
-    private Map<String, String> waitForSsmCommand(AWSSimpleSystemsManagementClient ssmClient, String commandId, int instanceCount, int timeout, int interval) {
+    private Map<String, String> waitForSsmCommand(AWSSimpleSystemsManagement ssmClient, String commandId, int instanceCount, int timeout, int interval) {
         ListCommandInvocationsRequest lcir = new ListCommandInvocationsRequest().withCommandId(commandId);
         lcir.setMaxResults(50);
         ListCommandInvocationsResult result = ssmClient.listCommandInvocations(lcir);
@@ -247,7 +247,7 @@ public class SsmService {
         return results;
     }
 
-    private Map<String, String> cancelPendingExecution(AWSSimpleSystemsManagementClient ssmClient, Set<String> instanceIds, String commandId, Map<String, String> results){
+    private Map<String, String> cancelPendingExecution(AWSSimpleSystemsManagement ssmClient, Set<String> instanceIds, String commandId, Map<String, String> results){
         CancelCommandRequest cancelCommandRequest = new CancelCommandRequest()
                 .withInstanceIds(instanceIds)
                 .withCommandId(commandId);

@@ -27,7 +27,6 @@ import org.activiti.engine.impl.persistence.entity.VariableInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.account.model.Region;
@@ -41,9 +40,6 @@ import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.junit.Assert;
-import org.activiti.engine.HistoryService;
-import org.activiti.engine.RuntimeService;
-import org.activiti.engine.TaskService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,9 +87,6 @@ public class AccessRequestServiceTest {
 
     @Mock
     private AccessRequest nonOwnerRequest;
-
-    @Mock
-    private AccessRequest adminRequest;
 
     @Mock
     private AWSInstance awsInstance;
@@ -160,7 +153,6 @@ public class AccessRequestServiceTest {
 
     private Date testDate;
 
-
     @Before
     public void initMocks() {
         testDate = new Date();
@@ -192,6 +184,8 @@ public class AccessRequestServiceTest {
         List<AWSInstance> instances = new ArrayList<>();
         when(awsInstance.getApplication()).thenReturn("TestApp");
         when(awsInstance.getInstanceId()).thenReturn("testId");
+//        when(awsInstance.getName()).thenReturn("testName");
+//        when(awsInstance.getIp()).thenReturn("1.2.3.4");
         when(awsInstance.getPlatform()).thenReturn("testPlatform");
         instances.add(awsInstance);
 
@@ -211,6 +205,8 @@ public class AccessRequestServiceTest {
         when(nonOwnerRequest.getRequestorId()).thenReturn("non-owner");
         when(nonOwnerRequest.getId()).thenReturn(2L);
         when(nonOwnerRequest.getPlatform()).thenReturn("testPlatform");
+//        when(nonOwnerRequest.getUsers()).thenReturn(Arrays.asList(new User().setId(1L).setUserId("user").setEmail("user@email").setName("username")));
+//
 
         Set<String> ownerMemberships = new HashSet<String>();
         ownerMemberships.add("TestApp");

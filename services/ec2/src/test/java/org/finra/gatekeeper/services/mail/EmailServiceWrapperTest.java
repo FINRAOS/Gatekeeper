@@ -21,6 +21,7 @@ import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.finra.gatekeeper.services.keypairs.KeypairService;
 import org.junit.Before;
@@ -154,7 +155,10 @@ public class EmailServiceWrapperTest {
         String privateKeyString = keypairService.getPEM(privateKey);
         param.put("privatekey", privateKeyString);
 
-        mailServiceWrapper.notifyOfCredentials(request, testUser, privateKeyString,createStatus);
+        mailServiceWrapper.notifyOfCredentials(request, new GatekeeperLinuxNotification()
+                .setUser(testUser)
+                .setKey(privateKeyString)
+                .setCreateStatus(createStatus));
         verify(emailService, times(1)).sendEmailWithAttachment(testUser.getEmail(), fromEmail, null, "Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
         contentMap.put("approverDL", approverEmail);
         verify(emailService, times(1)).sendEmail(testUserEmail, fromEmail, null, "Access Request " + request.getId() + " - Your temporary username", "username", contentMap);

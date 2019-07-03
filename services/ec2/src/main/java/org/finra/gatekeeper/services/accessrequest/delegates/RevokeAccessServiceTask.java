@@ -20,7 +20,10 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
+import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
+import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
 import org.finra.gatekeeper.services.aws.Ec2LookupService;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
@@ -45,18 +48,24 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final SsmService ssmService;
+    private final SnsService snsService;
     private final ManagementService managementService;
     private final Ec2LookupService ec2LookupService;
+    private final AccessRequestService accessRequestService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    SsmService ssmService,
+                                   SnsService snsService,
                                    ManagementService managementService,
-                                   Ec2LookupService ec2LookupService){
+                                   Ec2LookupService ec2LookupService,
+                                   AccessRequestService accessRequestService){
         this.emailServiceWrapper = emailServiceWrapper;
         this.ssmService = ssmService;
+        this.snsService = snsService;
         this.managementService = managementService;
         this.ec2LookupService = ec2LookupService;
+        this.accessRequestService = accessRequestService;
     }
 
     /**
@@ -108,6 +117,19 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             if(manualRemovalInstances.size() > 0){
                 logger.info("Could not revoke access for " + manualRemovalInstances + " send a notification to the ops team to investigate these instances");
                 emailServiceWrapper.notifyOps(accessRequest, manualRemovalInstances);
+            }
+
+            try {
+                // If an SNS topic is provided run the queries, otherwise lets skip this step.
+                if(snsService.isTopicSet()) {
+                    snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
+                } else {
+                    logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
+                logger.error("Error pushing to SNS topic upon request expiration. Request ID: " + accessRequest.getId());
             }
 
         }catch(Exception e){
