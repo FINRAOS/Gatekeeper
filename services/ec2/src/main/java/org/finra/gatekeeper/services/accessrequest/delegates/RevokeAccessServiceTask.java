@@ -120,7 +120,12 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             }
 
             try {
-                snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
+                // If an SNS topic is provided run the queries, otherwise lets skip this step.
+                if(snsService.isTopicSet()) {
+                    snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
+                } else {
+                    logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
