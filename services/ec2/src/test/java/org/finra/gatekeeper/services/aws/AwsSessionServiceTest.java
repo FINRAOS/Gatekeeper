@@ -18,10 +18,12 @@ package org.finra.gatekeeper.services.aws;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
 import org.finra.gatekeeper.common.properties.GatekeeperAwsProperties;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
@@ -46,7 +48,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -118,24 +120,24 @@ public class AwsSessionServiceTest {
         fakeRoleResult.setCredentials(fakeFreshCredentials);
         when(accountInformationService.getAccountByAlias("Dev")).thenReturn(fakeAccount);
         when(awsSecurityTokenServiceClient.assumeRole(any())).thenReturn(fakeRoleResult);
-        when(awsSessionFactory.createEc2Session(any())).thenReturn(amazonEC2Client);
-        when(awsSessionFactory.createSsmSession(any())).thenReturn(awsSimpleSystemsManagementClient);
+        when(awsSessionFactory.createEc2Session(any(), any())).thenReturn(amazonEC2Client);
+        when(awsSessionFactory.createSsmSession(any(), any())).thenReturn(awsSimpleSystemsManagementClient);
 
 
     }
 
     @Test
     public void testGetEc2Session(){
-        AmazonEC2Client client = awsSessionService.getEC2Session(awsEnvironment);
+        AmazonEC2 client = awsSessionService.getEC2Session(awsEnvironment);
         Assert.assertNotNull("Verify EC2 Session is fetched", client );
-        Mockito.verify(amazonEC2Client, times(1)).setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(awsEnvironment.getRegion())));
+        Mockito.verify(awsSessionFactory, times(1)).createEc2Session(anyObject(), eq(awsEnvironment.getRegion()));
     }
 
     @Test
     public void testGetSsmSession(){
-        AWSSimpleSystemsManagementClient client = awsSessionService.getSsmSession(awsEnvironment);
+        AWSSimpleSystemsManagement client = awsSessionService.getSsmSession(awsEnvironment);
         Assert.assertNotNull("Verify Ssm Session is fetched", client);
-        Mockito.verify(awsSimpleSystemsManagementClient, times(1)).setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(awsEnvironment.getRegion())));
+        Mockito.verify(awsSessionFactory, times(1)).createSsmSession(anyObject(), eq(awsEnvironment.getRegion()));
     }
 
     /**
