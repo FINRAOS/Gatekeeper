@@ -116,7 +116,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
             vm.selectedItems.forEach( (item) => {
                 if (v) {
-                    console.log(vm.global.userInfo.approvalThreshold);
                     let appSpecificApprovalThreshold = vm.global.userInfo.approvalThreshold[item.application]['appSpecificApprovalThresholds'][k.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
                     values.push(appSpecificApprovalThreshold);
                 }
