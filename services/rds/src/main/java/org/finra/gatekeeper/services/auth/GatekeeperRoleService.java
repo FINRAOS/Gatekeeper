@@ -207,7 +207,7 @@ public class GatekeeperRoleService {
             roleMemberships.get(membership).getRoles().put(GatekeeperRdsRole.DEV, new HashSet<>());
 
             sdlcs.forEach(sdlc -> {
-                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DEV).add(sdlc);
+                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DEV).add(sdlc.toUpperCase());
             });
         });
 

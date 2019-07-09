@@ -103,7 +103,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         //first lets make sure they are members of what they are requesting for
         vm.selectedItems.forEach((item) => {
             let resource = vm.global.userInfo.roleMemberships;
-            approvalRequired = !resource || !resource[item.application] || (resource[item.application].roles.DEV && !resource[item.application].roles.DEV.includes(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()));
+            approvalRequired = !resource || !resource[item.application];
         });
 
         //if the user isn't part of what he is requesting for warn for approval.
@@ -116,8 +116,13 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
             vm.selectedItems.forEach( (item) => {
                 if (v) {
-                    let appSpecificApprovalThreshold = vm.global.userInfo.approvalThreshold[item.application]['appSpecificApprovalThresholds'][k.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
-                    values.push(appSpecificApprovalThreshold);
+                    let resource = vm.global.userInfo.roleMemberships;
+                    if(resource[item.application].roles.DEV && resource[item.application].roles.DEV.includes(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase())) {
+                        let appSpecificApprovalThreshold = vm.global.userInfo.approvalThreshold[item.application]['appSpecificApprovalThresholds'][k.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
+                        values.push(appSpecificApprovalThreshold);
+                    } else {
+                        values.push(-1);
+                    }
                 }
             });
         });
