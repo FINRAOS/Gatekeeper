@@ -142,27 +142,27 @@ describe('GateKeeper RDS SelfService component', function () {
                         DATAFIX: {
                             dev: 99,
                             qa: 50,
-                            prod: 1
+                            prod: -1
                         },
                         DBA: {
                             dev: 76,
                             qa: 50,
-                            prod: 1
+                            prod: -1
                         },
                         READONLY: {
                             dev: 65,
                             qa: 50,
-                            prod: 1
+                            prod: -1
                         },
                         READONLY_CONFIDENTIAL: {
                             dev: 99,
                             qa: 50,
-                            prod: 1
+                            prod: -1
                         },
                         DBA_CONFIDENTIAL: {
                             dev: 99,
                             qa: 50,
-                            prod: 1
+                            prod: -1
                         }
                     }
                 },
@@ -170,57 +170,57 @@ describe('GateKeeper RDS SelfService component', function () {
                     appSpecificApprovalThresholds: {
                         DATAFIX: {
                             dev: 99,
-                            qa: 50,
-                            prod: 1
+                            qa: -1,
+                            prod: -1
                         },
                         DBA: {
                             dev: 76,
-                            qa: 50,
-                            prod: 1
+                            qa: -1,
+                            prod: -1
                         },
                         READONLY: {
                             dev: 65,
-                            qa: 50,
-                            prod: 1
+                            qa: -1,
+                            prod: -1
                         },
                         READONLY_CONFIDENTIAL: {
                             dev: 99,
-                            qa: 50,
-                            prod: 1
+                            qa: -1,
+                            prod: -1
                         },
                         DBA_CONFIDENTIAL: {
                             dev: 99,
-                            qa: 50,
-                            prod: 1
+                            qa: -1,
+                            prod: -1
                         }
                     }
                 },
                 APP3: {
                     appSpecificApprovalThresholds: {
                         DATAFIX: {
-                            dev: 99,
-                            qa: 50,
-                            prod: 1
+                            dev: -1,
+                            qa: -1,
+                            prod: -1
                         },
                         DBA: {
-                            dev: 76,
-                            qa: 50,
-                            prod: 1
+                            dev: -1,
+                            qa: -1,
+                            prod: -1
                         },
                         READONLY: {
-                            dev: 65,
-                            qa: 50,
-                            prod: 1
+                            dev: -1,
+                            qa: -1,
+                            prod: -1
                         },
                         READONLY_CONFIDENTIAL: {
-                            dev: 99,
-                            qa: 50,
-                            prod: 1
+                            dev: -1,
+                            qa: -1,
+                            prod: -1
                         },
                         DBA_CONFIDENTIAL: {
-                            dev: 99,
-                            qa: 50,
-                            prod: 1
+                            dev: -1,
+                            qa: -1,
+                            prod: -1
                         }
                     }
                 }
