@@ -307,6 +307,7 @@ The following are configuration properties which tell gatekeeper which documents
 
 | Property | Description | Type |
 |----------|-------------|------|
+| gatekeeper.ssmGrantRetryCount | ( Linux + Windows )The amount of times to retry any instances where creation failed (default is 3 tries) | integer
 | gatekeeper.ssm.linux.create.documentName | For Linux: The name of the SSM document Gatekeeper will call to create a user | string
 | gatekeeper.ssm.linux.create.timeout | For Linux: The Amount of time Gatekeeper should wait for the ssm create call to complete | integer
 | gatekeeper.ssm.linux.create.waitInterval | For Linux: The Interval that Gatekeeper polls the SSM create for completion | integer

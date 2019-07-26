@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Service that handles the AWS connection and does lookups
@@ -105,7 +106,6 @@ public class SsmService {
     public Map<String, String> createUserAccount(AWSEnvironment environment, List<String> instanceIds, String userName, String publicKey, String platform, String hours) {
         logger.info("Creating user account: " + userName + " on "+ platform +" instances: " + instanceIds + " on environment: " + environment + " for hours: " + hours);
 
-
         GatekeeperSsmProperties.SsmDocument documentProperties = getSsmDocument(platform, "create");
 
         Map<String, ArrayList<String>> parameters = new HashMap<>();
@@ -114,8 +114,7 @@ public class SsmService {
         parameters.put("publicKey", Lists.newArrayList(publicKey));
         parameters.put("executionTimeout", Lists.newArrayList(Integer.toString(documentProperties.getTimeout())));
 
-        return executeSsm(environment, instanceIds, platform, parameters, documentProperties);
-
+        return performSSMExecution(environment, instanceIds, platform, parameters, documentProperties);
     }
 
     /**
@@ -145,9 +144,7 @@ public class SsmService {
         parameters.put("teamEmail", Lists.newArrayList(gatekeeperEmailProperties.getTeam()));
         parameters.put("executionTimeout", Lists.newArrayList(Integer.toString(documentProperties.getTimeout())));
 
-
-        return executeSsm(environment, instanceIds, platform, parameters, documentProperties);
-
+        return performSSMExecution(environment, instanceIds, platform, parameters, documentProperties);
     }
 
 
@@ -242,8 +239,6 @@ public class SsmService {
          * Need to get result again
          */
         results = cancelPendingExecution(ssmClient, results.keySet(), commandId, results);
-        
-
         return results;
     }
 
@@ -264,4 +259,24 @@ public class SsmService {
         return results;
     }
 
+    private Map<String, String> performSSMExecution(AWSEnvironment environment, List<String> instanceIds, String platform, Map<String, ArrayList<String>> parameters, GatekeeperSsmProperties.SsmDocument documentProperties){
+        Map<String, String> result = executeSsm(environment, instanceIds, platform, parameters, documentProperties);
+        int retries = gatekeeperSsmProperties.getSsmGrantRetryCount();
+        while(retries-- > 0){
+            logger.info("Look for instances that failed to retry. There are " + retries + " retries left");
+            // get all the instance ID's that have a failed CommandStatus, anything that timed out will be ignored because there are network problems.
+            List<String> instancesToRetry = result.entrySet().stream()
+                    .filter(instanceResult -> instanceResult.getValue().equals(CommandStatus.Failed.toString()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+            if(instancesToRetry.isEmpty()){
+                logger.info("No instances need to be retried. Proceeding");
+                break;
+            }
+            logger.info("There are " + instancesToRetry.size() + " Instances to retry (" + instancesToRetry.toString() + ")");
+            //re-execute for the failed instances
+            result.putAll(executeSsm(environment, instancesToRetry, platform, parameters, documentProperties));
+        }
+        return result;
+    }
 }

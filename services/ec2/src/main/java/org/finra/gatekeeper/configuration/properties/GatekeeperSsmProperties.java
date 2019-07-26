@@ -27,7 +27,18 @@ public class GatekeeperSsmProperties {
     /**
      * The SSM Configuration properties per OS
      */
+
+    private Integer ssmGrantRetryCount = 3;
     private Map<String, Map<String, SsmDocument>> ssm;
+
+    public int getSsmGrantRetryCount() {
+        return ssmGrantRetryCount;
+    }
+
+    public GatekeeperSsmProperties setSsmGrantRetryCount(int ssmGrantRetryCount) {
+        this.ssmGrantRetryCount = ssmGrantRetryCount;
+        return this;
+    }
 
     public Map<String, Map<String, SsmDocument>> getSsm() {
         return ssm;
