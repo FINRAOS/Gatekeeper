@@ -23,7 +23,7 @@
                 <md-input-container md-no-float>
                     <label>Select an Account</label>
                     <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount" ng-change="gkSelfServiceCtrl.clearInstances()" required>
-                        <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsAccounts">{{ opt.alias }}</md-option>
+                        <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsAccounts | orderBy:['grouping','alias']">{{ opt.alias }}</md-option>
                     </md-select>
                 </md-input-container>
             </div>

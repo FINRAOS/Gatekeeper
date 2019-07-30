@@ -27,6 +27,13 @@ gatekeeper:
     sdlcOverrides:
       hello1: myacc1, 123456789
       hello2: myacc2
+    sdlcGrouping:
+      dev: 1
+      qa: 2
+      prod: 3
+      hello1: 4
+      hello2: 5
+
   auth:
     ldap:
       isActiveDirectory: false

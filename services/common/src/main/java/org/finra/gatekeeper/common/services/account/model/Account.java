@@ -19,9 +19,9 @@ package org.finra.gatekeeper.common.services.account.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Data Transfer Object for Account Info Endpoint call.
@@ -34,6 +34,7 @@ public class Account {
     private String sdlc;
     private String alias;
     private List<Region> regions;
+    private Integer grouping = 1; // Grouping is to be used to help sort on the UI end.
 
     public Account(){}
     public Account(String accountId, String name, String sdlc, String alias, List<Region> regions){
@@ -94,33 +95,35 @@ public class Account {
         return this;
     }
 
-    public boolean equals(Object o){
-        if(this == o){
-            return true;
-        }
-
-        if (o == null || !getClass().equals(o.getClass())) {
-            return false;
-        }
-
-        Account that = (Account)o;
-        return Objects.equals(this.accountId, that.getAccountId())
-                && Objects.equals(this.name, that.getName())
-                && Objects.equals(this.sdlc, that.getSdlc())
-                && Objects.equals(this.alias, that.getAlias())
-                && Objects.equals(this.regions, that.getRegions());
+    public Integer getGrouping() {
+        return grouping;
     }
 
-    public String toString(){
-        return MoreObjects.toStringHelper(this)
-                .add("Account Id", accountId)
-                .add("Name", name)
-                .add("SDLC", sdlc)
-                .add("Alias", alias)
-                .add("Regions", regions)
-                .toString();
-
+    public Account setGrouping(Integer grouping) {
+        this.grouping = grouping;
+        return this;
     }
 
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return Objects.equal(accountId, account.accountId) &&
+                Objects.equal(name, account.name) &&
+                Objects.equal(sdlc, account.sdlc) &&
+                Objects.equal(alias, account.alias) &&
+                Objects.equal(regions, account.regions) &&
+                Objects.equal(grouping, account.grouping);
+    }
 
+    public String toString() {
+        return "Account{" +
+                "accountId='" + accountId + '\'' +
+                ", name='" + name + '\'' +
+                ", sdlc='" + sdlc + '\'' +
+                ", alias='" + alias + '\'' +
+                ", regions=" + regions +
+                ", grouping=" + grouping +
+                '}';
+    }
 }

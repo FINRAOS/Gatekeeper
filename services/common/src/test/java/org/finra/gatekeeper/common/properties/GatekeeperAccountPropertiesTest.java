@@ -38,4 +38,14 @@ public class GatekeeperAccountPropertiesTest {
         Assert.assertEquals("hello1", accountProperties.getAccountSdlcOverrides().get("myacc1"));
         Assert.assertEquals("hello1", accountProperties.getAccountSdlcOverrides().get("123456789"));
     }
+
+    @Test
+    public void testGetAccountGrouping(){
+        Assert.assertEquals(Integer.valueOf(1), accountProperties.getSdlcGrouping().get("dev"));
+        Assert.assertEquals(Integer.valueOf(2), accountProperties.getSdlcGrouping().get("qa"));
+        Assert.assertEquals(Integer.valueOf(3), accountProperties.getSdlcGrouping().get("prod"));
+        Assert.assertEquals(Integer.valueOf(4), accountProperties.getSdlcGrouping().get("hello1"));
+        Assert.assertEquals(Integer.valueOf(5), accountProperties.getSdlcGrouping().get("hello2"));
+    }
+
 }

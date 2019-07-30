@@ -79,6 +79,7 @@ public class AccountInformationService {
         logger.info("Getting Account information from " + gatekeeperAccountProperties.getServiceURL() + gatekeeperAccountProperties.getServiceURI());
 
         Map<String, String> overrideMap = gatekeeperAccountProperties.getAccountSdlcOverrides();
+        Map<String, Integer> sdlcGroupMap = gatekeeperAccountProperties.getSdlcGrouping();
         List<Account> accounts = Arrays.asList(backend2backendService.makeGetCall(gatekeeperAccountProperties.getServiceURL(), gatekeeperAccountProperties.getServiceURI(), true, Account[].class));
 
         accounts.forEach(account -> {
@@ -86,11 +87,17 @@ public class AccountInformationService {
             if(overrideMap.containsKey(account.getAccountId())){
                 logger.info("Found an override for this account ID " + account.getAccountId());
                 account.setSdlc(overrideMap.get(account.getAccountId()));
+                logger.info("SDLC for " + account.getName() + " is now " + account.getSdlc());
             } else if (overrideMap.containsKey(account.getName())) {
                 logger.info("Found an override for this account Name " + account.getName());
                 account.setSdlc(overrideMap.get(account.getName()));
+                logger.info("SDLC for " + account.getName() + " is now " + account.getSdlc());
             }
-            logger.info("SDLC is " + account.getSdlc());
+
+            // set the grouping to match with what the SDLC is.
+            if(sdlcGroupMap.containsKey(account.getSdlc())){
+                account.setGrouping(sdlcGroupMap.get(account.getSdlc()));
+            }
         });
         return accounts;
     }

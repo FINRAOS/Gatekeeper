@@ -43,6 +43,11 @@ public class GatekeeperAccountProperties {
 
     private Map<String, String> sdlcOverrides;
 
+    /**
+     * This is controls the grouping order for SDLC as they appear in the app.
+     */
+    private Map<String, Integer> sdlcGrouping;
+
     public String getServiceURL() {
         return serviceURL;
     }
@@ -83,6 +88,15 @@ public class GatekeeperAccountProperties {
 
     public GatekeeperAccountProperties setSdlcOverrides(Map<String, String> sdlcOverrides) {
         this.sdlcOverrides = sdlcOverrides;
+        return this;
+    }
+
+    public Map<String, Integer> getSdlcGrouping() {
+        return sdlcGrouping;
+    }
+
+    public GatekeeperAccountProperties setSdlcGrouping(Map<String, Integer> sdlcGrouping) {
+        this.sdlcGrouping = sdlcGrouping;
         return this;
     }
 }

@@ -59,26 +59,48 @@ public class AccountInformationServiceTest {
             .setRegions(Arrays.asList(new Region("us-east-1")))
             .setSdlc("prod");
 
+    private Account a5 = new Account()
+            .setAccountId("85843738384")
+            .setAlias("Account Five")
+            .setName("myacc5")
+            .setRegions(Arrays.asList(new Region("us-east-1")))
+            .setSdlc("devtest");
+
     @Before
     public void setup(){
         Map<String, String> sdlcOverrides = new HashMap<>();
         sdlcOverrides.put("hello1", "myacc1, 123456789");
         sdlcOverrides.put("hello2", "myacc2");
+
+        Map<String, Integer> accountSdlcGrouping =  new HashMap<>();
+        accountSdlcGrouping.put("hello1", 200);
+        accountSdlcGrouping.put("hello2", 50);
+        accountSdlcGrouping.put("prod", 5);
+
         gatekeeperAccountProperties = new GatekeeperAccountProperties();
         MockitoAnnotations.initMocks(this);
-        gatekeeperAccountProperties.setServiceURL("helloUrl");
-        gatekeeperAccountProperties.setServiceURI("helloWorld");
-        gatekeeperAccountProperties.setSdlcOverrides(sdlcOverrides);
+        gatekeeperAccountProperties.setServiceURL("helloUrl")
+                .setServiceURI("helloWorld")
+                .setSdlcOverrides(sdlcOverrides)
+                .setSdlcGrouping(accountSdlcGrouping);
+
+
         accountInformationService = new AccountInformationService(gatekeeperAccountProperties, backend2BackendService);
-        Mockito.when(backend2BackendService.makeGetCall(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any())).thenReturn(new Account[]{a1, a2, a3, a4});
+        Mockito.when(backend2BackendService.makeGetCall(Mockito.any(), Mockito.any(), Mockito.anyBoolean(), Mockito.any())).thenReturn(new Account[]{a1, a2, a3, a4, a5});
     }
 
     @Test
-    public void testGetAccountsSdlcOverride(){
+    public void testGetAccounts(){
         List<Account> accounts = accountInformationService.getAccounts();
         Assert.assertEquals("hello1", accounts.get(0).getSdlc());
         Assert.assertEquals("hello2", accounts.get(1).getSdlc());
         Assert.assertEquals("hello1", accounts.get(2).getSdlc());
         Assert.assertEquals("prod", accounts.get(3).getSdlc());
+
+        Assert.assertEquals(Integer.valueOf(200), accounts.get(0).getGrouping());
+        Assert.assertEquals(Integer.valueOf(50), accounts.get(1).getGrouping());
+        Assert.assertEquals(Integer.valueOf(200), accounts.get(2).getGrouping());
+        Assert.assertEquals(Integer.valueOf(5), accounts.get(3).getGrouping());
+        Assert.assertEquals(Integer.valueOf(1), accounts.get(4).getGrouping());
     }
 }
