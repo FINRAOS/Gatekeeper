@@ -175,11 +175,39 @@ Currently Gatekeeper only supports authorization through LDAP, the application e
 #### AWS
 |Property | Description | Type |
 |---------|-------------|------|
-| gatekeeper.accountInfoEndpoint | The Endpoint gatekeeper calls to fetch the account data for all of your aws accounts | string
-| gatekeeper.accountInfoUri | The URI where gatekeeper can call your account Info service. (Defaults to "accounts") | string
 | gatekeeper.aws.proxyHost | (Optional) The Proxy Host. If you are not behind a proxy you can ignore this | string
 | gatekeeper.aws.proxyPort | (Optional) The Proxy Port. If you are not behind a proxy you can ignore this | integer
 | gatekeeper.aws.roleToAssume | The AWS IAM role that Gatekeeper will assume to interact with AWS (e.g. Xacnt_APP_GATEKEEPER)   | string 
+
+#### AWS ACCOUNTS
+These configurations are used by Gatekeeper to manage the data coming from your account service provider.
+
+|Property | Description | Type |
+|---------|-------------|------|
+| gatekeeper.account.serviceURL | The Endpoint gatekeeper calls to fetch the account data for all of your aws accounts | string
+| gatekeeper.account.serviceURI | The URI where gatekeeper can call your account Info service. (Defaults to "accounts") | string
+| gatekeeper.account.sdlcOverrides | A Map telling gatekeeper which account SDLC's to override. See the example below as to how this would look | Map<String, String>
+| gatekeeper.account.sdlcGrouping | A Map allowing you to control the ordering in which accounts show up in the UI based on SDLC, of not set there will be no ordering by SDLC. See Example for how this looks | Map<String, String>
+    
+##### SDLC Overrides
+You can override the SDLC of a given account by providing either it's name or AWS account id. This is useful if you want to have stricter or even looser approval requiremnts on a specific account in a given sdlc.
+
+```dotenv
+    gatekeeper.account.sdlcOverrides.poc=myacc1, 123456789
+    gatekeeper.account.sdlcOverrides.test=myacc2
+```    
+
+##### SDLC Grouping
+The dataset from the account service can get large over time, to control the sorting of these accounts in the UI you may (optionally) specify a grouping to group them up by SDLC. Gatekeeper will sort by the SDLC first and then the given Alias.
+If you do not provide a grouping then the groupings will ultimately default to 1 for all accounts, effectively not sorting on the grouping but the alias alone
+
+```dotenv
+    gatekeeper.account.sdlcGrouping.dev=1
+    gatekeeper.account.sdlcGrouping.qa=2
+    gatekeeper.account.sdlcGrouping.prod=3
+    gatekeeper.account.sdlcGrouping.poc=4
+    gatekeeper.account.sdlcGrouping.test=5
+```
 
 #### EMAIL
 Gatekeeper primarily communicates out temporary credentials via email, these are the properties gatekeeper requires for email

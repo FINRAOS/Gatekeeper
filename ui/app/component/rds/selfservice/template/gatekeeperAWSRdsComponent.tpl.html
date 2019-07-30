@@ -23,7 +23,7 @@
                 <md-input-container md-no-float>
                     <label>Select an Account</label>
                     <md-select ng-model="ctrl.forms.awsInstanceForm.selectedAccount" ng-change="ctrl.clearInstances()" required>
-                        <md-option ng-value="opt" ng-repeat="opt in ctrl.awsAccounts">{{ opt.alias }}</md-option>
+                        <md-option ng-value="opt" ng-repeat="opt in ctrl.awsAccounts | orderBy:['grouping','alias']">{{ opt.alias }}</md-option>
                     </md-select>
                 </md-input-container>
             </div>

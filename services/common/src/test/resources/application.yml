@@ -1,0 +1,54 @@
+#
+#  Copyright 2018. Gatekeeper Contributors
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+server.context-path: /api/gatekeeper-ec2
+
+gatekeeper:
+  account:
+    serviceURL: https://testservice.com
+    serviceURI: /test
+  auth:
+    ldap:
+      isActiveDirectory: false
+      objectClass: posixAccount
+      usersBase: ou=users
+      userDn: cn=admin,dc=example,dc=org
+      server: ldap://gkldap:389
+      base: dc=example,dc=org
+      userPassword: admin
+      usersCnAttribute: cn
+      usersIdAttribute: uid
+      usersNameAttribute=: cn
+      usersEmailAttribute: email
+      usersDnAttribute: dn
+      pattern: developer_([A-Za-z0-9]+)_dev
+      groupsBase: ou=groups
+---
+spring:
+  profiles: unit-test
+
+gatekeeper:
+  account:
+    sdlcOverrides:
+      hello1: myacc1, 123456789
+      hello2: myacc2
+    sdlcGrouping:
+      dev: 1
+      qa: 2
+      prod: 3
+      hello1: 4
+      hello2: 5
+
+---

@@ -20,16 +20,17 @@ package org.finra.gatekeeper.common.services.account;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.finra.gatekeeper.common.properties.GatekeeperAccountProperties;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.backend2backend.Backend2BackendService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -40,16 +41,12 @@ import java.util.stream.Collectors;
 public class AccountInformationService {
 
     private final Logger logger = LoggerFactory.getLogger(AccountInformationService.class);
-    @Value("${gatekeeper.accountInfoEndpoint}")
-    private String accountInforUrl;
-
-    @Value("${gatekeeper.accountInfoUri}")
-    private String accountInfoUri;
-
+    private final GatekeeperAccountProperties gatekeeperAccountProperties;
     private final Backend2BackendService backend2backendService;
 
     @Autowired
-    public AccountInformationService(Backend2BackendService backend2BackendService){
+    public AccountInformationService(GatekeeperAccountProperties gatekeeperAccountProperties, Backend2BackendService backend2BackendService){
+        this.gatekeeperAccountProperties = gatekeeperAccountProperties;
         this.backend2backendService = backend2BackendService;
     }
 
@@ -66,11 +63,11 @@ public class AccountInformationService {
             });
 
     public List<Account> getAccounts(){
-        return accountCache.getUnchecked(accountInfoUri);
+        return accountCache.getUnchecked(gatekeeperAccountProperties.getServiceURI());
     }
 
     public Account getAccountByAlias(String alias){
-        List<Account> result =  accountCache.getUnchecked(accountInfoUri)
+        List<Account> result =  accountCache.getUnchecked(gatekeeperAccountProperties.getServiceURI())
                 .stream()
                 .filter(account -> account.getAlias().equalsIgnoreCase(alias))
                 .collect(Collectors.toList());
@@ -79,8 +76,30 @@ public class AccountInformationService {
     }
 
     private List<Account> loadAccounts(){
-        logger.info("Getting Account information from " + accountInforUrl + accountInfoUri);
-        return Arrays.asList(backend2backendService.makeGetCall(accountInforUrl, accountInfoUri, true, Account[].class));
+        logger.info("Getting Account information from " + gatekeeperAccountProperties.getServiceURL() + gatekeeperAccountProperties.getServiceURI());
+
+        Map<String, String> overrideMap = gatekeeperAccountProperties.getAccountSdlcOverrides();
+        Map<String, Integer> sdlcGroupMap = gatekeeperAccountProperties.getSdlcGrouping();
+        List<Account> accounts = Arrays.asList(backend2backendService.makeGetCall(gatekeeperAccountProperties.getServiceURL(), gatekeeperAccountProperties.getServiceURI(), true, Account[].class));
+
+        accounts.forEach(account -> {
+            // if the Account ID or the Account Name is in the override map, then replace the SDLC value with what the account name maps to
+            if(overrideMap.containsKey(account.getAccountId())){
+                logger.info("Found an override for this account ID " + account.getAccountId());
+                account.setSdlc(overrideMap.get(account.getAccountId()));
+                logger.info("SDLC for " + account.getName() + " is now " + account.getSdlc());
+            } else if (overrideMap.containsKey(account.getName())) {
+                logger.info("Found an override for this account Name " + account.getName());
+                account.setSdlc(overrideMap.get(account.getName()));
+                logger.info("SDLC for " + account.getName() + " is now " + account.getSdlc());
+            }
+
+            // set the grouping to match with what the SDLC is.
+            if(sdlcGroupMap.containsKey(account.getSdlc())){
+                account.setGrouping(sdlcGroupMap.get(account.getSdlc()));
+            }
+        });
+        return accounts;
     }
 
 }
