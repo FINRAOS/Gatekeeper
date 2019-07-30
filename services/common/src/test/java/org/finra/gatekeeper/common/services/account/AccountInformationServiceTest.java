@@ -16,10 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {ObjectMapper.class})
@@ -96,11 +93,23 @@ public class AccountInformationServiceTest {
         Assert.assertEquals("hello2", accounts.get(1).getSdlc());
         Assert.assertEquals("hello1", accounts.get(2).getSdlc());
         Assert.assertEquals("prod", accounts.get(3).getSdlc());
+        Assert.assertEquals("devtest", accounts.get(4).getSdlc());
 
         Assert.assertEquals(Integer.valueOf(200), accounts.get(0).getGrouping());
         Assert.assertEquals(Integer.valueOf(50), accounts.get(1).getGrouping());
         Assert.assertEquals(Integer.valueOf(200), accounts.get(2).getGrouping());
         Assert.assertEquals(Integer.valueOf(5), accounts.get(3).getGrouping());
         Assert.assertEquals(Integer.valueOf(1), accounts.get(4).getGrouping());
+    }
+
+    @Test
+    public void testGetAccountsNoOverride(){
+        gatekeeperAccountProperties.setSdlcOverrides(Collections.emptyMap());
+        List<Account> accounts = accountInformationService.getAccounts();
+        Assert.assertEquals("dev", accounts.get(0).getSdlc());
+        Assert.assertEquals("qa", accounts.get(1).getSdlc());
+        Assert.assertEquals("prod", accounts.get(2).getSdlc());
+        Assert.assertEquals("prod", accounts.get(3).getSdlc());
+        Assert.assertEquals("devtest", accounts.get(4).getSdlc());
     }
 }

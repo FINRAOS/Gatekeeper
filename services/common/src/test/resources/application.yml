@@ -15,25 +15,10 @@
 #
 server.context-path: /api/gatekeeper-ec2
 
----
-spring:
-  profiles: unit-test
-
-
 gatekeeper:
   account:
     serviceURL: https://testservice.com
     serviceURI: /test
-    sdlcOverrides:
-      hello1: myacc1, 123456789
-      hello2: myacc2
-    sdlcGrouping:
-      dev: 1
-      qa: 2
-      prod: 3
-      hello1: 4
-      hello2: 5
-
   auth:
     ldap:
       isActiveDirectory: false
@@ -50,4 +35,20 @@ gatekeeper:
       usersDnAttribute: dn
       pattern: developer_([A-Za-z0-9]+)_dev
       groupsBase: ou=groups
+---
+spring:
+  profiles: unit-test
+
+gatekeeper:
+  account:
+    sdlcOverrides:
+      hello1: myacc1, 123456789
+      hello2: myacc2
+    sdlcGrouping:
+      dev: 1
+      qa: 2
+      prod: 3
+      hello1: 4
+      hello2: 5
+
 ---

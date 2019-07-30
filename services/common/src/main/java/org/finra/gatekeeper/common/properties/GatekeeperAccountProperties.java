@@ -41,12 +41,12 @@ public class GatekeeperAccountProperties {
      * The overrides for SDLC
      */
 
-    private Map<String, String> sdlcOverrides;
+    private Map<String, String> sdlcOverrides = new HashMap<>();
 
     /**
      * This is controls the grouping order for SDLC as they appear in the app.
      */
-    private Map<String, Integer> sdlcGrouping;
+    private Map<String, Integer> sdlcGrouping = new HashMap<>();
 
     public String getServiceURL() {
         return serviceURL;
@@ -72,13 +72,15 @@ public class GatekeeperAccountProperties {
      */
     public Map<String, String> getAccountSdlcOverrides() {
         Map<String, String> individualOverrideMapping = new HashMap<>();
-        this.sdlcOverrides.entrySet().forEach(entry -> {
-            final String sdlc = entry.getKey();
-            final List<String> overrideAccountIds = Arrays.asList(entry.getValue().split(","));
-            overrideAccountIds.forEach(account -> {
-                individualOverrideMapping.put(account.trim(), sdlc);
+        if(!this.sdlcOverrides.isEmpty()) {
+            this.sdlcOverrides.entrySet().forEach(entry -> {
+                final String sdlc = entry.getKey();
+                final List<String> overrideAccountIds = Arrays.asList(entry.getValue().split(","));
+                overrideAccountIds.forEach(account -> {
+                    individualOverrideMapping.put(account.trim(), sdlc);
+                });
             });
-        });
+        }
         return individualOverrideMapping;
     }
 
