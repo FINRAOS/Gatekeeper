@@ -33,18 +33,15 @@ import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
-import org.finra.gatekeeper.configuration.model.AppSpecificApprovalThreshold;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
-import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.account.model.Region;
-import org.finra.gatekeeper.services.auth.model.RoleMembership;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
@@ -172,12 +169,12 @@ public class AccessRequestServiceTest {
         testDate = new Date();
         Integer mockMaximum = 180;
         //Setting up the spring values
-        Map<RoleType, Map<String, Integer>> mockDev = new HashMap<>();
+        Map<String, Map<String, Integer>> mockDev = new HashMap<>();
         Map<String, Integer> mockDba = new HashMap<>();
         mockDba.put("dev",180);
         mockDba.put("qa",180);
         mockDba.put("prod",180);
-        mockDev.put(RoleType.DATAFIX, mockDba);
+        mockDev.put("datafix", mockDba);
 
         Region[] regions = new Region[]{ new Region("us-east-1") };
         Account mockAccount = new Account("1234", "Dev Test", "dev", "dev-test", Arrays.asList(regions));
@@ -332,7 +329,6 @@ public class AccessRequestServiceTest {
 
         when(accountInformationService.getAccountByAlias(any())).thenReturn(mockAccount);
         when(accessRequestRepository.findAll(Mockito.anyList())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
-
     }
 
 
@@ -342,7 +338,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededAdmin() throws Exception {
-        when(gatekeeperRoleService.isApprover()).thenReturn(true);
+        when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.APPROVER);
         Assert.assertFalse(accessRequestService.isApprovalNeeded(ownerRequest));
         Assert.assertFalse(accessRequestService.isApprovalNeeded(nonOwnerRequest));
     }
@@ -354,8 +350,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededDevOwnerThreshold() throws Exception {
-        initRoleMemberships(true, false, false);
-        initApprovalThresholds(180, 180, -1);
         when(ownerRequest.getDays()).thenReturn(300);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(ownerRequest));
     }
@@ -367,8 +361,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededDevOwner() throws Exception {
-        initRoleMemberships(true, false, false);
-        initApprovalThresholds(180, 180, -1);
         Map<String,Set<String>> memberships = new HashMap<>();
         Set<String> sdlcSet = new HashSet<>();
         sdlcSet.add("DEV");
@@ -385,8 +377,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededDevNonOwner() throws Exception {
-        initRoleMemberships(true, false, false);
-        initApprovalThresholds(-1, -1, -1);
         Map<String,Set<String>> memberships = new HashMap<>();
         Set<String> sdlcSet = new HashSet<>();
         sdlcSet.add("QA");
@@ -404,8 +394,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededDevThreshold() throws Exception {
-        initRoleMemberships(true, false, false);
-        initApprovalThresholds(-1, -1, -1);
         when(nonOwnerRequest.getDays()).thenReturn(300);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(nonOwnerRequest));
     }
@@ -418,8 +406,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededOpsOwnerThreshold() throws Exception {
-        initRoleMemberships(false, true, false);
-        initApprovalThresholds(180, 180, -1);
         when(ownerRequest.getDays()).thenReturn(181);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.OPS);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(ownerRequest));
@@ -432,8 +418,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededOpsOwner() throws Exception {
-        initRoleMemberships(false, true, false);
-        initApprovalThresholds(180, 180, -1);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.OPS);
         Assert.assertFalse(accessRequestService.isApprovalNeeded(ownerRequest));
     }
@@ -445,8 +429,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededOpsNonOwner() throws Exception {
-        initRoleMemberships(false, true, false);
-        initApprovalThresholds(180, -1, 180);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.OPS);
         when(nonOwnerRequest.getDays()).thenReturn(179);
         Assert.assertFalse(accessRequestService.isApprovalNeeded(nonOwnerRequest));
@@ -459,8 +441,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededOpsThreshold() throws Exception {
-        initRoleMemberships(false, true, false);
-        initApprovalThresholds(-1, -1, -1);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.OPS);
         when(nonOwnerRequest.getDays()).thenReturn(181);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(nonOwnerRequest));
@@ -473,8 +453,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededSupportOwnerThreshold() throws Exception {
-        initRoleMemberships(false, false, true);
-        initApprovalThresholds(180, 180, 180);
         when(ownerRequest.getDays()).thenReturn(181);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DBA);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(ownerRequest));
@@ -487,8 +465,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededSupportOwner() throws Exception {
-        initRoleMemberships(true, false, true);
-        initApprovalThresholds(180, 180, 180);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DBA);
         when(ownerRequest.getDays()).thenReturn(179);
         Set<String> memberships = new HashSet<>();
@@ -504,8 +480,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededSupportNonOwner() throws Exception {
-        initRoleMemberships(false, false, true);
-        initApprovalThresholds(-1, 180, 180);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DBA);
         when(nonOwnerRequest.getDays()).thenReturn(179);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(nonOwnerRequest));
@@ -518,8 +492,6 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApprovalNeededSupportThreshold() throws Exception {
-        initRoleMemberships(false, false, true);
-        initApprovalThresholds(180, 180, 180);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DBA);
         when(nonOwnerRequest.getDays()).thenReturn(181);
         Set<String> memberships = new HashSet<>();
@@ -730,30 +702,28 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testRoleBasedThresholds() throws Exception{
-//        initRoleMemberships(true, false, false);
-        initApprovalThresholds(1, 2, 3);
         List<UserRole> roles = new ArrayList<>();
         UserRole userRole = new UserRole();
         userRole.setRole("readonly");
         roles.add(userRole);
         when(ownerRequest.getRoles()).thenReturn(roles);
         
-        Map<RoleType, Map<String, Integer>> mockDev = new HashMap<>();
+        Map<String, Map<String, Integer>> mockDev = new HashMap<>();
         Map<String, Integer> mockReadOnly = new HashMap<>();
         mockReadOnly.put("dev",1);
         mockReadOnly.put("qa",2);
         mockReadOnly.put("prod",3);
-        Map<String, Integer> mockDatafix = new HashMap<>();
-        mockDatafix.put("dev",4);
-        mockDatafix.put("qa",5);
-        mockDatafix.put("prod",6);
         Map<String, Integer> mockDba = new HashMap<>();
-        mockDba.put("dev",7);
-        mockDba.put("qa",8);
-        mockDba.put("prod",9);
-        mockDev.put(RoleType.READONLY, mockReadOnly);
-        mockDev.put(RoleType.DATAFIX, mockDatafix);
-        mockDev.put(RoleType.DBA, mockDba);
+        mockDba.put("dev",4);
+        mockDba.put("qa",5);
+        mockDba.put("prod",6);
+        Map<String, Integer> mockDatafix = new HashMap<>();
+        mockDatafix.put("dev",7);
+        mockDatafix.put("qa",8);
+        mockDatafix.put("prod",9);
+        mockDev.put("readonly", mockReadOnly);
+        mockDev.put("datafix", mockDba);
+        mockDev.put("dba", mockDatafix);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.DEV)).thenReturn(mockDev);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.OPS)).thenReturn(mockDev);
         when(approvalThreshold.getApprovalPolicy(GatekeeperRdsRole.DBA)).thenReturn(mockDev);
@@ -771,8 +741,6 @@ public class AccessRequestServiceTest {
         userRole.setRole("datafix");
         roles.add(userRole);
         when(ownerRequest.getRoles()).thenReturn(roles);
-        initRoleMemberships(false, true, false);
-        initApprovalThresholds(4, 5, 6);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.OPS);
         when(ownerRequest.getDays()).thenReturn(5);
         when(ownerRequest.getAccountSdlc()).thenReturn("dev");
@@ -791,8 +759,6 @@ public class AccessRequestServiceTest {
         userRole.setRole("dba");
         roles.add(userRole);
         when(ownerRequest.getRoles()).thenReturn(roles);
-        initRoleMemberships(false, false, true);
-        initApprovalThresholds(7, 8, 9);
         when(gatekeeperRoleService.getRole()).thenReturn(GatekeeperRdsRole.DBA);
         when(ownerRequest.getDays()).thenReturn(8);
         when(ownerRequest.getAccountSdlc()).thenReturn("dev");
@@ -804,43 +770,6 @@ public class AccessRequestServiceTest {
         when(ownerRequest.getDays()).thenReturn(10);
         Assert.assertTrue(accessRequestService.isApprovalNeeded(ownerRequest));
 
-    }
-
-
-    private void initRoleMemberships(boolean devMember, boolean opsMember, boolean dbaMember) {
-        Map<GatekeeperRdsRole, Set<String>> roleMembershipMap = new HashMap<>();
-        Set<String> sdlcs = new HashSet<>();
-        sdlcs.add("DEV");
-        sdlcs.add("QA");
-        sdlcs.add("PROD");
-        if(dbaMember)
-            roleMembershipMap.put(GatekeeperRdsRole.DBA, sdlcs);
-        if(opsMember)
-            roleMembershipMap.put(GatekeeperRdsRole.OPS, sdlcs);
-        if(devMember)
-            roleMembershipMap.put(GatekeeperRdsRole.DEV, sdlcs);
-        RoleMembership roleMembership = new RoleMembership();
-        roleMembership.setRoles(roleMembershipMap);
-        Map<String, RoleMembership> memberships = new HashMap<>();
-        if(devMember || opsMember || dbaMember)
-            memberships.put("TestApplication", roleMembership);
-        when(gatekeeperRoleService.getRoleMemberships()).thenReturn(memberships);
-    }
-
-    private void initApprovalThresholds(Integer devThreshold, Integer qaThreshold, Integer prodThreshold) {
-
-        Map<String, Integer> roleSpecificApprovalThresholds = new HashMap<>();
-        roleSpecificApprovalThresholds.put("dev", devThreshold);
-        roleSpecificApprovalThresholds.put("qa", qaThreshold);
-        roleSpecificApprovalThresholds.put("prod", prodThreshold);
-        Map<RoleType, Map<String, Integer>> appSpecificApprovalThresholds = new HashMap<>();
-        Arrays.asList(RoleType.values()).forEach(role -> {
-            appSpecificApprovalThresholds.put(role, roleSpecificApprovalThresholds);
-        });
-        AppSpecificApprovalThreshold appSpecificApprovalThresholdObject = new AppSpecificApprovalThreshold(appSpecificApprovalThresholds);
-        Map<String, AppSpecificApprovalThreshold> approvalPolicy = new HashMap<>();
-        approvalPolicy.put("TestApplication", appSpecificApprovalThresholdObject);
-        when(gatekeeperRoleService.getApprovalPolicy(any())).thenReturn(approvalPolicy);
     }
 
 }

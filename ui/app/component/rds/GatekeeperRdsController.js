@@ -93,35 +93,37 @@ class GatekeeperRdsController extends GatekeeperController{
             let vm = this;
             let data = result.data;
             vm.global.userInfo.approvalThreshold = data.approvalThreshold;
-            vm.global.userInfo.roleMemberships = data.roleMemberships;
+            vm.global.userInfo.memberships = data.memberships;
             vm.global.userInfo.userId = data.userId;
             vm.global.userInfo.user = data.name;
             vm.global.userInfo.email = data.email;
-            vm.global.userInfo.isApprover = data.approver;
             vm.global.rdsOverridePolicy = data.overridePolicy;
             vm.global.rdsMaxDays = data.maxDays;
-
-            if(!vm.global.userInfo.isApprover && Object.keys(data.roleMemberships).length === 0 ){
-                vm.global.userInfo.isUnauthorized = true;
+            if([ROLES.approver, ROLES.support].indexOf(data.role) === -1 && data.memberships.length === 0 ){
+                vm.global.userInfo.role = ROLES.unauthorized;
             }else{
-                vm.global.userInfo.roleMemberships = data.roleMemberships;
+                vm.global.userInfo.role = data.role;
             }
-            vm.global.tabData.admin.hidden = !vm.global.userInfo.isApprover;
+            vm.global.tabData.admin.hidden = vm.global.userInfo.role !== 'APPROVER';
 
-            if(vm.global.userInfo.isApprover === true) {
-                if(vm.global.selectedIndex === -1) {
-                    vm.global.tabData.requests.enabled = true;
-                    vm.global.selectedIndex = findKeyIndex(vm.global.tabData, 'requests');
-                }
-            } else if (Object.keys(data.roleMemberships).length > 0) {
-                if(vm.global.selectedIndex === -1) {
-                    vm.global.tabData.selfService.enabled = true;
-                    vm.global.selectedIndex = findKeyIndex(vm.global.tabData, 'selfService');
-                }
-            } else {
-                vm[STATE].go(STATES.denied);
+            switch (vm.global.userInfo.role) {
+                case ROLES.approver:
+                    if(vm.global.selectedIndex === -1) {
+                        vm.global.tabData.requests.enabled = true;
+                        vm.global.selectedIndex = findKeyIndex(vm.global.tabData, 'requests');
+                    }
+                    break;
+                case ROLES.developer:
+                case ROLES.operations:
+                case ROLES.dba:
+                    if(vm.global.selectedIndex === -1) {
+                        vm.global.tabData.selfService.enabled = true;
+                        vm.global.selectedIndex = findKeyIndex(vm.global.tabData, 'selfService');
+                    }
+                    break;
+                default:
+                    vm[STATE].go(STATES.denied);
             }
-
         }).catch((result) => {
             this.error = result;
             vm[STATE].go(STATES.error);
