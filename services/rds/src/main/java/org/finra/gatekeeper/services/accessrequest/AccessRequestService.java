@@ -26,17 +26,14 @@ import org.activiti.engine.task.Task;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
-import org.finra.gatekeeper.configuration.model.AppSpecificApprovalThreshold;
 import org.finra.gatekeeper.controllers.AccessRequestController;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
-import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationOutcome;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
-import org.finra.gatekeeper.services.auth.model.RoleMembership;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
@@ -106,7 +103,7 @@ public class AccessRequestService {
     public AccessRequestCreationResponse storeAccessRequest(AccessRequestWrapper request) throws GatekeeperException{
         GatekeeperUserEntry requestor = gatekeeperRoleService.getUserProfile();
 
-        Integer maxDays = overridePolicy.getMaxDaysForRequest(gatekeeperRoleService.getRoleMemberships().get(request.getApplication()), request.getRoles(), request.getAccountSdlc());
+        Integer maxDays = overridePolicy.getMaxDaysForRequest(gatekeeperRoleService.getRole(), request.getRoles(), request.getAccountSdlc());
 
         if(request.getDays() > maxDays){
             throw new GatekeeperException("Days requested (" + request.getDays() + ") exceeded the maximum of " + maxDays + " for roles " + request.getRoles() + " on account with SDLC " + request.getAccountSdlc());
@@ -161,29 +158,58 @@ public class AccessRequestService {
         return new AccessRequestCreationResponse(AccessRequestCreationOutcome.CREATED, accessRequest);
     }
 
+    /**
+     * Make sure the DBA has the Application Membership that the DB is assigned to in its tags
+     * @param request - the AccessRequest
+     * @return
+     */
+    private boolean isDBAOwnerOfInstances(AccessRequest request) {
+        Set<String> memberships = gatekeeperRoleService.getDbaMemberships(request.getRequestorId());
+        return request.getAwsRdsInstances().stream().allMatch(
+                instance -> memberships.contains(instance.getApplication())
+        );
+    }
+
+    /**
+     * Make sure the DEV has the Application Membership + the proper SDLC role on the account for the DB they are trying to access
+     * @param request -  The Access Request
+     * @return
+     */
+    private boolean isDevOwnerOfInstances(AccessRequest request, String sdlc) {
+        Map<String, Set<String>> memberships = gatekeeperRoleService.getDevMemberships(request.getRequestorId());
+        return request.getAwsRdsInstances().stream().allMatch(
+                instance -> memberships.containsKey(instance.getApplication()) && memberships.get(instance.getApplication()).contains(sdlc.toUpperCase())
+        );
+    }
+
     public boolean isApprovalNeeded(AccessRequest request) throws Exception{
-        if(gatekeeperRoleService.isApprover())
-            return false;
-        Map<String, RoleMembership> memberships = gatekeeperRoleService.getRoleMemberships();
-        Map<String, AppSpecificApprovalThreshold> approvalPolicy = gatekeeperRoleService.getApprovalPolicy(memberships);
-        String application = request.getAwsRdsInstances().get(0).getApplication();
-        if(!approvalPolicy.containsKey(application))
-            return true;
-        Map<RoleType, Map<String, Integer>> appSpecificApprovalThresholdMap = approvalPolicy.get(application).getAppSpecificApprovalThresholds();
+        //We have to associate the policy to the SDLC of the requested account. The name of the account provided by the ui will not always be "dev" "qa" or "prod", but they will need to associate with those SDLC's
+        Account theAccount = accountInformationService.getAccountByAlias(request.getAccount());
 
-        Integer minimumThreshold = overridePolicy.getMaxDaysForRequest(memberships.get(application), request.getRoles(), request.getAccountSdlc());
-        for(UserRole requestedRole : request.getRoles()){
-            RoleType role = RoleType.valueOf(requestedRole.getRole().toUpperCase());
-            String accountSdlc = request.getAccountSdlc();
-            Integer approvalThreshold = appSpecificApprovalThresholdMap.get(role).get(accountSdlc);
-            if(approvalThreshold < minimumThreshold)
-                minimumThreshold = approvalThreshold;
+        switch(gatekeeperRoleService.getRole()){
+            //Approvers can do whatever they want.
+            case APPROVER:
+                return false;
+            case DBA:
+                return !isRequestedDaysWithinPolicy(request.getRoles(), request.getAccountSdlc(), request.getDays()) || !isDBAOwnerOfInstances(request);
+            case DEV:
+                return !isRequestedDaysWithinPolicy(request.getRoles(), request.getAccountSdlc(), request.getDays()) || !isDevOwnerOfInstances(request, theAccount.getSdlc());
+            case OPS:
+                return !isRequestedDaysWithinPolicy(request.getRoles(), request.getAccountSdlc(), request.getDays());
+            default:
+                //should NEVER happen.
+                throw new GatekeeperException("Could not determine Role");
         }
+    }
 
-        if(request.getDays() <= minimumThreshold)
-            return false;
+    //returns true if days is lower than the threshold
+    //returns false if one of the thresholds arent met
+    private boolean isRequestedDaysWithinPolicy(List<UserRole> roles, String sdlc, Integer days){
+        //Getting the crazy approval policy
+        Map<String, Map<String, Integer>> crazyApprovalPolicy = approvalThreshold.getApprovalPolicy(gatekeeperRoleService.getRole());
 
-        return true;
+        //if one requirement is not
+        return roles.stream().allMatch(role -> days <= crazyApprovalPolicy.get(role.getRole().toLowerCase()).get(sdlc.toLowerCase()));
     }
 
 

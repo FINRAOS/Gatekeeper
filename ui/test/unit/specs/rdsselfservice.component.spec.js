@@ -16,7 +16,6 @@
  */
 import AccountDataService from '../../../app/component/shared/AccountDataService';
 import RdsGrantDataService from '../../../app/component/shared/RdsGrantDataService';
-import RdsConfigService from '../../../app/component/shared/RdsConfigService';
 
 //Controllers
 import md from 'angular-material';
@@ -41,7 +40,7 @@ describe('GateKeeper RDS SelfService component', function () {
 
     //mock all this stuff out.
     let $q, $rootScope, $httpBackend;
-    let gkAccountService, gkRdsConfigService, gkRdsGrantService;
+    let gkAccountService, gkRdsGrantService;
 
     describe('RdsSelfServiceController', function(){
         beforeEach(inject(function(_$q_, _$rootScope_, _$httpBackend_){
@@ -50,7 +49,6 @@ describe('GateKeeper RDS SelfService component', function () {
             $httpBackend = _$httpBackend_;
 
             gkRdsGrantService = new RdsGrantDataService($http, $state);
-            gkRdsConfigService = new RdsConfigService($http, $state);
             gkAccountService = new AccountDataService($http, $state);
 
         }));
@@ -62,167 +60,57 @@ describe('GateKeeper RDS SelfService component', function () {
 
 
             $rootScope.userInfo = {
+                role: 'DEV',
                 userId:'testId',
                 user:'test',
                 email:'test@email.com',
-                roleMemberships: {
-                    APP: {
-                        roles: {
-                            DEV: [
-                                'DEV',
-                                'QA'
-                            ]
-                        }
-                    },
-                    APP2: {
-                        roles: {
-                            DEV: [
-                                'DEV'
-                            ]
-                        }
-                    }
+                memberships: {
+                    APP: ['DEV', 'QA'],
+                    APP2: ['DEV']
                 }
             };
 
             $rootScope.rdsMaxDays = 100;
             $rootScope.rdsOverridePolicy = {
-                APP: {
-                    appSpecificOverridePolicy: {
-                        DATAFIX: {
-                            prod: 10
-                        },
-                        DBA: {
-                            prod: 5
-                        },
-                        DBA_CONFIDENTIAL: {
-                            prod: 2
-                        },
-                        READONLY_CONFIDENTIAL: {
-                            prod: 4
-                        }
-                    }
+                datafix: {
+                    prod: 10
                 },
-                APP2: {
-                    appSpecificOverridePolicy: {
-                        DATAFIX: {
-                            prod: 10
-                        },
-                        DBA: {
-                            prod: 5
-                        },
-                        DBA_CONFIDENTIAL: {
-                            prod: 2
-                        },
-                        READONLY_CONFIDENTIAL: {
-                            prod: 4
-                        }
-                    }
+                dba: {
+                    prod: 5
                 },
-                APP3: {
-                    appSpecificOverridePolicy: {
-                        DATAFIX: {
-                            prod: 10
-                        },
-                        DBA: {
-                            prod: 5
-                        },
-                        DBA_CONFIDENTIAL: {
-                            prod: 2
-                        },
-                        READONLY_CONFIDENTIAL: {
-                            prod: 4
-                        }
-                    }
+                dba_confidential: {
+                    prod: 2
+                },
+                readonly_confidential: {
+                    prod: 4
                 }
             };
 
             $rootScope.userInfo.approvalThreshold = {
-                APP: {
-                    appSpecificApprovalThresholds: {
-                        DATAFIX: {
-                            dev: 99,
-                            qa: 50,
-                            prod: -1
-                        },
-                        DBA: {
-                            dev: 76,
-                            qa: 50,
-                            prod: -1
-                        },
-                        READONLY: {
-                            dev: 65,
-                            qa: 50,
-                            prod: -1
-                        },
-                        READONLY_CONFIDENTIAL: {
-                            dev: 99,
-                            qa: 50,
-                            prod: -1
-                        },
-                        DBA_CONFIDENTIAL: {
-                            dev: 99,
-                            qa: 50,
-                            prod: -1
-                        }
-                    }
+                datafix: {
+                    dev: 99,
+                    qa: 50,
+                    prod: 1
                 },
-                APP2: {
-                    appSpecificApprovalThresholds: {
-                        DATAFIX: {
-                            dev: 99,
-                            qa: -1,
-                            prod: -1
-                        },
-                        DBA: {
-                            dev: 76,
-                            qa: -1,
-                            prod: -1
-                        },
-                        READONLY: {
-                            dev: 65,
-                            qa: -1,
-                            prod: -1
-                        },
-                        READONLY_CONFIDENTIAL: {
-                            dev: 99,
-                            qa: -1,
-                            prod: -1
-                        },
-                        DBA_CONFIDENTIAL: {
-                            dev: 99,
-                            qa: -1,
-                            prod: -1
-                        }
-                    }
+                dba: {
+                    dev: 76,
+                    qa: 50,
+                    prod: 1
                 },
-                APP3: {
-                    appSpecificApprovalThresholds: {
-                        DATAFIX: {
-                            dev: -1,
-                            qa: -1,
-                            prod: -1
-                        },
-                        DBA: {
-                            dev: -1,
-                            qa: -1,
-                            prod: -1
-                        },
-                        READONLY: {
-                            dev: -1,
-                            qa: -1,
-                            prod: -1
-                        },
-                        READONLY_CONFIDENTIAL: {
-                            dev: -1,
-                            qa: -1,
-                            prod: -1
-                        },
-                        DBA_CONFIDENTIAL: {
-                            dev: -1,
-                            qa: -1,
-                            prod: -1
-                        }
-                    }
+                readonly: {
+                    dev: 65,
+                    qa: 50,
+                    prod: 1
+                },
+                readonly_confidential: {
+                    dev: 99,
+                    qa: 50,
+                    prod: 1
+                },
+                dba_confidential: {
+                    dev: 99,
+                    qa: 50,
+                    prod: 1
                 }
             };
 
@@ -234,7 +122,7 @@ describe('GateKeeper RDS SelfService component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new RdsSelfServiceController($mdDialog, $mdToast, gkAccountService, gkRdsGrantService, gkRdsConfigService, scope, $state, $rootScope);
+            controller = new RdsSelfServiceController($mdDialog, $mdToast, gkAccountService, gkRdsGrantService, scope, $state, $rootScope);
             controller.forms.awsInstanceForm = {
                 selectedAccount: {},
             };
@@ -324,7 +212,7 @@ describe('GateKeeper RDS SelfService component', function () {
             });
 
             it('should return maximum days if the user is an approver', () => {
-              $rootScope.userInfo.isApprover = true;
+              $rootScope.userInfo.role = 'APPROVER';
               let bound = controller.getApprovalBounds();
               expect(bound).toEqual(100);
             });
@@ -363,7 +251,7 @@ describe('GateKeeper RDS SelfService component', function () {
                     },
                     {
                         application: 'APP3'
-                    }
+                    },
                 ];
                 controller.forms.grantForm.selectedRoles = {
                     readonly: true
@@ -417,15 +305,6 @@ describe('GateKeeper RDS SelfService component', function () {
                     sdlc: 'prod'
                 };
 
-                controller.selectedItems = [
-                    {
-                        application: 'APP'
-                    },
-                    {
-                        application: 'APP2'
-                    },
-                ];
-
                 controller.forms.grantForm.selectedRoles = {
                     datafix: true,
                     readonly: false
@@ -440,14 +319,6 @@ describe('GateKeeper RDS SelfService component', function () {
                 controller.forms.awsInstanceForm.selectedAccount = {
                     sdlc: 'prod'
                 };
-                controller.selectedItems = [
-                    {
-                        application: 'APP'
-                    },
-                    {
-                        application: 'APP2'
-                    },
-                ];
 
                 controller.forms.grantForm.selectedRoles = {
                     datafix: true,
