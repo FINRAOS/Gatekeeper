@@ -35,10 +35,9 @@ class RdsRequestController extends GatekeeperRequestController{
         super(gkRequestService, $rootScope);
         VM = this;
         let role = $rootScope.userInfo.role;
-        let isApprover = $rootScope.userInfo.isApprover;
 
         this.requestTable.template = require('./template/request.tpl.html');
-        this.requestTable.templateController = isApprover ? RdsRequestDialogAdminController : GatekeeperRequestDialogRequestorController;
+        this.requestTable.templateController = role === ROLES.approver ? RdsRequestDialogAdminController : GatekeeperRequestDialogRequestorController;
         this.requestTable.templateControllerAs=  'dialogCtrl';
 
         this.requestTable.headers = [

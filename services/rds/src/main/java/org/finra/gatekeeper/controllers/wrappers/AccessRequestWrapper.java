@@ -37,7 +37,6 @@ public class AccessRequestWrapper {
     private String requestorEmail;
     private String account;
     private String accountSdlc;
-    private String application;
     private String region;
     private String ticketId;
     private String requestReason;
@@ -82,13 +81,6 @@ public class AccessRequestWrapper {
         return this;
     }
 
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
 
     public String getRegion(){
         return region;
