@@ -131,7 +131,7 @@ public class RdsLookupService {
                     status = "Unsupported (Read-Only replica of " +item.getReadReplicaSourceDBInstanceIdentifier() + ")";
                 }
                 if(!enabled){
-                    status = "Missing one of the following Security Group(s): " + gatekeeperProperties.getRequiredSecurityGroups();
+                    status = "Missing Gatekeeper RDS support Security Group";
                 }else{
                     //if enabled lets check if the DB is working
 
