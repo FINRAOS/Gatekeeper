@@ -506,7 +506,7 @@ public class GatekeeperProperties {
     /**
      * The Security Group to check on each RDS instance
      */
-    private String requiredSecurityGroup;
+    private String requiredSecurityGroups;
 
     /**
      * The Tag to determine which application a resource belongs to.
@@ -524,12 +524,12 @@ public class GatekeeperProperties {
         return this;
     }
 
-    public String getRequiredSecurityGroup() {
-        return requiredSecurityGroup;
+    public String getRequiredSecurityGroups() {
+        return requiredSecurityGroups;
     }
 
-    public GatekeeperProperties setRequiredSecurityGroup(String requiredSecurityGroup) {
-        this.requiredSecurityGroup = requiredSecurityGroup;
+    public GatekeeperProperties setRequiredSecurityGroups(String requiredSecurityGroups) {
+        this.requiredSecurityGroups = requiredSecurityGroups;
         return this;
     }
 

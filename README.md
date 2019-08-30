@@ -355,7 +355,7 @@ These configurations are specific to Gatekeeper RDS
 | Property | Description | Type |
 |----------|-------------|------|
 | gatekeeper.db.schema | The schema in which gatekeeper operates its tables  | string
-| gatekeeper.requiredSecurityGroup | The Security Group in which Gatekeeper RDS requires for connectivity | string 
+| gatekeeper.requiredSecurityGroups | A comma separated list of the Security Group(s) in which Gatekeeper RDS requires for connectivity | string 
 | gatekeeper.rds.postgresMinServerVersion | The minimum postgrs server to use | string 
 | gatekeeper.rds.ssl | Whether Gatekeeeper-RDS should use SSL or not to connect | boolean
 | gatekeeper.rds.connectTimeout | The timeout (in milliseconds) to wait for a connection | Integer
