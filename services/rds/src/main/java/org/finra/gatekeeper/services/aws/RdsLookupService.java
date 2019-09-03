@@ -19,9 +19,6 @@ package org.finra.gatekeeper.services.aws;
 
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.*;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.rds.model.RoleType;
@@ -36,7 +33,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -135,7 +131,7 @@ public class RdsLookupService {
                     status = "Unsupported (Read-Only replica of " +item.getReadReplicaSourceDBInstanceIdentifier() + ")";
                 }
                 if(!enabled){
-                    status = "Missing FINRA-RDS-support Security Group";
+                    status = "Missing Gatekeeper RDS support Security Group";
                 }else{
                     //if enabled lets check if the DB is working
 

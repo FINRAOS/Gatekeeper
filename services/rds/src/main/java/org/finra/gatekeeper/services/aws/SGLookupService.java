@@ -30,10 +30,8 @@ import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -47,7 +45,7 @@ public class SGLookupService {
 
     private final Logger logger = LoggerFactory.getLogger(SGLookupService.class);
 
-    private final String securityGroupName;
+    private final String securityGroupNames;
 
     private AwsSessionService awsSessionService;
 
@@ -55,7 +53,7 @@ public class SGLookupService {
     public SGLookupService(AwsSessionService awsSessionService,
                            GatekeeperProperties gatekeeperProperties){
         this.awsSessionService = awsSessionService;
-        this.securityGroupName = gatekeeperProperties.getRequiredSecurityGroup();
+        this.securityGroupNames = gatekeeperProperties.getRequiredSecurityGroups();
     }
 
     /*
@@ -87,12 +85,12 @@ public class SGLookupService {
 
         Filter groupNameFilter = new Filter();
         groupNameFilter.setName("group-name");
-        groupNameFilter.setValues(Collections.singletonList(securityGroupName));
+        groupNameFilter.setValues(Arrays.asList(securityGroupNames.split(",")));
 
         AmazonEC2Client amazonEC2Client = awsSessionService.getEC2Session(environment);
         DescribeSecurityGroupsResult result = amazonEC2Client.describeSecurityGroups(describeSecurityGroupsRequest.withFilters(groupNameFilter));
 
-        logger.info("found " + result.getSecurityGroups().size() + " Security Groups with name '" + securityGroupName + "'");
+        logger.info("found " + result.getSecurityGroups().size() + " Security Groups with name(s) '" + securityGroupNames + "'");
         return result.getSecurityGroups().stream()
                 .map(SecurityGroup::getGroupId)
                 .collect(Collectors.toList());
