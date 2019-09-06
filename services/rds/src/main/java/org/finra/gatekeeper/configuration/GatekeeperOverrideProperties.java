@@ -17,18 +17,28 @@
 
 package org.finra.gatekeeper.configuration;
 
+import org.finra.gatekeeper.services.accessrequest.model.OverridePolicy;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
+import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
+import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 @ConfigurationProperties(prefix="gatekeeper.overridePolicy")
 public class GatekeeperOverrideProperties {
+
+    @Autowired
+    private GatekeeperRoleService gatekeeperRoleService;
+
     private Integer maxDays;
 
     public Integer getMaxDays() {
@@ -51,30 +61,42 @@ public class GatekeeperOverrideProperties {
         return overrides;
     }
 
-    public Map<String, Map<String, Integer>> getOverridePolicy(GatekeeperRdsRole role) {
-        return (Map<String, Map<String, Integer>>)this.overrides.get(role.toString().toLowerCase());
+    public OverridePolicy getOverrides(Map<String, RoleMembership> roleMemberships) {
+        Set<GatekeeperRdsRole> roles = gatekeeperRoleService.getUserRoles(roleMemberships);
+        Map<String, Map<String, Integer>> overridePolicy = new HashMap<>();
+        if(!roles.isEmpty()) {
+            roles.forEach(role -> {
+                if(overrides.containsKey(role.toString().toLowerCase())) {
+                    overrides.get(role.toString().toLowerCase()).forEach((gkRole, overrideValuesPerSdlc) -> {
+                        if (!overridePolicy.containsKey(gkRole)) {
+                            overridePolicy.put(gkRole, overrideValuesPerSdlc);
+                        } else {
+                            overrideValuesPerSdlc.forEach((sdlc, value) -> {
+                                if (!overridePolicy.get(gkRole).containsKey(sdlc) || value > overridePolicy.get(gkRole).get(sdlc)) {
+                                    overridePolicy.get(gkRole).put(sdlc, value);
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        }
+        return new OverridePolicy(overridePolicy);
     }
 
-    public Integer getMaxDaysForRequest(GatekeeperRdsRole requestorRole, List<UserRole> roleList, String sdlc){
+    public Integer getMaxDaysForRequest(Map<String, RoleMembership> roleMemberships, List<UserRole> userRoles, String sdlc) {
         Integer currMax = maxDays;
 
-        //For each role let's check if there was some override value set.
-        for(UserRole role : roleList){
-            Map<String, Map<String, Integer>> overridePolicy = getOverridePolicy(requestorRole);
+        OverridePolicy overridePolicy = getOverrides(roleMemberships);
 
-            //if there's a policy then lets keep going
-            if(overridePolicy != null
-                    && overridePolicy.containsKey(role.getRole())
-                    && overridePolicy.containsValue(overridePolicy.get(role.getRole()))){
-
-                Map<String, Integer> env = overridePolicy.get(role.getRole());
-                Integer max = env.get(sdlc) != null ? env.get(sdlc) : maxDays;
-
+        //Check the maximum allowed duration for each role the requestor has. The lowest override value amongst these roles should be used.
+        for(UserRole userRole : userRoles) {
+            if(overridePolicy.getOverridePolicy().containsKey(userRole.getRole()) && overridePolicy.getOverridePolicy().get(userRole.getRole()).containsKey(sdlc)){
+                Integer max = overridePolicy.getOverridePolicy().get(userRole.getRole()).get(sdlc);
                 currMax = max < currMax ? max : currMax;
-
             }
-
         }
+
         return currMax;
     }
 }
