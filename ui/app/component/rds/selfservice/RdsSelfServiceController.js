@@ -120,7 +120,14 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             });
         });
 
-        return Math.min.apply(Math, values);
+        let approvalThreshold = Math.min.apply(Math, values);
+        let maxDays = this.getMaximumDays()
+
+        if(approvalThreshold <= maxDays) {
+            return approvalThreshold;
+        } else {
+            return maxDays;
+        }
 
     }
 
@@ -144,10 +151,15 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     getMaximumDays(){
         let thresholds = vm.global.rdsOverridePolicy;
         let max = vm.global.rdsMaxDays;
+        let overrideExists = false;
         if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
             vm.getSelectedRoles().forEach((role) => {
                 if(thresholds[role] && thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
                     let overrideVal = thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
+                    if(overrideExists === false) {
+                        overrideExists = true;
+                        max = overrideVal;
+                    }
                     if (overrideVal < max) {
                         max = overrideVal;
                     }

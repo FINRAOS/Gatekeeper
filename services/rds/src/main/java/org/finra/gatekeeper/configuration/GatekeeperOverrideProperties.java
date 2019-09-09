@@ -86,14 +86,20 @@ public class GatekeeperOverrideProperties {
 
     public Integer getMaxDaysForRequest(Map<String, RoleMembership> roleMemberships, List<UserRole> userRoles, String sdlc) {
         Integer currMax = maxDays;
+        boolean overrideExists = false;
 
         OverridePolicy overridePolicy = getOverrides(roleMemberships);
 
         //Check the maximum allowed duration for each role the requestor has. The lowest override value amongst these roles should be used.
         for(UserRole userRole : userRoles) {
             if(overridePolicy.getOverridePolicy().containsKey(userRole.getRole()) && overridePolicy.getOverridePolicy().get(userRole.getRole()).containsKey(sdlc)){
-                Integer max = overridePolicy.getOverridePolicy().get(userRole.getRole()).get(sdlc);
-                currMax = max < currMax ? max : currMax;
+                if(!overrideExists) {
+                    overrideExists = true;
+                    currMax = overridePolicy.getOverridePolicy().get(userRole.getRole()).get(sdlc);
+                } else {
+                    Integer max = overridePolicy.getOverridePolicy().get(userRole.getRole()).get(sdlc);
+                    currMax = max < currMax ? max : currMax;
+                }
             }
         }
 
