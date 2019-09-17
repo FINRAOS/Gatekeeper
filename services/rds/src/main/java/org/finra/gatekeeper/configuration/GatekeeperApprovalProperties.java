@@ -101,9 +101,7 @@ public class GatekeeperApprovalProperties {
 
     private AppApprovalThreshold getApprovalPolicyByApplication(RoleMembership roleMembership) {
         gatekeeperRoles = new ArrayList<>(Arrays.asList(RoleType.values()));
-
         sdlcs = getAllSdlcs();
-
         AppApprovalThreshold applicationApprovalPolicy = initializeApprovalPolicy();
 
         for(GatekeeperRdsRole role : roleMembership.getRoles().keySet()) {
