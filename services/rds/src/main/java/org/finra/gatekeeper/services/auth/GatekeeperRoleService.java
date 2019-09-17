@@ -23,7 +23,13 @@ import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
+import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
+import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.services.auth.model.AppApprovalThreshold;
+import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.stereotype.Component;
@@ -40,8 +46,11 @@ import java.util.regex.Pattern;
 @Component
 public class GatekeeperRoleService {
 
+    private static final Logger logger = LoggerFactory.getLogger(GatekeeperRoleService.class);
+
     private final GatekeeperAuthorizationService gatekeeperAuthorizationService;
     private final GatekeeperAuthProperties gatekeeperAuthProperties;
+    private final GatekeeperApprovalProperties gatekeeperApprovalProperties;
 
     private static final String DEFAULT_DN = "distinguishedName";
     private static final String DEFAULT_CN = "cn";
@@ -50,6 +59,8 @@ public class GatekeeperRoleService {
     private final Pattern dbaPattern;
     private final Pattern opsPattern;
     private final Pattern devPattern;
+
+    private Set<String> sdlcs;
 
     private LoadingCache<String, Optional<Set<String>>> ldapUserDbaApplicationCache = CacheBuilder.newBuilder()
             .maximumSize(1000L)
@@ -85,9 +96,11 @@ public class GatekeeperRoleService {
     @Autowired
     public GatekeeperRoleService(GatekeeperAuthorizationService gatekeeperAuthorizationService,
                                  GatekeeperAuthProperties gatekeeperAuthProperties,
-                                 GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties){
+                                 GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties,
+                                 GatekeeperApprovalProperties gatekeeperApprovalProperties){
         this.gatekeeperAuthProperties = gatekeeperAuthProperties;
         this.gatekeeperAuthorizationService = gatekeeperAuthorizationService;
+        this.gatekeeperApprovalProperties = gatekeeperApprovalProperties;
         this.dbaPattern = Pattern.compile(gatekeeperRdsAuthProperties.getDbaGroupsPattern());
         this.opsPattern = Pattern.compile(gatekeeperRdsAuthProperties.getOpsGroupsPattern());
         this.devPattern = Pattern.compile(gatekeeperRdsAuthProperties.getDevGroupsPattern());
@@ -159,13 +172,64 @@ public class GatekeeperRoleService {
         return getOpsMemberships(getUserProfile().getUserId());
     }
 
+    public Set<GatekeeperRdsRole> getUserRoles(Map<String, RoleMembership> roleMemberships) {
+        Set<GatekeeperRdsRole> uniqueRoles = new HashSet<>();
+
+        roleMemberships.forEach((ags, memberships) -> {
+            memberships.getRoles().forEach((role, sdlcs) -> {
+                uniqueRoles.add(role);
+            });
+        });
+
+        return uniqueRoles;
+    }
 
     public GatekeeperRdsRole getRole(){
         return checkGatekeeperRdsRole();
     }
 
+    public Map<String, RoleMembership> getRoleMemberships() {
+        logger.info("Retrieving role memberships for user: " + getUserProfile().getUserId());
+        Map<String, RoleMembership> roleMemberships = new HashMap<>();
+        Set<String> dbaMemberships = getDbaMemberships();
+        Set<String> opsMemberships = getOpsMemberships();
+        Map<String, Set<String>> devMemberships = getDevMemberships();
+        sdlcs = gatekeeperApprovalProperties.getAllSdlcs();
+
+        dbaMemberships.forEach(membership -> {
+            roleMemberships.put(membership, new RoleMembership());
+            roleMemberships.get(membership).getRoles().put(GatekeeperRdsRole.DBA, new HashSet<>());
+            sdlcs.forEach(sdlc -> {
+                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DBA).add(sdlc.toUpperCase());
+            });
+        });
+
+        opsMemberships.forEach(membership -> {
+            if(!roleMemberships.containsKey(membership)) {
+                roleMemberships.put(membership, new RoleMembership());
+            }
+            roleMemberships.get(membership).getRoles().put(GatekeeperRdsRole.OPS, new HashSet<>());
+            sdlcs.forEach(sdlc -> {
+                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.OPS).add(sdlc.toUpperCase());
+            });
+        });
+
+        devMemberships.forEach((membership, sdlcs) -> {
+            if(!roleMemberships.containsKey(membership)) {
+                roleMemberships.put(membership, new RoleMembership());
+            }
+            roleMemberships.get(membership).getRoles().put(GatekeeperRdsRole.DEV, new HashSet<>());
+
+            sdlcs.forEach(sdlc -> {
+                roleMemberships.get(membership).getRoles().get(GatekeeperRdsRole.DEV).add(sdlc.toUpperCase());
+            });
+        });
+
+        return roleMemberships;
+    }
+
     public boolean isApprover(){
-        return getRole() == GatekeeperRdsRole.APPROVER;
+        return gatekeeperAuthorizationService.getMemberships().contains(gatekeeperAuthProperties.getApproverGroup());
     }
 
     private GatekeeperRdsRole checkGatekeeperRdsRole() {

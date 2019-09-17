@@ -93,31 +93,41 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     getApprovalBounds(){
 
         //approvers don't need approval
-        if(vm.global.userInfo.role.toLowerCase() === 'approver'){
+        if(vm.global.userInfo.isApprover){
             return vm.global.rdsMaxDays;
         }
 
         let approvalRequired = true;
         //first lets make sure they are members of what they are requesting for
         vm.selectedItems.forEach((item) => {
-            let resource = vm.global.userInfo.memberships[item.application];
-            approvalRequired = !resource || resource.indexOf(vm.forms.awsInstanceForm.selectedAccount.sdlc.toUpperCase()) === -1;
+            let resource = vm.global.userInfo.roleMemberships;
+            approvalRequired = !resource || !resource[item.application];
         });
 
         //if the user isn't part of what he is requesting for warn for approval.
-        if(approvalRequired){
+        if (approvalRequired) {
             return -1;
         }
 
         let values = [];
 
         angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
-            if(v){
-                values.push(vm.global.userInfo.approvalThreshold[k][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]);
-            }
+            vm.selectedItems.forEach( (item) => {
+                if (v) {
+                    let appApprovalThreshold = vm.global.userInfo.approvalThreshold[item.application]['appApprovalThresholds'][k.toUpperCase()][vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
+                    values.push(appApprovalThreshold);
+                }
+            });
         });
 
-        return  Math.min.apply(Math, values)
+        let approvalThreshold = Math.min.apply(Math, values);
+        let maxDays = this.getMaximumDays()
+
+        if(approvalThreshold <= maxDays) {
+            return approvalThreshold;
+        } else {
+            return maxDays;
+        }
 
     }
 
@@ -141,10 +151,15 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     getMaximumDays(){
         let thresholds = vm.global.rdsOverridePolicy;
         let max = vm.global.rdsMaxDays;
+        let overrideExists = false;
         if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
             vm.getSelectedRoles().forEach((role) => {
                 if(thresholds[role] && thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
                     let overrideVal = thresholds[role][vm.forms.awsInstanceForm.selectedAccount.sdlc];
+                    if(overrideExists === false) {
+                        overrideExists = true;
+                        max = overrideVal;
+                    }
                     if (overrideVal < max) {
                         max = overrideVal;
                     }
