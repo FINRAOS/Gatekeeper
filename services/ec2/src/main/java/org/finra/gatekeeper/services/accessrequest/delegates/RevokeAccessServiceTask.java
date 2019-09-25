@@ -16,6 +16,8 @@
 
 package org.finra.gatekeeper.services.accessrequest.delegates;
 
+import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
+import com.amazonaws.services.simplesystemsmanagement.model.CommandStatus;
 import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -91,7 +93,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                     .collect(Collectors.toList());
 
             //any non-online reported instances in SSM or any instances not represented by SSM in general.
-            List<AWSInstance> manualRemovalInstances = accessRequest.getInstances().stream()
+            final List<AWSInstance> manualRemovalInstances = accessRequest.getInstances().stream()
                     .filter(instance -> !instancesWithStatus.containsKey(instance.getInstanceId()) || !instancesWithStatus.get(instance.getInstanceId()).equals("Online"))
                     .collect(Collectors.toList());
 
@@ -103,14 +105,21 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             Map<String, Boolean> instancesThatStillExist = ec2LookupService.checkIfInstancesExistOrTerminated(env, offlineIds);
 
             //any instance that comes up false in instancesThatStillExists is still around in AWS and needs a manual revocation.
-            manualRemovalInstances = manualRemovalInstances.stream()
+            manualRemovalInstances.addAll(manualRemovalInstances.stream()
                     .filter(instance -> !instancesThatStillExist.get(instance.getInstanceId()))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList()));
 
             //only revoke if there are instances reporting online to SSM
             if(onlineInstances.size() > 0) {
                 accessRequest.getUsers().forEach(user -> {
-                    ssmService.deleteUserAccount(env, onlineInstances, user.getUserId(), accessRequest.getPlatform());
+                    manualRemovalInstances.addAll(ssmService.deleteUserAccount(env, onlineInstances, user.getUserId(), accessRequest.getPlatform())
+                        .entrySet().stream()
+                            .filter(entry -> entry.getValue().equals(CommandStatus.Failed.toString()))
+                            .map(item -> accessRequest.getInstances().stream()
+                                .filter(instance -> instance.getInstanceId().equals(item.getKey()))
+                                .findFirst()
+                                .get())
+                            .collect(Collectors.toList()));
                 });
             }
 
