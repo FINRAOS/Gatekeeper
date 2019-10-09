@@ -79,8 +79,9 @@ public class DatabaseConnectionService {
         databases.forEach(db -> {
             logger.info("Revoking access on " + db.getName() + "(" + db.getEndpoint() + ")");
             try{
-                statusMap.put(db.getName(), databaseConnectionFactory.getConnection(db.getEngine()).revokeAccess(user, roleType, getAddress(db.getEndpoint(), db.getDbName())));
-                logger.info("User " + user + " successfully removed from " + db.getName() + "(" + db.getInstanceId() + ")");
+                Boolean result = databaseConnectionFactory.getConnection(db.getEngine()).revokeAccess(user, roleType, getAddress(db.getEndpoint(), db.getDbName()));
+                statusMap.put(db.getName(), result);
+                logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + result);
             }catch(GKUnsupportedDBException e){
                 logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
             }catch(Exception e){
