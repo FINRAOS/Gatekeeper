@@ -90,10 +90,26 @@ public class PostgresDBConnection implements DBConnection {
             String expirationTime = LocalDateTime.now().plusDays(length).format(DateTimeFormatter.ofPattern(EXPIRATION_TIMESTAMP));
             String userWithSuffix = user + "_" + role.getShortSuffix();
             //Try to revoke the user
-            logger.info("Removing " + userWithSuffix + " from " + address + " if they exist.");
-            revokeUser(conn, userWithSuffix);
-            //Update the gk roles on the DB
-            createUser(conn, address, userWithSuffix, password, role, expirationTime);
+            boolean revoked = true;
+
+            // If the user already exists then we'll need to try to remove it, if they don't we'll just create the user.
+            if(userExists(conn, userWithSuffix)) {
+                logger.info("User " + userWithSuffix + " already exists, try to remove the user.");
+                try {
+                    // try to delete the user if they already are present
+                    revoked = revokeUser(conn, userWithSuffix);
+                } catch (Exception ex) {
+                    logger.error("Could not remove the existing user from the database. Falling back by trying to rotate the existing user's password", ex);
+                    revoked = false;
+                }
+            }
+            if(revoked) {
+                // Update the gk roles on the DB
+                createUser(conn, address, userWithSuffix, password, role, expirationTime);
+            }else{
+                // Rotate the password and expiration time for te existing user.
+                updateUser(conn, address, userWithSuffix, password, role, expirationTime);
+            }
             return true;
         }catch(Exception ex){
             logger.error("An exception was thrown while trying to grant access to user " + user + "_" + role.getShortSuffix() + " on address " + address , ex);
@@ -104,6 +120,13 @@ public class PostgresDBConnection implements DBConnection {
             }
         }
     }
+
+    private void updateUser(JdbcTemplate conn, String address, String user, String password, RoleType role, String expirationTime ) throws SQLException{
+        logger.info("Rotating the password for " + user + " on " + address + " with role " + role.getDbRole());
+        conn.execute("ALTER USER " + user + " PASSWORD '" + password + "' VALID UNTIL " + " '" + expirationTime + "'", new PostgresCallableStatementExecutor());
+        logger.info("Done Updating user " + user + " on " + address + " with role " + role.getDbRole());
+    }
+
     private void createUser(JdbcTemplate conn, String address, String user, String password, RoleType role, String expirationTime ) throws SQLException{
         logger.info("Creating user " + user + " on " + address + " with role " + role.getDbRole());
         conn.execute("CREATE USER " + user + " PASSWORD '" + password + "' VALID UNTIL " + " '" + expirationTime + "'", new PostgresCallableStatementExecutor());
@@ -291,9 +314,14 @@ public class PostgresDBConnection implements DBConnection {
         return dataSource;
 
     }
-    private boolean revokeUser(JdbcTemplate conn, String user){
-        return conn.execute("DROP USER IF EXISTS " + user, new PostgresCallableStatementExecutor());
 
+    private boolean userExists(JdbcTemplate conn, String user){
+        logger.info("Checking to see if user " + user + " exists");
+        return conn.queryForList("SELECT 1 FROM pg_roles WHERE rolname='" + user+"'").size() > 0;
+    }
+    private boolean revokeUser(JdbcTemplate conn, String user){
+        conn.execute("DROP USER IF EXISTS " + user, new PostgresCallableStatementExecutor());
+        return !userExists(conn, user);
     }
 
     private class PostgresCallableStatementExecutor implements CallableStatementCallback<Boolean> {
