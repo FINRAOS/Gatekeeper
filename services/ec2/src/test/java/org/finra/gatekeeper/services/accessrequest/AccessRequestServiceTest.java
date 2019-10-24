@@ -48,7 +48,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.mockito.Matchers.any;
@@ -213,7 +213,6 @@ public class AccessRequestServiceTest {
 
         when(ownerRequestWrapper.getInstances()).thenReturn(instances);
         when(ownerRequestWrapper.getHours()).thenReturn(1);
-        when(ownerRequestWrapper.getRequestorId()).thenReturn("owner");
         when(ownerRequestWrapper.getAccount()).thenReturn("testAccount");
         when(ownerRequestWrapper.getRegion()).thenReturn("testRegion");
         when(ownerRequestWrapper.getPlatform()).thenReturn("testPlatform");
@@ -246,8 +245,8 @@ public class AccessRequestServiceTest {
         when(ownerOneTaskInstance.getTextValue2()).thenReturn("1");
         when(ownerTwoTaskInstance.getTextValue2()).thenReturn("2");
 
-        when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
-        when(accessRequestRepository.findOne(2L)).thenReturn(nonOwnerRequest);
+        when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(ownerRequest);
+        when(accessRequestRepository.getAccessRequestById(2L)).thenReturn(nonOwnerRequest);
 
         when(runtimeService.getVariableInstance("ownerOneTask", "accessRequest")).thenReturn(ownerOneTaskInstance);
         when(runtimeService.getVariableInstance("ownerTwoTask", "accessRequest")).thenReturn(ownerTwoTaskInstance);
@@ -320,7 +319,7 @@ public class AccessRequestServiceTest {
         when(ssmService.checkInstancesWithSsm(any(),any())).thenReturn(statusMap);
 
         when(accountInformationService.getAccountByAlias(any())).thenReturn(mockAccount);
-        when(accessRequestRepository.findAll(Mockito.anyList())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
+        when(accessRequestRepository.getAccessRequestsByIdIn(Mockito.anyCollection())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
 
     }
 
@@ -620,7 +619,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApproval(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
+        Mockito.when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(ownerRequest);
         accessRequestService.approveRequest("taskOne", 1L, "A reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_GRANTED);
@@ -635,7 +634,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testRejected(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(nonOwnerRequest);
+        Mockito.when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(nonOwnerRequest);
         accessRequestService.rejectRequest("taskOne", 1L, "Another Reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_REJECTED);

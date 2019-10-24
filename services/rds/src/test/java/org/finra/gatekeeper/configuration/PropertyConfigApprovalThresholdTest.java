@@ -12,7 +12,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
@@ -20,7 +20,9 @@ import java.util.*;
 /**
  * Tests for custom stuff in PropertyConfig
  */
-@RunWith(MockitoJUnitRunner.class)
+
+// Exclude the ActivitiSecurityAutoConfiguration class from being initialized because this doesn't work with Spring boot 2
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class PropertyConfigApprovalThresholdTest {
 
     @InjectMocks

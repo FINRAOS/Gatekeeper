@@ -28,7 +28,6 @@ import org.activiti.engine.impl.persistence.entity.VariableInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
@@ -50,13 +49,12 @@ import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.*;
 
@@ -66,7 +64,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for the Gatekeeper RDS Access Request Service
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class AccessRequestServiceTest {
 
     @InjectMocks
@@ -204,8 +202,6 @@ public class AccessRequestServiceTest {
         when(ownerRequest.getId()).thenReturn(1L);
         when(ownerRequest.getAccountSdlc()).thenReturn("dev");
 
-
-
         //Non-owner mock
         when(nonOwnerRequest.getAccount()).thenReturn("DEV");
         when(nonOwnerRequest.getAwsRdsInstances()).thenReturn(instances);
@@ -259,8 +255,8 @@ public class AccessRequestServiceTest {
         when(ownerOneTaskInstance.getTextValue2()).thenReturn("1");
         when(ownerTwoTaskInstance.getTextValue2()).thenReturn("2");
 
-        when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
-        when(accessRequestRepository.findOne(2L)).thenReturn(nonOwnerRequest);
+        when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(ownerRequest);
+        when(accessRequestRepository.getAccessRequestById(2L)).thenReturn(nonOwnerRequest);
 
         when(runtimeService.getVariableInstance("ownerOneTask", "accessRequest")).thenReturn(ownerOneTaskInstance);
         when(runtimeService.getVariableInstance("ownerTwoTask", "accessRequest")).thenReturn(ownerTwoTaskInstance);
@@ -332,7 +328,7 @@ public class AccessRequestServiceTest {
 
         initMockAccount("dev");
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM, MOCK_MAXIMUM, MOCK_MAXIMUM);
-        when(accessRequestRepository.findAll(Mockito.anyList())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
+        when(accessRequestRepository.getAccessRequestsByIdIn(Mockito.anyCollection())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
     }
 
 
@@ -670,7 +666,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testApproval(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
+        Mockito.when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(ownerRequest);
         accessRequestService.approveRequest("taskOne", 1L, "A reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_GRANTED);
@@ -685,7 +681,7 @@ public class AccessRequestServiceTest {
      */
     @Test
     public void testRejected(){
-        Mockito.when(accessRequestRepository.findOne(1L)).thenReturn(ownerRequest);
+        Mockito.when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(ownerRequest);
         accessRequestService.rejectRequest("taskOne", 1L, "Another Reason");
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_REJECTED);

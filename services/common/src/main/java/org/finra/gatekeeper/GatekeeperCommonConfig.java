@@ -32,8 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
@@ -138,7 +138,7 @@ public class GatekeeperCommonConfig {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "spring.ldap.contextSource")
+    @ConfigurationProperties(prefix = "spring.ldap.context-source")
     public LdapContextSource authContextSource() {
         LdapContextSource contextSource = new LdapContextSource();
         contextSource.setBase(userBase);

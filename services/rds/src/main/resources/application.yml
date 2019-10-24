@@ -15,7 +15,7 @@
 #
 #Global stuff
 #This stuff is usually replaced by the container profile, feel free to set them to what you need should you find yourself doing local development
-server.context-path: /api/gatekeeper-rds
+server.servlet.context-path: /api/gatekeeper-rds
 
 gatekeeper:
   aws:

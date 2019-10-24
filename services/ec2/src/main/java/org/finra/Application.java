@@ -16,15 +16,17 @@
 
 package org.finra;
 
+import org.activiti.spring.boot.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.web.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
  * The Entry Point for the Application
  */
 
-@SpringBootApplication
+// Exclude the ActivitiSecurityAutoConfiguration class from being initialized because this doesn't work with Spring boot 2
+@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
 public class Application extends SpringBootServletInitializer {
 
   public static void main(String[] args) {

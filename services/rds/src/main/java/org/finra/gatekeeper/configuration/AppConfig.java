@@ -17,13 +17,12 @@
 
 package org.finra.gatekeeper.configuration;
 
+import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
 import org.finra.gatekeeper.services.email.EmailService;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.util.Locale;
 
@@ -31,13 +30,11 @@ import java.util.Locale;
  * Configuration file used to set up beans like ClientConfiguration
  * or any other AWS clients such as S3, SQS, etc.
  */
-@Configuration
-@ComponentScan("org.finra")
-@EnableAutoConfiguration
+@Component
 public class AppConfig {
     @Bean
     public freemarker.template.Configuration freemarkerConfig() {
-        freemarker.template.Configuration configuration = new freemarker.template.Configuration();
+        Configuration configuration = new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_29);
         configuration.setClassForTemplateLoading(EmailService.class, "/emails");
         configuration.setDefaultEncoding("UTF-8");
         configuration.setLocale(Locale.US);
