@@ -45,9 +45,11 @@ import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.account.model.Region;
 import org.finra.gatekeeper.services.auth.model.AppApprovalThreshold;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
+import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -160,6 +162,9 @@ public class AccessRequestServiceTest {
     @Mock
     private DatabaseConnectionService databaseConnectionService;
 
+    @Mock
+    private EmailServiceWrapper emailServiceWrapper;
+
     private Date testDate;
 
     @Mock
@@ -167,6 +172,9 @@ public class AccessRequestServiceTest {
 
     @Mock
     private GatekeeperApprovalProperties approvalThreshold;
+
+    @Mock
+    private SnsService snsService;
 
     private static String OWNER_APPLICATION = "TestApplication";
     private static String NONOWNER_APPLICATION = "TestApplication2";
@@ -548,6 +556,96 @@ public class AccessRequestServiceTest {
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(badReq);
 
         verify(accessRequestRepository, times(0)).save((AccessRequest)result.getResponse());
+    }
+
+    /**
+     * Test for making sure the storeAccessRequest method throws an exception when Gatekeeper is unable to verify the Users
+     * for the provided databases.
+     */
+    @Test(expected=GatekeeperException.class)
+    public void testStoreAccessRequestDatabaseConnectionServiceException() throws Exception {
+
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(Exception.class);
+
+        AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        verify(accessRequestRepository, times(0)).save((AccessRequest)result.getResponse());
+    }
+
+    /**
+     * Test for making sure the SNS publish method is successfully invoked if approval is required and an SNS topic is set
+     * in the configuration.
+     */
+    @Test
+    public void testStoreAccessRequestPushToTopic() throws Exception {
+
+        Mockito.when(snsService.isTopicSet()).thenReturn(true);
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        initRoleMemberships(OWNER_APPLICATION, true, false, false);
+        initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
+        ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
+        when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        verify(snsService, times(1)).pushToSNSTopic((AccessRequest)result.getResponse());
+    }
+
+    /**
+     * Test for making sure a request is not published to any SNS topic if one is not provided in the configuration.
+     */
+    @Test
+    public void testStoreAccessRequestApprovalRequiredSNSTopicARNNotProvided() throws Exception {
+
+        Mockito.when(snsService.isTopicSet()).thenReturn(false);
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        initRoleMemberships(OWNER_APPLICATION, true, false, false);
+        initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
+        ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
+        when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        verify(snsService, times(0)).pushToSNSTopic((AccessRequest)result.getResponse());
+    }
+
+    /**
+     * Test for making sure a request is not published to the SNS topic if approval is not required.
+     */
+    @Test
+    public void testStoreAccessRequestApprovalNotRequired() throws Exception {
+
+        Mockito.when(snsService.isTopicSet()).thenReturn(false);
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        initRoleMemberships(OWNER_APPLICATION, true, false, false);
+        initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
+        ownerRequestWrapper.getInstances().get(0).setApplication(OWNER_APPLICATION);
+        when(awsRdsDatabase.getApplication()).thenReturn(OWNER_APPLICATION);
+        AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        verify(snsService, times(0)).pushToSNSTopic((AccessRequest)result.getResponse());
+    }
+
+    /**
+     * Test for making sure the appropriate error methods are being invoked when publishing
+     * to the SNS topic results in an exception being thrown.
+     */
+    @Test
+    public void testStoreAccessRequestExceptionPublishingToTopic() throws Exception {
+
+        Mockito.when(snsService.isTopicSet()).thenReturn(true);
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        Mockito.when(snsService.pushToSNSTopic(Mockito.any())).thenThrow(GatekeeperException.class);
+        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        initRoleMemberships(OWNER_APPLICATION, true, false, false);
+        initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
+        ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
+        when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        verify(snsService, times(1)).pushToSNSTopic((AccessRequest)result.getResponse());
+        verify(emailServiceWrapper, times(1)).notifyAdminsOfFailure(Mockito.any(), Mockito.any());
     }
 
     /**

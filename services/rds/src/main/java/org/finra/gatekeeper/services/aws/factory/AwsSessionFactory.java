@@ -4,6 +4,8 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +29,12 @@ public class AwsSessionFactory {
 
     public AmazonEC2Client createEC2Session(BasicSessionCredentials basicSessionCredentials){
         return new AmazonEC2Client(basicSessionCredentials, clientConfiguration);
+    }
+
+    public AmazonSNS createSNSSession(){
+        return AmazonSNSClientBuilder
+                .standard()
+                .build();
     }
 
 }

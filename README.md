@@ -243,6 +243,11 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 ### EC2
 These configurations are specific to Gatekeeper EC2
 
+#### SNS
+| Property | Description | Type |
+|----------|-------------|------|
+| gatekeeper.ec2.snsApprovalTopic | The SNS topic to send Gatekeeper EC2 access requests to when approval is required | string
+
 #### DATABASE
 | Property | Description | Type |
 |----------|-------------|------|
@@ -363,6 +368,7 @@ These configurations are specific to Gatekeeper RDS
 | gatekeeper.rds.sslCert | The SSL Cert to use for gatekeeper to connect (We provide the RDS cert) | string
 | gatekeeper.rds.user | The gatekeeper user to log into the RDS instance. | string
 | gatekeeper.rds.password | The password for the gatekeeper user | string
+| gatekeeper.rds.snsApprovalTopic | The SNS topic to send Gatekeeper RDS access requests to when approval is required | string
 
 | Property | Description | Type |
 |----------|-------------|------|

@@ -1,0 +1,23 @@
+{
+  "id" : "12345",
+  "days" : "14",
+  "requestorId" : "k00000",
+  "requestorName" : "John Doe",
+  "requestorEmail" : "John.Doe@finra.org",
+  "account" : "TOOLS-DEV",
+  "accountSdlc" : "dev",
+  "region" : "us-east-1",
+  "ticketId" : "TEST-12345",
+  "requestReason" : "I want to access this RDS instance",
+  "approverComments" : "",
+  "users" : [
+    { "id" : "12345", "name" : "John Doe", "email" : "John.Doe@finra.org", "userId" : "k00000" }
+  ],
+  "roles" : [
+    { "id" : "1", "role" : "readonly" },
+    { "id" : "2", "role" : "dba" }
+  ],
+  "instances" : [
+    { "id" : "1", "name" : "pet-test-rds", "application" : "PET", "instanceId" : "db-ABCDEFGHIJKLMNOP", "dbName" : "pettestdb", "engine" : "postgres", "endpoint" : "pet-test-rds.abcdefghijklmn.us-east-1.rds.amazonaws.com:5432", "arn" : "arn:aws:rds:us-east-1:123456789012:db:pet-test-rds", "status" : "available" }
+  ]
+}

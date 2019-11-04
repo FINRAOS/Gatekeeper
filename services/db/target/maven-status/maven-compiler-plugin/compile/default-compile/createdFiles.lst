@@ -1,0 +1,4 @@
+org/finra/gatekeeper/rds/interfaces/DBConnection.class
+org/finra/gatekeeper/rds/model/RoleType.class
+org/finra/gatekeeper/rds/model/DbUser.class
+org/finra/gatekeeper/rds/exception/GKUnsupportedDBException.class

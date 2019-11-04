@@ -25,6 +25,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.sns.AmazonSNS;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -136,5 +137,9 @@ public class AwsSessionService {
         ec2.setRegion(Region.getRegion(Regions.fromName(environment.getRegion())));
         return ec2;
 
+    }
+
+    public AmazonSNS getSNSSession(){
+        return awsSessionFactory.createSNSSession();
     }
 }

@@ -20,8 +20,10 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import org.finra.gatekeeper.configuration.properties.GatekeeperEC2Properties;
 import org.finra.gatekeeper.configuration.properties.GatekeeperSnsProperties;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.RequestEventDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +44,14 @@ public class SnsService {
 
     private final AwsSessionService awsSessionService;
     private final GatekeeperSnsProperties gatekeeperSnsProperties;
+    private final GatekeeperEC2Properties gatekeeperEC2Properties;
 
     @Autowired
     public SnsService(AwsSessionService awsSessionService,
+                      GatekeeperEC2Properties gatekeeperEC2Properties,
                       GatekeeperSnsProperties gatekeeperSnsProperties){
 
+        this.gatekeeperEC2Properties = gatekeeperEC2Properties;
         this.awsSessionService = awsSessionService;
         this.gatekeeperSnsProperties = gatekeeperSnsProperties;
     }
@@ -54,6 +59,8 @@ public class SnsService {
     public boolean isTopicSet(){
         return gatekeeperSnsProperties.getTopicARN() != null;
     }
+
+    public boolean isEmailTopicSet() { return gatekeeperEC2Properties.getEc2().getSnsApprovalTopic() != null; }
 
     public void pushToSNSTopic(RequestEventDTO message) throws Exception {
         if(gatekeeperSnsProperties.getTopicARN() != null){
@@ -63,7 +70,16 @@ public class SnsService {
         }
     }
 
-    private void pushToSNSTopic(RequestEventDTO message, String topicARN) throws Exception {
+    public boolean pushToEmailSNSTopic(AccessRequest accessRequest) throws Exception {
+        if(isEmailTopicSet()){
+            pushToSNSTopic(accessRequest, gatekeeperEC2Properties.getEc2().getSnsApprovalTopic());
+            return true;
+        }
+        logger.info("SNS Topic was not provided, skipping");
+        return false;
+    }
+
+    private void pushToSNSTopic(Object message, String topicARN) throws Exception {
         int attempts = gatekeeperSnsProperties.getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getRetryCount();
         int retryInterval = gatekeeperSnsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getRetryIntervalMillis();
         int retryMultiplier = gatekeeperSnsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getRetryIntervalMultiplier();
@@ -75,8 +91,6 @@ public class SnsService {
             try {
                 AmazonSNS snsClient = awsSessionService.getSnsSession();
 
-                Map<String, RequestEventDTO> messagePayload = new HashMap<>();
-                messagePayload.put("default", message);
                 messageId = snsClient.publish(new PublishRequest()
                         .withTopicArn(topicARN)
                         .withMessage(jsonWriter.writeValueAsString(message))).getMessageId();
