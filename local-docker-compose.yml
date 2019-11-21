@@ -38,7 +38,7 @@ services:
     build:
       context: ./demo-services/fake-account-service
       args:
-        jar_file: fake-account-service-1.0.jar
+        jar_file: fake-account-service-*.jar
     mem_limit: 500m
     ports:
       - "8080:8080"
@@ -50,7 +50,7 @@ services:
     build:
       context: ./services/ec2
       args:
-        jar_file: gatekeeper-ec2-service-1.0.jar
+        jar_file: gatekeeper-ec2-service-*.jar
     mem_limit: 550m
     ports:
       - "8080"
@@ -71,7 +71,7 @@ services:
     build:
       context: ./services/rds
       args:
-        jar_file: gatekeeper-rds-service-1.0.jar
+        jar_file: gatekeeper-rds-service-*.jar
     mem_limit: 550m
     ports:
       - "8080"
