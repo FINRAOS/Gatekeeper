@@ -220,7 +220,7 @@ public class AccessRequestService {
         List<Task> tasks = taskService.createTaskQuery().active().list();
         List<ActiveAccessRequestWrapper> response = new ArrayList<>();
         tasks.forEach(task -> {
-            AccessRequest theRequest = accessRequestRepository.findOne(Long.valueOf(
+            AccessRequest theRequest = accessRequestRepository.getAccessRequestById(Long.valueOf(
                     runtimeService.getVariableInstance(task.getExecutionId(), "accessRequest").getTextValue2())
             );
 
@@ -266,7 +266,7 @@ public class AccessRequestService {
 
         //run a query to grab all of the access requests that we found in activiti (this pretty much returns all
         //for now, until we implement it to use a time window)
-        accessRequestRepository.findAll(activitiAccessRequestMap.values()).forEach(accessRequest -> {
+        accessRequestRepository.getAccessRequestsByIdIn(activitiAccessRequestMap.values()).forEach(accessRequest -> {
             gkAccessRequestMap.put(accessRequest.getId(), accessRequest);
         });
 
@@ -337,7 +337,7 @@ public class AccessRequestService {
      * @param action - the action taken on the request
      */
     private void updateRequestDetails(Long requestId, String approverComments, String action){
-        AccessRequest accessRequest = accessRequestRepository.findOne(requestId);
+        AccessRequest accessRequest = accessRequestRepository.getAccessRequestById(requestId);
         accessRequest.setApproverComments(approverComments);
         GatekeeperUserEntry user = gatekeeperRoleService.getUserProfile();
         accessRequest.setActionedByUserId(user.getUserId());

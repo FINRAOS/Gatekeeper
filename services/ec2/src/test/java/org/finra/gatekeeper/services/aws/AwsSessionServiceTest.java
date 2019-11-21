@@ -40,7 +40,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -95,8 +95,6 @@ public class AwsSessionServiceTest {
         awsEnvironment = new AWSEnvironment("Dev", "us-west-2");
         Mockito.when(gatekeeperAwsProperties.getSessionTimeout()).thenReturn(900000);
         Mockito.when(gatekeeperAwsProperties.getSessionTimeoutPad()).thenReturn(60000);
-        Mockito.when(gatekeeperAwsProperties.getProxyHost()).thenReturn("testproxy");
-        Mockito.when(gatekeeperAwsProperties.getProxyPort()).thenReturn("100");
 
         List<Region> regions = new ArrayList<>();
         Region testRegion1 = new Region();

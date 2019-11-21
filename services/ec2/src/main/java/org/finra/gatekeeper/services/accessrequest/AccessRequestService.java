@@ -184,7 +184,7 @@ public class AccessRequestService {
         List<ActiveAccessRequestWrapper> response = new ArrayList<>();
         tasks.forEach(task -> {
             AccessRequest theRequest = updateInstanceStatus(
-                    accessRequestRepository.findOne(Long.valueOf(
+                    accessRequestRepository.getAccessRequestById(Long.parseLong(
                             runtimeService.getVariableInstance(task.getExecutionId(), "accessRequest").getTextValue2())
                     ));
             response.add(new ActiveAccessRequestWrapper(theRequest)
@@ -229,9 +229,8 @@ public class AccessRequestService {
 
         //run a query to grab all of the access requests that we found in activiti (this pretty much returns all
         //for now, until we implement it to use a time window)
-        accessRequestRepository.findAll(activitiAccessRequestMap.values()).forEach(accessRequest -> {
-            gkAccessRequestMap.put(accessRequest.getId(), accessRequest);
-        });
+        accessRequestRepository.getAccessRequestsByIdIn(activitiAccessRequestMap.values())
+                .forEach(accessRequest -> { gkAccessRequestMap.put(accessRequest.getId(), accessRequest); });
 
     /*  this one's kind of a hack but this query gets the RequestStatus value for a request
         we do it like this because once again if the package name changes it won't update the database and will
@@ -352,7 +351,7 @@ public class AccessRequestService {
      * @param action - the action taken on the request
      */
     private void updateRequestDetails(Long requestId, String approverComments, String action){
-        AccessRequest accessRequest = accessRequestRepository.findOne(requestId);
+        AccessRequest accessRequest = accessRequestRepository.getAccessRequestById(requestId);
         accessRequest.setApproverComments(approverComments);
         GatekeeperUserEntry user = gatekeeperRoleService.getUserProfile();
         accessRequest.setActionedByUserId(user.getUserId());
@@ -415,7 +414,7 @@ public class AccessRequestService {
                 });
 
         List<CompletedAccessRequestWrapper> requests = new ArrayList<>();
-        accessRequestRepository.findAll(historicData.keySet()).forEach(accessRequest -> {
+        accessRequestRepository.getAccessRequestsByIdIn(historicData.keySet()).forEach(accessRequest -> {
             Map<String, Object> data = historicData.get(accessRequest.getId());
             CompletedAccessRequestWrapper completedAccessRequestWrapper = new CompletedAccessRequestWrapper(accessRequest);
             completedAccessRequestWrapper.setUpdated((Date)data.get(updated));

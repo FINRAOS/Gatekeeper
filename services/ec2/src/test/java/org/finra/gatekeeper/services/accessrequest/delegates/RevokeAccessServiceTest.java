@@ -33,7 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -65,7 +65,7 @@ public class RevokeAccessServiceTest {
     @Mock
     private JobQuery mockjobQuery = new JobQueryImpl();
     @Mock
-    private JobEntity mockJobEntity = new JobEntity() {};
+    private JobEntity mockJobEntity;
 
     @InjectMocks
     private RevokeAccessServiceTask revokeAccessServiceTask;
@@ -77,6 +77,7 @@ public class RevokeAccessServiceTest {
         Mockito.when(mockjobQuery.processInstanceId(Mockito.anyString())).thenReturn(mockjobQuery);
         Mockito.when(mockjobQuery.singleResult()).thenReturn(mockJobEntity);
         Mockito.when(mockJobEntity.getRetries()).thenReturn(2);
+        Mockito.when(execution.getProcessInstanceId()).thenReturn("1");
 
         mockRequest = new AccessRequest()
                 .setId(1L)

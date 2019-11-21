@@ -17,13 +17,10 @@
 
 package org.finra.gatekeeper.configuration;
 
+import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
 import org.finra.gatekeeper.services.email.EmailService;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.ldap.core.ContextSource;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -32,19 +29,8 @@ import java.util.Locale;
 public class GatekeeperConfig {
 
     @Bean
-    @ConfigurationProperties(prefix = "spring.ldap.contextSource")
-    public LdapContextSource contextSource() {
-        return new LdapContextSource();
-    }
-
-    @Bean
-    public LdapTemplate ldapTemplate(ContextSource contextSource) {
-        return new LdapTemplate(contextSource);
-    }
-
-    @Bean
-    public freemarker.template.Configuration freemarkerConfig() {
-        freemarker.template.Configuration configuration = new freemarker.template.Configuration();
+    public Configuration freemarkerConfig() {
+        Configuration configuration = new Configuration(Configuration.VERSION_2_3_29);
         configuration.setClassForTemplateLoading(EmailService.class, "/emails");
         configuration.setDefaultEncoding("UTF-8");
         configuration.setLocale(Locale.US);

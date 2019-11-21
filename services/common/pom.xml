@@ -19,7 +19,6 @@
         <java.version>1.8</java.version>
         <freemarker.version>2.3.20</freemarker.version>
         <commons.version>3.4</commons.version>
-        <spring.security.version>4.0.3.RELEASE</spring.security.version>
     </properties>
 
     <dependencies>
@@ -59,9 +58,8 @@
             <artifactId>guava</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-ldap</artifactId>
-            <version>${spring.security.version}</version>
+            <groupId>org.springframework.ldap</groupId>
+            <artifactId>spring-ldap-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>

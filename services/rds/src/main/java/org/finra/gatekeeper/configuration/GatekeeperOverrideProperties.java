@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Component
-@ConfigurationProperties(prefix="gatekeeper.overridePolicy")
+@ConfigurationProperties(prefix="gatekeeper.override-policy")
 public class GatekeeperOverrideProperties {
 
     @Autowired

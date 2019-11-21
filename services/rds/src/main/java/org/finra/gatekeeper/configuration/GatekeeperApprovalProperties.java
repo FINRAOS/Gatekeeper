@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-@ConfigurationProperties(prefix="gatekeeper.approvalThreshold")
+@ConfigurationProperties(prefix="gatekeeper.approval-threshold")
 public class GatekeeperApprovalProperties {
     /**
      * Thresholds for DEV Role

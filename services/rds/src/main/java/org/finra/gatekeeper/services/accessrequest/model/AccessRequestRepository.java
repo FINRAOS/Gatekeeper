@@ -19,8 +19,13 @@ package org.finra.gatekeeper.services.accessrequest.model;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Repo object for AccessRequest domain
  */
 public interface AccessRequestRepository extends JpaRepository<AccessRequest, Long> {
+    AccessRequest getAccessRequestById(Long id);
+    List<AccessRequest> getAccessRequestsByIdIn(Collection<Long> ids);
 }

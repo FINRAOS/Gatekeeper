@@ -14,8 +14,7 @@
 #  limitations under the License.
 #
 #Global stuff, Most of this stuff should be set with container profile
-server.context-path: /api/gatekeeper-ec2
-
+server.servlet.context-path: /api/gatekeeper-ec2
 gatekeeper:
   aws:
     proxyHost: unset
@@ -38,7 +37,7 @@ gatekeeper:
   db:
     sslParams: ssl=true&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
 
-  approvalThreshold:
+  approval-threshold:
     dev:
       dev: 48
       qa: 48
@@ -99,9 +98,6 @@ cloud:
 
 log:
   filename: application.log
-
-logging:
-  level: info
 
 ---
 
