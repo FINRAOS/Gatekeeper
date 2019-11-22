@@ -139,7 +139,7 @@ spring:
   datasource:
     platform: postgres
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://${gatekeeper.db.url}:${gatekeeper.db.port}/${gatekeeper.db.database}?currentSchema=${gatekeeper.db.schema}&${gatekeeper.db.sslParams}
+    url: jdbc:postgresql://${gatekeeper.db.url}:${gatekeeper.db.port}/${gatekeeper.db.database}?ApplicationName=GatekeeperEC2&currentSchema=${gatekeeper.db.schema}&${gatekeeper.db.sslParams}
     username: ${gatekeeper.db.user}
     password: ${gatekeeper.db.password}
     max-idle: 2
