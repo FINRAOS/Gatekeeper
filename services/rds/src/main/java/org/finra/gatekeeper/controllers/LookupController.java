@@ -53,21 +53,22 @@ class LookupController {
 
     @RequestMapping(value = "/searchDBInstances", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<GatekeeperRDSInstance> searchRDSInstances(@RequestParam("account") String account, @RequestParam("region") String region,
-                                                          @RequestParam("searchText") String searchString){
-        return rdsLookupService.getInstances(new AWSEnvironment(account.toUpperCase(), region), searchString.toLowerCase());
+                                                          @RequestParam("searchText") String searchString, @RequestParam("type") String type){
+        return rdsLookupService.getInstances(new AWSEnvironment(account.toUpperCase(), region), type, searchString.toLowerCase());
     }
 
     @RequestMapping(value = "/getAvailableSchemas", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<RoleType, List<String>> getAvailableSchemas(@RequestParam("account") String account, @RequestParam("region") String region,
-                                                           @RequestParam("instanceId") String instanceId) throws Exception{
-        return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId);
+                                                           @RequestParam("instanceId") String instanceId, @RequestParam("instanceName") String instanceName) throws Exception{
+        return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId, instanceName);
     }
 
     @RequestMapping(value="/getUsers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<DbUser> getUsersForInstance(@RequestParam("account") String account,
                                             @RequestParam("region") String region,
+                                            @RequestParam("instanceId") String instanceId,
                                             @RequestParam("instanceName") String instanceName) throws Exception{
-        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceName);
+        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId, instanceName);
 
     }
 }

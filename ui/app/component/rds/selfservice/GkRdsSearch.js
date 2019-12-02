@@ -39,6 +39,7 @@ class GkRdsSearch extends Directive{
 
     controller($scope, $mdDialog, gkRDSService, gkAccountService){
         let vm = this;
+        vm.types = ['RDS', 'Aurora'];
         vm.rdsService = gkRDSService;
         gkAccountService.fetch().then((response) =>{
             vm.awsAccounts = response.data;
@@ -113,6 +114,7 @@ class GkRdsSearch extends Directive{
                 vm.awsTable.data.splice(0, vm.awsTable.data.length);
                 vm.awsTable.promise = vm.rdsService.search(
                     {
+                        type: vm.forms.awsInstanceForm.selectedType,
                         account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                         region: vm.forms.awsInstanceForm.selectedRegion.name,
                         searchText:vm.forms.awsInstanceForm.searchText,

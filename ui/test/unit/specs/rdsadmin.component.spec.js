@@ -148,13 +148,14 @@ describe('GateKeeper RDS admin component', function () {
                    selectedAccount: { alias:'ut'},
                    selectedRegion: { name:'us-east-1'}
                };
-               let row = {name:'testid'};
+               let row = {name:'testid', instanceId: 'testInstanceId'};
                controller.getUsers(row);
                usersDeferred.resolve(resp);
                scope.$apply();
                expect(gkRdsUserService.search).toHaveBeenCalledWith({
                    account:controller.forms.awsInstanceForm.selectedAccount.alias,
                    region:controller.forms.awsInstanceForm.selectedRegion.name,
+                   instanceId: row.instanceId,
                    instanceName:row.name
                });
                expect(controller.usersTable.data).toEqual(resp.data);
