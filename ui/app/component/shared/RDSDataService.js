@@ -28,7 +28,7 @@ class RDSDataService extends SearchableDataService{
     constructor($http,$state){
         super($http,$state);
         this.resource = 'searchDBInstances';
-        this.params= ['account','region','searchText'];
+        this.params= ['type','account','region','searchText'];
     }
 }
 

@@ -14,21 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.finra.gatekeeper.services.aws.model;
 
-import SearchableDataService from './generic/SearchableDataService';
-
-/**
- * The Service to make AWS Calls
- * @returns {{}}
- *
- */
-
-class SchemaDataService extends SearchableDataService{
-    constructor($http,$state){
-        super($http,$state);
-        this.resource = 'getAvailableSchemas';
-        this.params= ['account','region','instanceId', "instanceName"];
-    }
+public enum LookupType {
+    RDS, AURORA
 }
-
-export default SchemaDataService;

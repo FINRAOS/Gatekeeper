@@ -98,6 +98,7 @@ class RdsAdminController extends GatekeeperAdminController{
             {
                 account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                 region: vm.forms.awsInstanceForm.selectedRegion.name,
+                instanceId: row.instanceId,
                 instanceName: row.name,
             });
 
@@ -119,6 +120,7 @@ class RdsAdminController extends GatekeeperAdminController{
                 vm.blocking = true;
                 vm.usersTable.promise = vm[REVOKE].delete(vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                     vm.forms.awsInstanceForm.selectedRegion.name,
+                    vm.selectedItems[0].instanceId,
                     vm.selectedItems[0].name,
                     vm.usersTable.selected);
 

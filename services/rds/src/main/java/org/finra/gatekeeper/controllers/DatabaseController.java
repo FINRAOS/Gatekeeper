@@ -50,7 +50,7 @@ public class DatabaseController {
     public List<DbUser> removeUsersFromDatabase(@RequestBody RemoveUsersWrapper removeUsersWrapper) throws Exception {
         AWSEnvironment awsEnvironment = new AWSEnvironment(removeUsersWrapper.getAccount(), removeUsersWrapper.getRegion());
         try {
-            GatekeeperRDSInstance rdsInstance = rdsLookupService.getOneInstance(awsEnvironment, removeUsersWrapper.getDb()).get();
+            GatekeeperRDSInstance rdsInstance = rdsLookupService.getOneInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName()).get();
             List<String> result = this.databaseConnectionService.forceRevokeAccessUsersOnDatabase( rdsInstance, removeUsersWrapper.getUsers());
             if(!result.isEmpty()){
                 throw new GatekeeperException("Failed to remove the following users: " + result + ". Please verify that they do not have any dependent objects; " +
@@ -58,10 +58,10 @@ public class DatabaseController {
             }
         } catch (Exception e ) {
             throw new GatekeeperException("Error while trying to revoke the following users: " + removeUsersWrapper.getUsers()
-                    + " On database " + removeUsersWrapper.getDb() + " on account " + removeUsersWrapper.getAccount() + " ("
+                    + " On database " + removeUsersWrapper.getInstanceName() + " on account " + removeUsersWrapper.getAccount() + " ("
                     + removeUsersWrapper.getRegion() + ") - " + e.getMessage() , e);
         }
 
-        return rdsLookupService.getUsersForInstance(awsEnvironment, removeUsersWrapper.getDb());
+        return rdsLookupService.getUsersForInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName());
     }
 }
