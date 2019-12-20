@@ -24,6 +24,7 @@ import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
+import org.finra.gatekeeper.services.aws.model.LookupType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.slf4j.Logger;
@@ -44,10 +45,19 @@ public class RdsLookupService {
 
     private final Logger logger = LoggerFactory.getLogger(RdsLookupService.class);
 
+    protected static final String STATUS_MISSING_SGS = "Missing Gatekeeper RDS support Security Group";
+    protected static final String STATUS_NO_INSTANCES = "This Cluster has no associated instances";
+    protected static final String STATUS_NO_WRITERS = "This Cluster has no associated writer instances";
+    protected static final String STATUS_UNSUPPORTED_DB_ENGINE = "DB Engine not supported";
+    protected static final String STATUS_COULD_NOT_FETCH_ROLES = "Could not fetch roles available to DB";
+    protected static final String STATUS_UNABLE_TO_LOGIN = "Gatekeeper user does not exist or password is incorrect.";
+
     private final AwsSessionService awsSessionService;
     private final DatabaseConnectionService databaseConnectionService;
     private final SGLookupService sgLookupService;
     private final GatekeeperProperties gatekeeperProperties;
+    private final String STATUS_AVAILABLE = "available";
+    private final String STATUS_BACKING_UP = "backing-up";
 
     @Autowired
     public RdsLookupService(AwsSessionService awsSessionService,
@@ -60,13 +70,74 @@ public class RdsLookupService {
         this.gatekeeperProperties = gatekeeperProperties;
     }
 
-    private List<GatekeeperRDSInstance> doFilter(AWSEnvironment environment, String searchString) {
-        return loadInstances(environment, instance -> instance.getDBInstanceIdentifier().toLowerCase().contains(searchString.toLowerCase())
-                || instance.getDbiResourceId().toLowerCase().contains(searchString.toLowerCase()));
+
+    public List<GatekeeperRDSInstance> getInstances(AWSEnvironment environment, String lookupType, String searchString) {
+        switch(LookupType.valueOf(lookupType.toUpperCase())){
+            case RDS:
+                return doFilterRds(environment, searchString);
+            case AURORA:
+                return doFilterAurora(environment, searchString);
+            default:
+                return Collections.emptyList();
+        }
     }
 
-    public List<GatekeeperRDSInstance> getInstances(AWSEnvironment environment, String searchString) {
-        return doFilter(environment, searchString);
+    public Optional<GatekeeperRDSInstance> getOneInstance(AWSEnvironment environment, String dbInstanceIdentifier, String instanceName) {
+        logger.info(dbInstanceIdentifier);
+        Long startTime = System.currentTimeMillis();
+        List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
+        AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances;
+
+        //if it's an aurora cluster, the resrouce will start with "cluster"
+        if(dbInstanceIdentifier.startsWith("cluster")){
+            DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(
+                    new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName));
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(amazonRDSClient, result.getDBClusters(), securityGroupIds);
+        }else {
+            DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient, result.getDBInstances(), securityGroupIds);
+        }
+
+        logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
+
+        Optional<GatekeeperRDSInstance> gatekeeperRDSInstance = Optional.of(gatekeeperRDSInstances.get(0));
+        return gatekeeperRDSInstance;
+    }
+
+    public Map<RoleType, List<String>> getSchemasForInstance(AWSEnvironment environment, String instanceId, String instanceName) throws Exception{
+        logger.info("Getting Schema info for " +instanceName + "(" + instanceId + ") On Account " + environment.getAccount() + " and Region " + environment.getRegion());
+        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
+        if(instance.isPresent()){
+            return databaseConnectionService.getAvailableSchemasForDb(instance.get());
+        }else{
+            return unavailableMap();
+        }
+    }
+
+    @PreAuthorize("@gatekeeperRoleService.isApprover()")
+    public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceId, String instanceName) throws Exception {
+        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
+
+        if(instance.isPresent()){
+            return databaseConnectionService.getUsersForDb(instance.get());
+        }else{
+            logger.error("Could not find database with " + instanceName + " on account " + environment.getAccount() + "(" + environment.getRegion() + ")");
+            return Collections.emptyList();
+        }
+    }
+
+    private List<GatekeeperRDSInstance> doFilterRds(AWSEnvironment environment, String searchString) {
+        // Get all instances that match the given search string
+        return loadInstances(environment, instance -> (instance.getDBInstanceIdentifier().toLowerCase().contains(searchString.toLowerCase())
+                || instance.getDbiResourceId().toLowerCase().contains(searchString.toLowerCase())) && !instance.getEngine().contains("aurora"));
+    }
+
+    private List<GatekeeperRDSInstance> doFilterAurora(AWSEnvironment environment, String searchString) {
+        // Get all instances that match the given search string
+        return loadInstancesAurora(environment, instance ->
+                instance.getDBClusterIdentifier().toLowerCase().contains(searchString.toLowerCase())
+                        || instance.getDbClusterResourceId().toLowerCase().contains(searchString.toLowerCase()));
     }
 
     private String getApplicationTagforInstanceArn(AmazonRDSClient client, String arn){
@@ -88,19 +159,24 @@ public class RdsLookupService {
 
         instances.forEach(item -> {
             String application = getApplicationTagforInstanceArn(client, item.getDBInstanceArn());
-            if(item.getDBInstanceStatus().equalsIgnoreCase("available")) {
-                Boolean enabled = item.getVpcSecurityGroups().stream()
+            boolean enabled = false;
+            String status = item.getDBInstanceStatus();
+            Integer port = item.getEndpoint().getPort();
+            List<String> availableRoles = null;
+            String dbName = item.getDBName();
+            String address = getAddress(item.getEndpoint().getAddress(),String.valueOf(port),dbName);
+
+            if(item.getDBInstanceStatus().equalsIgnoreCase(STATUS_AVAILABLE)
+                    || item.getDBInstanceStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
+                enabled = item.getVpcSecurityGroups().stream()
                         .anyMatch(sg -> {
                             return securityGroupIds.contains(sg.getVpcSecurityGroupId());
                         });
-
-                String status = item.getDBInstanceStatus();
-                String dbName = item.getDBName();
-                Integer port = item.getEndpoint().getPort();
-                List<String> availableRoles = null;
-
+                if(!enabled){
+                    status = STATUS_MISSING_SGS;
+                }
                 // If the database engine is an oracle based engine then we need to go dig the SSL port out thru the options.
-                if(item.getEngine().contains("oracle")) {
+                if(enabled && item.getEngine().contains("oracle")) {
                     // need to get the oracle SSL port from the associated option group
                     logger.info("determining SSL port for Oracle DB " + item.getDBInstanceIdentifier() + " (" + item.getEngine() + ")");
                     List<String> optionGroups = item.getOptionGroupMemberships().stream()
@@ -127,45 +203,126 @@ public class RdsLookupService {
                     logger.info("The SSL Port for " + item.getDBName() + " is: " + port);
                 }
 
-                if(item.getReadReplicaSourceDBInstanceIdentifier() != null){
+                if(enabled && item.getReadReplicaSourceDBInstanceIdentifier() != null){
                     status = "Unsupported (Read-Only replica of " +item.getReadReplicaSourceDBInstanceIdentifier() + ")";
+                    enabled = false;
                 }
-                if(!enabled){
-                    status = "Missing Gatekeeper RDS support Security Group";
-                }else{
+                if(enabled){
                     //if enabled lets check if the DB is working
-
                     try {
-
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(),String.valueOf(port),dbName));
+                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), address);
                         status = !dbStatus.isEmpty() ? dbStatus : status;
+                        enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
                     }catch(GKUnsupportedDBException e){
-                        logger.error("Database Engine is not supported", e);
-                        status = "DB Engine not supported";
+                        logger.error(STATUS_UNSUPPORTED_DB_ENGINE, e);
+                        status = STATUS_UNSUPPORTED_DB_ENGINE;
+                        enabled = false;
                     }
                     // if status hasn't changed then get the roles
-                    if(status.equals(item.getDBInstanceStatus())) {
+                    if(enabled && status.equals(item.getDBInstanceStatus())) {
                         // get available roles for DB
                         try {
-                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), getAddress(item.getEndpoint().getAddress(), String.valueOf(port), dbName));
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), address);
                             Collections.sort(availableRoles);
                             logger.info("Found the following roles on " + item.getDBInstanceIdentifier() + " (" + availableRoles +").");
                         } catch (Exception e) {
-                            logger.error("Could not fetch roles available to DB", e);
-                            status = "Could not fetch roles available to DB";
+                            logger.error(STATUS_COULD_NOT_FETCH_ROLES, e);
+                            if(e.getMessage().contains("password")){
+                                status = STATUS_UNABLE_TO_LOGIN;
+                            }else {
+                                status = STATUS_COULD_NOT_FETCH_ROLES;
+                            }
+                            enabled = false;
                         }
                     }
                 }
-
-                gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
-                        dbName != null ? dbName : "", item.getEngine(), status,
-                        item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled));
             }
+
+            gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
+                    dbName != null ? dbName : "", item.getEngine(), status,
+                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled));
         });
 
         return gatekeeperRDSInstances;
     }
 
+    /**
+     * This looks at database clusters for Aurora, similar to the function loadToGatekeeperRDSInstance() but the difference
+     * being we have to look at the cluster as a whole vs the single instance
+     */
+    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds){
+        ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
+
+        instances.forEach(item -> {
+            String application = getApplicationTagforInstanceArn(client, item.getDBClusterArn());
+            boolean enabled = false;
+            String status = item.getStatus();
+            Integer port = item.getPort();
+            List<String> availableRoles = null;
+            String dbName = item.getDatabaseName();
+            String address = getAddress(item.getEndpoint(),String.valueOf(port),dbName);
+
+            if(item.getStatus().equalsIgnoreCase(STATUS_AVAILABLE)
+                    || item.getStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
+                enabled = item.getVpcSecurityGroups().stream()
+                        .anyMatch(sg -> {
+                            return securityGroupIds.contains(sg.getVpcSecurityGroupId());
+                        });
+
+                if(!enabled){
+                    status = STATUS_MISSING_SGS;
+                }
+
+                if(enabled && item.getReplicationSourceIdentifier() != null){
+                    status = "Unsupported (Read-Only replica of " + item.getReplicationSourceIdentifier() + ")";
+                    enabled = false;
+                }
+
+                //if the cluster does not have any instances associated then it won't be able to work with Gatekeeper
+                if(enabled && item.getDBClusterMembers().size() < 1){
+                    status = STATUS_NO_INSTANCES;
+                    enabled = false;
+                } else if(enabled && item.getDBClusterMembers().stream().noneMatch(DBClusterMember::isClusterWriter)){
+                    //if the cluster has no writer instances associated with it. Gatekeeper cannot create the user
+                    status = STATUS_NO_WRITERS;
+                    enabled = false;
+                }
+
+                if(enabled) {
+                    try {
+                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), address);
+                        status = !dbStatus.isEmpty() ? dbStatus : status;
+                        enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
+                    }catch(GKUnsupportedDBException e){
+                        logger.error(STATUS_UNSUPPORTED_DB_ENGINE, e);
+                        status = STATUS_UNSUPPORTED_DB_ENGINE;
+                        enabled = false;
+                    }
+
+                    if(enabled){
+                        // get available roles for DB
+                        try {
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), address);
+                            Collections.sort(availableRoles);
+                            logger.info("Found the following roles on " + item.getDBClusterIdentifier() + " (" + availableRoles +").");
+                        } catch (Exception e) {
+                            logger.error(STATUS_COULD_NOT_FETCH_ROLES, e);
+                            if (e.getMessage().contains("password")) {
+                                status = STATUS_UNABLE_TO_LOGIN;
+                            } else {
+                                status = STATUS_COULD_NOT_FETCH_ROLES;
+                            }
+                            enabled = false;
+                        }
+                    }
+                }
+            }
+            gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbClusterResourceId(), item.getDBClusterIdentifier(),
+                    dbName, item.getEngine(), status, item.getDBClusterArn(), item.getEndpoint() + ":" + port, application, availableRoles, enabled));
+        });
+
+        return gatekeeperRDSInstances;
+    }
     private String getAddress(String address, String port, String dbName){
         return String.format("%s:%s/%s", address, port, dbName);
     }
@@ -198,41 +355,32 @@ public class RdsLookupService {
         return gatekeeperRDSInstances;
     }
 
-    public Optional<GatekeeperRDSInstance> getOneInstance(AWSEnvironment environment, String dbInstanceIdentifier) {
+    private List<GatekeeperRDSInstance> loadInstancesAurora(AWSEnvironment environment, Predicate<? super DBCluster> filter) {
+        logger.info("Looking up Aurora Clusters");
         Long startTime = System.currentTimeMillis();
-        DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest();
+        DescribeDBClustersRequest describeDBClustersRequest = new DescribeDBClustersRequest();
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
-        DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest.withDBInstanceIdentifier(dbInstanceIdentifier));
+        DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(describeDBClustersRequest);
 
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient, result.getDBInstances(), securityGroupIds);
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(amazonRDSClient,
+                result.getDBClusters()
+                        .stream()
+                        .filter(filter)
+                        .collect(Collectors.toList()), securityGroupIds);
 
-        logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
-
-        Optional<GatekeeperRDSInstance> gatekeeperRDSInstance = Optional.of(gatekeeperRDSInstances.get(0));
-        return gatekeeperRDSInstance;
-    }
-
-    public Map<RoleType, List<String>> getSchemasForInstance(AWSEnvironment environment, String instanceId) throws Exception{
-        logger.info("Getting Schema info for " + instanceId + " On Account " + environment.getAccount() + " and Region " + environment.getRegion());
-        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId);
-        if(instance.isPresent()){
-            return databaseConnectionService.getAvailableSchemasForDb(instance.get());
-        }else{
-            return unavailableMap();
+        //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
+        while(result.getMarker() != null) {
+            result = amazonRDSClient.describeDBClusters(describeDBClustersRequest.withMarker(result.getMarker()));
+            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstanceAurora(amazonRDSClient,
+                    result.getDBClusters()
+                            .stream()
+                            .filter(filter)
+                            .collect(Collectors.toList()), securityGroupIds));
         }
-    }
+        logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
-    @PreAuthorize("@gatekeeperRoleService.isApprover()")
-    public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceName) throws Exception {
-        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceName);
-
-        if(instance.isPresent()){
-            return databaseConnectionService.getUsersForDb(instance.get());
-        }else{
-            logger.error("Could not find database with " + instanceName + " on account " + environment.getAccount() + "(" + environment.getRegion() + ")");
-            return Collections.emptyList();
-        }
+        return gatekeeperRDSInstances;
     }
 
     private Map<RoleType, List<String>> unavailableMap(){

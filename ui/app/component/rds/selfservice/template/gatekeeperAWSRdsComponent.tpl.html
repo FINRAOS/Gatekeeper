@@ -21,6 +21,14 @@
         <form name="ctrl.forms.awsInstanceForm" layout="row">
             <div layout="column">
                 <md-input-container md-no-float>
+                    <label>Select a Type</label>
+                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedType" ng-change="ctrl.clearInstances()" required>
+                        <md-option ng-value="opt" ng-repeat="opt in ctrl.types">{{ opt }}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div layout="column">
+                <md-input-container md-no-float>
                     <label>Select an Account</label>
                     <md-select ng-model="ctrl.forms.awsInstanceForm.selectedAccount" ng-change="ctrl.clearInstances()" required>
                         <md-option ng-value="opt" ng-repeat="opt in ctrl.awsAccounts | orderBy:['grouping','alias']">{{ opt.alias }}</md-option>
@@ -43,7 +51,7 @@
             </div>
             <div layout="column" layout-align="center center">
                 <button md-button type="submit" class="md-raised md-primary"
-                        ng-disabled="(!ctrl.forms.awsInstanceForm.selectedAccount || !ctrl.forms.awsInstanceForm.selectedRegion && ctrl.forms.awsInstanceForm.$invalid)"
+                        ng-disabled="(!ctrl.forms.awsInstanceForm.selectedType || !ctrl.forms.awsInstanceForm.selectedAccount || !ctrl.forms.awsInstanceForm.selectedRegion && ctrl.forms.awsInstanceForm.$invalid)"
                         ng-click="ctrl.searchRDSInstances()"> Search </button>
             </div>
         </form>

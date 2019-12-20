@@ -29,11 +29,12 @@ class RdsRevokeUsersDataService extends DataService{
         this.resource = 'db/removeUsers';
     }
 
-    delete(account, region, instanceName, users){
+    delete(account, region, instanceId, instanceName, users){
         let bundle = {
             account: account,
             region: region,
-            db: instanceName,
+            instanceId: instanceId,
+            instanceName: instanceName,
             users: users,
         };
 

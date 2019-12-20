@@ -97,6 +97,8 @@ gatekeeper:
     supportedDbs:
       mysql: mySQLDBConnection
       postgres: postgresDBConnection
+      aurora-mysql: mySQLDBConnection
+      aurora-postgresql: postgresDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
     sslParams: ssl=${gatekeeper.db.ssl}&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
     postgres:
