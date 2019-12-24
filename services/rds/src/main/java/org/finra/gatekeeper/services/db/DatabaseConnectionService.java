@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.services.db;
 
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
@@ -44,53 +45,48 @@ public class DatabaseConnectionService {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConnectionService.class);
 
     private DatabaseConnectionFactory databaseConnectionFactory;
+    private GKUserCredentialsProvider gkUserCredentialsProvider;
 
     @Autowired
-    public DatabaseConnectionService(DatabaseConnectionFactory databaseConnectionFactory){
+    public DatabaseConnectionService(DatabaseConnectionFactory databaseConnectionFactory, GKUserCredentialsProvider gkUserCredentialsProvider){
         this.databaseConnectionFactory = databaseConnectionFactory;
+        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
     }
 
-    public Map<String, Boolean> grantAccess(List<AWSRdsDatabase> databases, String user, RoleType roleType, String password, Integer timeDays) throws GKUnsupportedDBException{
+    public Boolean grantAccess(AWSRdsDatabase db, String gkUserPass, String user, RoleType roleType, String password, Integer timeDays) throws GKUnsupportedDBException{
+        boolean status = false;
         //initialize a map that will show the status of dbs in the request
-        Map<String, Boolean > statusMap = databases.stream().collect(
-                Collectors.toMap(AWSRdsDatabase::getName, db -> Boolean.FALSE ));
-        logger.info("Granting access to " + databases + " for user {" + user + "} ");
-        databases.forEach(db -> {
-            logger.info("Granting access on " + db.getName() + "(" + db.getEndpoint() + ")");
-            try{
-                statusMap.put(db.getName(), databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(user, password, roleType, getAddress(db.getEndpoint(), db.getDbName()), timeDays));
-                logger.info("User for " + user + " for role " + roleType.getRoleDescription() + " successfully created on " + db.getName() + "(" + db.getInstanceId() + ")");
-            }catch(GKUnsupportedDBException e){
-                logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
-            }catch(Exception e){
-                logger.info("Failed to create user on DB, exception is as follows: ");
-                e.printStackTrace();
-            }
-        });
+        logger.info("Granting access to " + db + " for user {" + user + "} ");
+        try{
+            status = databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(user, password, roleType,
+                    getAddress(db.getEndpoint(), db.getDbName()), gkUserPass, timeDays);
+            logger.info("User for " + user + " for role " + roleType.getRoleDescription() + " successfully created on " + db.getName() + "(" + db.getInstanceId() + ")");
+        }catch(GKUnsupportedDBException e){
+            logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
+        }catch(Exception e){
+            logger.info("Failed to create user on DB, exception is as follows: ");
+            e.printStackTrace();
+        }
 
-        return statusMap;
+        return status;
     }
 
-    public Map<String, Boolean> revokeAccess(List<AWSRdsDatabase> databases, RoleType roleType, String user) throws GKUnsupportedDBException{
+    public Boolean revokeAccess(AWSRdsDatabase db, String gkUserPass, RoleType roleType, String user) throws GKUnsupportedDBException{
         //initialize a map that will show the status of dbs in the request
-        Map<String, Boolean > statusMap = databases.stream().collect(
-                Collectors.toMap(AWSRdsDatabase::getName, db -> Boolean.FALSE ));
-        logger.info("Revoking access to " + databases + " for user {" + user + "} ");
-        databases.forEach(db -> {
-            logger.info("Revoking access on " + db.getName() + "(" + db.getEndpoint() + ")");
-            try{
-                Boolean result = databaseConnectionFactory.getConnection(db.getEngine()).revokeAccess(user, roleType, getAddress(db.getEndpoint(), db.getDbName()));
-                statusMap.put(db.getName(), result);
-                logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + result);
-            }catch(GKUnsupportedDBException e){
-                logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
-            }catch(Exception e){
-                logger.info("Failed to remove user from " + db.getName() + "(" + db.getInstanceId() + "), exception is as follows: ");
-                e.printStackTrace();
-            }
-        });
+        boolean status = false;
+        logger.info("Revoking access on " + db.getName() + "(" + db.getEndpoint() + ")");
+        try{
+            status = databaseConnectionFactory.getConnection(db.getEngine())
+                    .revokeAccess(user, roleType, getAddress(db.getEndpoint(), db.getDbName()), gkUserPass);
+            logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + status);
+        }catch(GKUnsupportedDBException e){
+            logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
+        }catch(Exception e){
+            logger.info("Failed to remove user from " + db.getName() + "(" + db.getInstanceId() + "), exception is as follows: ");
+            e.printStackTrace();
+        }
 
-        return statusMap;
+        return status;
     }
 
     /**
@@ -100,7 +96,7 @@ public class DatabaseConnectionService {
      * @throws Exception
      */
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
-    public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance database, List<DbUser> users ) throws Exception {
+    public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance database, String gkUserPassword, List<DbUser> users ) throws Exception {
         List<DbUser> nonGkUsers = users.stream()
                 .filter(user -> !user.getUsername().toLowerCase().startsWith("gk_"))
                 .collect(Collectors.toList());
@@ -111,7 +107,8 @@ public class DatabaseConnectionService {
 
         List<String> usersRemoved = new ArrayList<>();
         for(DbUser user:  users){
-            boolean outcome = databaseConnectionFactory.getConnection(database.getEngine()).revokeAccess(user.getUsername(), null, getAddress(database.getEndpoint(), database.getDbName()));
+            boolean outcome = databaseConnectionFactory.getConnection(database.getEngine()).revokeAccess(user.getUsername(), null,
+                    getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
             if(!outcome){
                 usersRemoved.add(user.getUsername());
             }
@@ -121,51 +118,47 @@ public class DatabaseConnectionService {
     }
 
     //UI will usually call this one
-    public Map<RoleType, List<String>> getAvailableSchemasForDb(GatekeeperRDSInstance database) throws Exception {
-        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()));
+    public Map<RoleType, List<String>> getAvailableSchemasForDb(GatekeeperRDSInstance database, String gkUserPassword) throws Exception {
+        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
     }
 
     //This is usually called through the Activiti workflow
-    public Map<RoleType, List<String>> getAvailableSchemasForDb(AWSRdsDatabase database) throws Exception {
-        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()));
+    public Map<RoleType, List<String>> getAvailableSchemasForDb(AWSRdsDatabase database, String gkUserPassword) throws Exception {
+        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
     }
 
-    public String checkDb(String engine, String address) throws GKUnsupportedDBException{
-        List<String> issues = databaseConnectionFactory.getConnection(engine).checkDb(address);
+    public String checkDb(String engine, String address, String gkUserPassword) throws GKUnsupportedDBException{
+        List<String> issues = databaseConnectionFactory.getConnection(engine).checkDb(address, gkUserPassword);
         return issues.stream().collect(Collectors.joining(","));
     }
 
-    public List<DbUser> getUsersForDb(GatekeeperRDSInstance database) throws Exception {
-        return databaseConnectionFactory.getConnection(database.getEngine()).getUsers(getAddress(database.getEndpoint(), database.getDbName()));
+    public List<DbUser> getUsersForDb(GatekeeperRDSInstance database, String gkUserPassword) throws Exception {
+        return databaseConnectionFactory.getConnection(database.getEngine()).getUsers(getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
     }
 
-    public List<String> getAvailableRolesForDb(String engine, String address) throws Exception {
-        return databaseConnectionFactory.getConnection(engine).getAvailableRoles(address);
+    public List<String> getAvailableRolesForDb(String engine, String address, String gkUserPassword) throws Exception {
+        return databaseConnectionFactory.getConnection(engine).getAvailableRoles(address, gkUserPassword);
     }
     /**
      * Check to see if the users in the request exist in the databases and have some kind of dependency constraint that could cause
      * gatekeeper to fail
      * @return
      */
-    public Map<String, List<String>> checkUsersAndDbs(List<UserRole> roles, List<User> users, List<AWSRdsDatabase> databases) throws Exception{
+    public List<String> checkUsersAndDbs(List<UserRole> roles, List<User> users, AWSRdsDatabase db, String gkUserPassword) throws Exception{
         List<String> userWithRoles = new ArrayList<>();
         roles.forEach(role -> {
             users.forEach(user -> {
                 userWithRoles.add(user.getUserId()+"_"+RoleType.valueOf(role.getRole().toUpperCase()).getShortSuffix());
             });
         });
-        Map<String, List<String>> badActors = new HashMap<>();
-        databases.forEach(db ->{
-            try {
-                List<String> outcome = databaseConnectionFactory.getConnection(db.getEngine()).checkIfUsersHasTables(getAddress(db.getEndpoint(), db.getDbName()), userWithRoles);
-                if(!outcome.isEmpty()){
-                    badActors.put(db.getName(), outcome);
-                }
-            }catch(Exception ex){
-                logger.error("Failed to check users on database: ", ex);
-            }
-        });
-        return badActors;
+        List<String> outcome = new ArrayList<>();
+        try {
+            outcome = databaseConnectionFactory.getConnection(db.getEngine())
+                    .checkIfUsersHasTables(getAddress(db.getEndpoint(), db.getDbName()), userWithRoles, gkUserPassword);
+        }catch(Exception ex){
+            logger.error("Failed to check users on database: ", ex);
+        }
+        return outcome;
     }
 
     private String getAddress(String endpoint, String dbName){

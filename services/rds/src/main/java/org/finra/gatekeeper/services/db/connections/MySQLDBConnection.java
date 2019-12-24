@@ -45,17 +45,16 @@ public class MySQLDBConnection implements DBConnection {
     private final Logger logger = LoggerFactory.getLogger(MySQLDBConnection.class);
 
     private final String gkUserName;
-    private final String gkUserPassword;
     private final String ssl;
 
     @Autowired
     public MySQLDBConnection(GatekeeperProperties gatekeeperProperties){
         this.gkUserName = gatekeeperProperties.getDb().getGkUser();
-        this.gkUserPassword = gatekeeperProperties.getDb().getGkPass();
         this.ssl = gatekeeperProperties.getDb().getMysql().getSsl();
+
     }
 
-    private JdbcTemplate connect(String url) throws SQLException {
+    private JdbcTemplate connect(String url, String gkUserPassword) throws SQLException {
         String dbUrl = "jdbc:mysql://" + url;
 
         BasicDataSource dataSource = new BasicDataSource();
@@ -69,9 +68,9 @@ public class MySQLDBConnection implements DBConnection {
 
         return new JdbcTemplate(dataSource);
     }
-    public boolean grantAccess(String user, String password, RoleType role, String address, Integer time) throws Exception{
+    public boolean grantAccess(String user, String password, RoleType role, String address, String gkUserPassword, Integer time) throws Exception{
         try {
-            createUser(address, user, password, role, String.valueOf(time));
+            createUser(address, user, password, role, gkUserPassword, String.valueOf(time));
             return true;
         }catch(Exception ex){
             logger.error("An exception was thrown trying to create user " + getGkUserName(user, role) + " at address " + address, ex);
@@ -79,12 +78,12 @@ public class MySQLDBConnection implements DBConnection {
         }
     }
 
-    private void createUser(String address, String user, String password, RoleType role, String expirationTime) throws Exception{
-        JdbcTemplate conn = connect(address);
+    private void createUser(String address, String user, String password, RoleType role, String gkuserPassword, String expirationTime) throws Exception{
+        JdbcTemplate conn = connect(address, gkuserPassword);
 
         String userRole = getGkUserName(user, role); //16 is the maximum length for a user in MySQL, if there's a user hitting this limit, a shorter suffix shall be used
         //revoke the user if they exist
-        revokeAccess(user, role, address);
+        revokeAccess(user, role, address, gkuserPassword);
 
         logger.info("Creating User " + userRole + " if they dont already exist");
         boolean wasUserCreated = conn.execute(new MySqlStatement("CREATE USER " + userRole + " IDENTIFIED BY '" + password + "'"));
@@ -141,9 +140,9 @@ public class MySQLDBConnection implements DBConnection {
         return conn.queryForList(getSchemas, String.class);
     }
 
-    public Map<RoleType, List<String>> getAvailableTables(String address) throws SQLException{
+    public Map<RoleType, List<String>> getAvailableTables(String address, String gkUserPassword) throws SQLException{
         Map<RoleType, List<String>> results = new HashMap<>();
-        JdbcTemplate template = connect(address);
+        JdbcTemplate template = connect(address, gkUserPassword);
         String schemaQuery = "select concat(table_schema,'.',table_name) from information_schema.tables where table_schema not in ('information_schema', 'mysql', 'sys', 'performance_schema')";
         for(RoleType roleType : RoleType.values()) {
             try {
@@ -160,11 +159,11 @@ public class MySQLDBConnection implements DBConnection {
         return "GRANT "+roles+" ON " + schema + ".* TO " + user + " REQUIRE SSL";
     }
 
-    public boolean revokeAccess(String user, RoleType role, String address) throws Exception{
+    public boolean revokeAccess(String user, RoleType role, String address, String gkuserPassword) throws Exception{
         String userRole = getGkUserName(user, role);
 
         try{
-            JdbcTemplate conn = connect(address);
+            JdbcTemplate conn = connect(address, gkuserPassword);
             logger.info("Deleting User " + user + " if they already exist on DB " + address);
             conn.execute("GRANT USAGE ON *.* to " + userRole);
             conn.execute("DROP USER '" + userRole + "'");
@@ -177,14 +176,14 @@ public class MySQLDBConnection implements DBConnection {
         }
     }
 
-    public List<String> checkDb(String address) throws GKUnsupportedDBException{
+    public List<String> checkDb(String address, String gkUserPassword) throws GKUnsupportedDBException{
         String checkGrants = "SHOW GRANTS FOR CURRENT_USER";
 
         List<String> issues = new ArrayList<>();
 
         try{
             logger.info("Checking the gatekeeper setup for " + address);
-            JdbcTemplate template = connect(address);
+            JdbcTemplate template = connect(address, gkUserPassword);
             String roleCheckResult = template.queryForObject(checkGrants, String.class);
             if(!roleCheckResult.contains("CREATE USER")){
                 issues.add("gatekeeper is missing CREATE USER");
@@ -204,11 +203,11 @@ public class MySQLDBConnection implements DBConnection {
         return issues;
     }
 
-    public List<DbUser> getUsers(String address) throws SQLException {
+    public List<DbUser> getUsers(String address, String gkUserPassword) throws SQLException {
         String getUsers = "select user from mysql.user";
         List<DbUser> users = new ArrayList<>();
         try {
-            JdbcTemplate template = connect(address);
+            JdbcTemplate template = connect(address, gkUserPassword);
             users = template.query(getUsers, new MySqlDbUserMapper());
         }catch(SQLException e){
             logger.error("Error retrieving users from DB", e);
@@ -217,11 +216,11 @@ public class MySQLDBConnection implements DBConnection {
         return users;
     }
 
-    public List<String> checkIfUsersHasTables(String address, List<String> users){
+    public List<String> checkIfUsersHasTables(String address, List<String> users, String gkUserPass){
         return Collections.emptyList();
     }
 
-    public List<String> getAvailableRoles(String address) throws SQLException{
+    public List<String> getAvailableRoles(String address, String gkUserPass) throws SQLException{
         return Arrays.asList("gk_readonly", "gk_datafix", "gk_dba");
     }
 

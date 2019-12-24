@@ -31,13 +31,13 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationOutcome;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
 import org.finra.gatekeeper.services.auth.model.AppApprovalThreshold;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
-import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
@@ -70,6 +70,7 @@ public class AccessRequestService {
     private final AccountInformationService accountInformationService;
     private final GatekeeperOverrideProperties overridePolicy;
     private final DatabaseConnectionService databaseConnectionService;
+    private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final String REJECTED = "REJECTED";
     private final String APPROVED = "APPROVED";
     private final String CANCELED = "CANCELED";
@@ -83,7 +84,8 @@ public class AccessRequestService {
                                 GatekeeperApprovalProperties gatekeeperApprovalProperties,
                                 AccountInformationService accountInformationService,
                                 GatekeeperOverrideProperties overridePolicy,
-                                DatabaseConnectionService databaseConnectionService){
+                                DatabaseConnectionService databaseConnectionService,
+                                GKUserCredentialsProvider gkUserCredentialsProvider){
         this.taskService = taskService;
         this.accessRequestRepository = accessRequestRepository;
         this.gatekeeperRoleService = gatekeeperRoleService;
@@ -93,6 +95,7 @@ public class AccessRequestService {
         this.accountInformationService = accountInformationService;
         this.overridePolicy = overridePolicy;
         this.databaseConnectionService = databaseConnectionService;
+        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
     }
 
     /**
@@ -118,8 +121,6 @@ public class AccessRequestService {
         request.getUsers().forEach(u -> u.setUserId("gk_" + u.getUserId()));
         Account theAccount = accountInformationService.getAccountByAlias(request.getAccount());
 
-        AWSEnvironment environment = new AWSEnvironment(theAccount.getAlias().toUpperCase(), request.getRegion());
-
         AccessRequest accessRequest = new AccessRequest()
                 .setAccount(request.getAccount().toUpperCase())
                 .setAccountSdlc(request.getAccountSdlc())
@@ -136,11 +137,13 @@ public class AccessRequestService {
 
         logger.info("Checking Users associated with this access request");
 
-        Map<String, List<String>> checkResult;
+        List<String> checkResult;
+        AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
         try {
-            checkResult = databaseConnectionService.checkUsersAndDbs(request.getRoles(), request.getUsers(), request.getInstances());
+            checkResult = databaseConnectionService.checkUsersAndDbs(request.getRoles(), request.getUsers(), request.getInstances().get(0),
+                    gkUserCredentialsProvider.getGatekeeperSecret(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc(), database.getName()));
         }catch(Exception e){
-            throw new GatekeeperException("Unable to verify the Users for the provided databases");
+            throw new GatekeeperException("Unable to verify the Users for the provided databases", e);
         }
 
         if(!checkResult.isEmpty()){

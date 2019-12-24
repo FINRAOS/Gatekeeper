@@ -40,7 +40,7 @@ public interface DBConnection {
      * @return
      * @throws Exception
      */
-    boolean grantAccess(String user, String password, RoleType role, String address, Integer time) throws Exception;
+    boolean grantAccess(String user, String password, RoleType role, String address, String gkUserPassword, Integer time) throws Exception;
 
     /**
      * Removes user from a database
@@ -51,30 +51,30 @@ public interface DBConnection {
      * @return
      * @throws Exception
      */
-    boolean revokeAccess(String user, RoleType role, String address) throws Exception;
+    boolean revokeAccess(String user, RoleType role, String address, String gkUserPassword) throws Exception;
 
 
-    Map<RoleType, List<String>> getAvailableTables(String address) throws Exception;
+    Map<RoleType, List<String>> getAvailableTables(String address, String gkUserPassword) throws Exception;
 
     /**
      * Connects to a DB and checks for any required setups
      * @param address
      * @return String - empty if no issues, otherwise will be the issues
      */
-    List<String> checkDb(String address) throws GKUnsupportedDBException;
+    List<String> checkDb(String address, String gkUserPassword) throws GKUnsupportedDBException;
 
-    List<String> checkIfUsersHasTables(String address, List<String> users) throws SQLException;
+    List<String> checkIfUsersHasTables(String address, List<String> users, String gkUserPassword) throws SQLException;
 
     /**
      * Connects to the DB and gets all of the Users currently on the RDS instance
      * @param address
      * @return List of all of the users on the instance
      */
-    List<DbUser> getUsers(String address) throws SQLException;
+    List<DbUser> getUsers(String address, String gkUserPassword) throws SQLException;
 
     /**
      * Connects to the DB and gets all of the available gk roles currently on the RDS instance
      */
-    List<String> getAvailableRoles(String address) throws SQLException;
+    List<String> getAvailableRoles(String address, String gkUserPassword) throws SQLException;
 
 }

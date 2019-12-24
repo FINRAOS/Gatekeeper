@@ -20,6 +20,7 @@ package org.finra.gatekeeper.services.accessrequest.delegates;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
@@ -44,14 +45,17 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
     private final DatabaseConnectionService databaseConnectionService;
     private final PasswordGenerationService passwordGenerationService;
+    private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final EmailServiceWrapper emailServiceWrapper;
 
     @Autowired
     public GrantAccessServiceTask(DatabaseConnectionService databaseConnectionService,
                                   PasswordGenerationService passwordGenerationService,
+                                  GKUserCredentialsProvider gkUserCredentialsProvider,
                                   EmailServiceWrapper emailServiceWrapper) {
         this.databaseConnectionService = databaseConnectionService;
         this.passwordGenerationService = passwordGenerationService;
+        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.emailServiceWrapper = emailServiceWrapper;
     }
 
@@ -78,9 +82,11 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
             //bundle up the role -> db -> schema/table offerings
             Map<String, Map<RoleType, List<String>>> schemasForRequest = new HashMap<>();
-            for(AWSRdsDatabase db : accessRequest.getAwsRdsInstances()){
-                schemasForRequest.put(db.getName(), databaseConnectionService.getAvailableSchemasForDb(db));
-            }
+
+            AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
+            String gkUserCredentials = gkUserCredentialsProvider.getGatekeeperSecret(env.getAccount(), env.getRegion(), accessRequest.getAccountSdlc(), database.getName());
+            schemasForRequest.put(database.getName(), databaseConnectionService.getAvailableSchemasForDb(database, gkUserCredentials));
+
 
             // Do all of this for each user in the request
             for (User u : accessRequest.getUsers()) {
@@ -93,8 +99,8 @@ public class GrantAccessServiceTask implements JavaDelegate {
                     }
 
                     RoleType roleType = RoleType.valueOf(role.getRole().toUpperCase());
-                    Map<String, Boolean> createStatus = databaseConnectionService.grantAccess(accessRequest.getAwsRdsInstances(),  u.getUserId(), roleType, password, accessRequest.getDays());
-                    if (createStatus.values().stream().allMatch(item -> item == Boolean.FALSE)) {
+                    Boolean createStatus = databaseConnectionService.grantAccess(database, gkUserCredentials, u.getUserId(), roleType, password, accessRequest.getDays());
+                    if (!createStatus) {
                         throw new GatekeeperException("Could not create user account on any DB instances");
                     }
 

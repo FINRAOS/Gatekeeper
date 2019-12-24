@@ -21,6 +21,7 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.*;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
@@ -44,6 +45,10 @@ public class RdsLookupServiceTest {
     private DatabaseConnectionService databaseConnectionService;
     @Mock
     private SGLookupService sgLookupService;
+
+    @Mock
+    private GKUserCredentialsProvider gkUserCredentialsProvider;
+
     private GatekeeperProperties gatekeeperProperties;
     @Mock
     private AmazonRDSClient amazonRDSClient;
@@ -67,7 +72,7 @@ public class RdsLookupServiceTest {
     public void setUp() throws Exception {
         gatekeeperProperties = new GatekeeperProperties()
                 .setAppIdentityTag(APP_IDENTITY);
-        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties);
+        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, gkUserCredentialsProvider, sgLookupService, gatekeeperProperties);
         test = new AWSEnvironment("test", "test");
 
         Mockito.when(awsSessionService.getRDSSession(test)).thenReturn(amazonRDSClient);
@@ -79,29 +84,29 @@ public class RdsLookupServiceTest {
                         new OptionGroup()
                                 .withOptionGroupName("test-og")
                                 .withOptions(new Option().withOptionName("SSL").withPort(1234))));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("instance"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_ORACLE), Mockito.contains("instance"))).thenReturn("");
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("instance"))).thenReturn(roles);
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_ORACLE), Mockito.contains("instance"))).thenReturn(roles);
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq("sqlserver"), Mockito.contains("unsupported"))).thenThrow(new GKUnsupportedDBException("Unsupported DB"));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("missing"))).thenReturn("gatekeeper user missing createrole");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailunable"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailpassword"))).thenReturn("");
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailunable"))).thenThrow(new Exception("Unable to get roles"));
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailpassword"))).thenThrow(new Exception("Unable to login: password authentication failed"));
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("instance"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_ORACLE), Mockito.contains("instance"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("instance"), Mockito.any())).thenReturn(roles);
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_ORACLE), Mockito.contains("instance"), Mockito.any())).thenReturn(roles);
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq("sqlserver"), Mockito.contains("unsupported"), Mockito.any())).thenThrow(new GKUnsupportedDBException("Unsupported DB"));
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("missing"), Mockito.any())).thenReturn("gatekeeper user missing createrole");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailunable"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailpassword"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailunable"), Mockito.any())).thenThrow(new Exception("Unable to get roles"));
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailpassword"), Mockito.any())).thenThrow(new Exception("Unable to login: password authentication failed"));
 
         //AURORA
         Mockito.when(amazonRDSClient.describeDBClusters(Mockito.any())).thenReturn(initializeClusters());
         Mockito.when(amazonRDSClient.listTagsForResource(Mockito.any())).thenReturn(initializeTags());
         Mockito.when(sgLookupService.fetchSgsForAccountRegion(test)).thenReturn(Arrays.asList(SG_ONE, SG_TWO));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("dbendpoint"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailunable"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailpassword"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("unsupported"))).thenThrow(new GKUnsupportedDBException("Unsupported DB"));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("missing"))).thenReturn("gatekeeper user missing createrole");
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("dbendpoint"))).thenReturn(roles);
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailunable"))).thenThrow(new Exception("Unable to get roles"));
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailpassword"))).thenThrow(new Exception("Unable to login: password authentication failed"));
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("dbendpoint"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailunable"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailpassword"), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("unsupported"), Mockito.any())).thenThrow(new GKUnsupportedDBException("Unsupported DB"));
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("missing"), Mockito.any())).thenReturn("gatekeeper user missing createrole");
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("dbendpoint"), Mockito.any())).thenReturn(roles);
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailunable"), Mockito.any())).thenThrow(new Exception("Unable to get roles"));
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailpassword"), Mockito.any())).thenThrow(new Exception("Unable to login: password authentication failed"));
     }
 
     @Test(expected=IllegalArgumentException.class)

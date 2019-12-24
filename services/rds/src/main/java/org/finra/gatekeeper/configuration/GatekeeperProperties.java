@@ -362,6 +362,7 @@ public class GatekeeperProperties {
 
     public static class GatekeeperDbProperties{
         private String gkUser;
+        private String dbCredentialProvider;
         private String gkPass;
         private String assumeMinServerVersion;
         private String ssl;
@@ -485,6 +486,15 @@ public class GatekeeperProperties {
 
         public GatekeeperDbProperties setMysql(MySqlDbProperties mysql) {
             this.mysql = mysql;
+            return this;
+        }
+
+        public String getDbCredentialProvider() {
+            return dbCredentialProvider;
+        }
+
+        public GatekeeperDbProperties setDbCredentialProvider(String dbCredentialProvider) {
+            this.dbCredentialProvider = dbCredentialProvider;
             return this;
         }
     }

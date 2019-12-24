@@ -21,7 +21,9 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
@@ -42,14 +44,17 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final DatabaseConnectionService databaseConnectionService;
+    private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final ManagementService managementService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    DatabaseConnectionService databaseConnectionService,
+                                   GKUserCredentialsProvider gkUserCredentialsProvider,
                                    ManagementService managementService) {
         this.emailServiceWrapper = emailServiceWrapper;
         this.databaseConnectionService = databaseConnectionService;
+        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.managementService = managementService;
     }
 
@@ -64,7 +69,9 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             logger.info("Revoking access for Users, Attempts remaining: " + job.getRetries());
             for(User user : accessRequest.getUsers()){
                 for(UserRole role : accessRequest.getRoles()) {
-                    databaseConnectionService.revokeAccess(accessRequest.getAwsRdsInstances(), RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
+                    AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
+                    String gkUserCredentials = gkUserCredentialsProvider.getGatekeeperSecret(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc(), database.getName());
+                    databaseConnectionService.revokeAccess(database, gkUserCredentials, RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
                 }
             }
 

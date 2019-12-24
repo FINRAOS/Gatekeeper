@@ -19,6 +19,7 @@ package org.finra.gatekeeper.controllers;
 
 import org.finra.gatekeeper.controllers.wrappers.RemoveUsersWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.services.aws.RdsLookupService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
@@ -39,19 +40,24 @@ public class DatabaseController {
 
     private final DatabaseConnectionService databaseConnectionService;
     private final RdsLookupService rdsLookupService;
+    private final GKUserCredentialsProvider gkUserCredentialsProvider;
 
     @Autowired
-    public DatabaseController(DatabaseConnectionService databaseConnectionService, RdsLookupService rdsLookupService){
+    public DatabaseController(DatabaseConnectionService databaseConnectionService, RdsLookupService rdsLookupService, GKUserCredentialsProvider gkUserCredentialsProvider){
         this.databaseConnectionService = databaseConnectionService;
         this.rdsLookupService = rdsLookupService;
+        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
     }
 
     @RequestMapping(value="/removeUsers", method= RequestMethod.DELETE, produces= MediaType.APPLICATION_JSON_VALUE)
     public List<DbUser> removeUsersFromDatabase(@RequestBody RemoveUsersWrapper removeUsersWrapper) throws Exception {
+
         AWSEnvironment awsEnvironment = new AWSEnvironment(removeUsersWrapper.getAccount(), removeUsersWrapper.getRegion());
         try {
             GatekeeperRDSInstance rdsInstance = rdsLookupService.getOneInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName()).get();
-            List<String> result = this.databaseConnectionService.forceRevokeAccessUsersOnDatabase( rdsInstance, removeUsersWrapper.getUsers());
+            List<String> result = this.databaseConnectionService.forceRevokeAccessUsersOnDatabase(rdsInstance,
+                    gkUserCredentialsProvider.getGatekeeperSecret(awsEnvironment.getAccount(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(), rdsInstance.getInstanceId()),
+                    removeUsersWrapper.getUsers());
             if(!result.isEmpty()){
                 throw new GatekeeperException("Failed to remove the following users: " + result + ". Please verify that they do not have any dependent objects; " +
                         "If they do have dependent objects, they need to be removed.");

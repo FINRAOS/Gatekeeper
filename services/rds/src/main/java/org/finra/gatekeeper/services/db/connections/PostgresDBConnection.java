@@ -49,7 +49,6 @@ public class PostgresDBConnection implements DBConnection {
     private final String getUsers = "select rolname from pg_roles where rolcanlogin = true";
 
     private final String gkUserName;
-    private final String gkUserPassword;
     private final Boolean ssl;
     private final String sslMode;
     private final String sslCert;
@@ -60,31 +59,30 @@ public class PostgresDBConnection implements DBConnection {
         GatekeeperProperties.GatekeeperDbProperties db = gatekeeperProperties.getDb();
         GatekeeperProperties.GatekeeperDbProperties.PostgresDbProperties postgres = db.getPostgres();
         this.gkUserName = db.getGkUser();
-        this.gkUserPassword = db.getGkPass();
         this.ssl = postgres.getSsl();
         this.sslMode = postgres.getSslMode();
         this.sslCert = postgres.getSslCert();
         this.connectTimeout = postgres.getConnectTimeout();
     }
 
-    private PGPoolingDataSource connect(String url) throws SQLException {
+    private PGPoolingDataSource connect(String url, String gkUserPassword) throws SQLException {
         String dbUrl = url.split("/")[0];
         logger.info("Getting connection for " + dbUrl);
         logger.info("Creating Datasource connection for " + dbUrl);
         String pgUrl = dbUrl + "/postgres"; // url with postgres instead of whatever was on the AWS console
         try {
-            return connectHelper(pgUrl); // Try postgres first since it is a default db.
+            return connectHelper(pgUrl, gkUserPassword); // Try postgres first since it is a default db.
         } catch (Exception e){
             logger.info("postgres database not present for " + dbUrl.split("/")[0] + " Attempting connection to " + url + " as fallback.");
-            return connectHelper(url); // Fall-back if postgres isn't there
+            return connectHelper(url, gkUserPassword); // Fall-back if postgres isn't there
         }
     }
 
-    public boolean grantAccess(String user, String password, RoleType role, String address, Integer length) throws SQLException {
+    public boolean grantAccess(String user, String password, RoleType role, String address, String gkUserPassword, Integer length) throws SQLException {
         PGPoolingDataSource dataSource = null;
 
         try {
-            dataSource = connect(address);
+            dataSource = connect(address, gkUserPassword);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
 
             String expirationTime = LocalDateTime.now().plusDays(length).format(DateTimeFormatter.ofPattern(EXPIRATION_TIMESTAMP));
@@ -134,10 +132,10 @@ public class PostgresDBConnection implements DBConnection {
         logger.info("Done Creating user " + user + " on " + address + " with role " + role.getDbRole());
      }
 
-    public boolean revokeAccess(String user, RoleType roles, String address) throws SQLException{
+    public boolean revokeAccess(String user, RoleType roles, String address, String gkUserPassword) throws SQLException{
         PGPoolingDataSource dataSource = null;
         try {
-            dataSource = connect(address);
+            dataSource = connect(address, gkUserPassword);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             logger.info("Removing " + user + " from " + address + " if they exist.");
             if(roles != null) {
@@ -160,9 +158,9 @@ public class PostgresDBConnection implements DBConnection {
         }
     }
 
-    public Map<RoleType, List<String>> getAvailableTables(String address) throws SQLException{
+    public Map<RoleType, List<String>> getAvailableTables(String address, String gkUserPassword) throws SQLException{
         Map<RoleType, List<String>> results = new HashMap<>();
-        PGPoolingDataSource dataSource = connect(address);
+        PGPoolingDataSource dataSource = connect(address, gkUserPassword);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
 
         logger.info("Getting available schema information for " + address);
@@ -180,7 +178,7 @@ public class PostgresDBConnection implements DBConnection {
         return results;
     }
 
-    public List<String> checkDb(String address) throws GKUnsupportedDBException {
+    public List<String> checkDb(String address, String gkUserPassword) throws GKUnsupportedDBException {
         String gkUserCreateRoleCheck = "select rolcreaterole from pg_roles where rolname = 'gatekeeper'";
         String gkRoleCheck = "select rolname from pg_roles where rolname in ('gk_datafix','gk_dba','gk_readonly')";
 
@@ -191,7 +189,7 @@ public class PostgresDBConnection implements DBConnection {
 
         try{
             logger.info("Checking the gatekeeper setup for " + address);
-            dataSource = connect(address);
+            dataSource = connect(address, gkUserPassword);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             Boolean createRolePermCheckResult = conn.queryForObject(gkUserCreateRoleCheck, Boolean.class);
             List<String> roleCheckResult = conn.queryForList(gkRoleCheck, String.class);
@@ -231,10 +229,10 @@ public class PostgresDBConnection implements DBConnection {
      *
      * @throws SQLException - if there's an issue executing the query on the database
      */
-    public List<String> checkIfUsersHasTables(String address, List<String> users) throws SQLException{
+    public List<String> checkIfUsersHasTables(String address, List<String> users, String gkUserPassword) throws SQLException{
         PGPoolingDataSource dataSource = null;
         try {
-            dataSource = connect(address);
+            dataSource = connect(address, gkUserPassword);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             StringBuilder sb = new StringBuilder();
             users.forEach(user -> {
@@ -257,8 +255,8 @@ public class PostgresDBConnection implements DBConnection {
         }
     }
 
-    public List<DbUser> getUsers(String address) throws SQLException{
-        PGPoolingDataSource dataSource = connect(address);
+    public List<DbUser> getUsers(String address, String gkUserPassword) throws SQLException{
+        PGPoolingDataSource dataSource = connect(address, gkUserPassword);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
         List<DbUser> results;
         logger.info("Getting available schema information for " + address);
@@ -273,8 +271,8 @@ public class PostgresDBConnection implements DBConnection {
         return results;
     }
 
-    public List<String> getAvailableRoles(String address) throws SQLException{
-        PGPoolingDataSource dataSource = connect(address);
+    public List<String> getAvailableRoles(String address, String gkUserPassword) throws SQLException{
+        PGPoolingDataSource dataSource = connect(address, gkUserPassword);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
         List<String> results;
         logger.info("Getting available roles for " + address);
@@ -289,7 +287,7 @@ public class PostgresDBConnection implements DBConnection {
         return results;
     }
 
-    private PGPoolingDataSource connectHelper(String address) {
+    private PGPoolingDataSource connectHelper(String address, String gkUserPassword) {
         PGPoolingDataSource dataSource = new PGPoolingDataSource();
         String dbUrl = "jdbc:postgresql://" + address;
 
