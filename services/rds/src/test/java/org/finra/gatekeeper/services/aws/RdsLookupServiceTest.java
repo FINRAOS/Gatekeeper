@@ -81,7 +81,7 @@ public class RdsLookupServiceTest {
     public void setUp() throws Exception {
         gatekeeperProperties = new GatekeeperProperties()
                 .setAppIdentityTag(APP_IDENTITY);
-        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, gkUserCredentialsProvider, sgLookupService, gatekeeperProperties);
+        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties);
         test = new AWSEnvironment("test", "test", "test");
 
         Mockito.when(awsSessionService.getRDSSession(test)).thenReturn(amazonRDSClient);
