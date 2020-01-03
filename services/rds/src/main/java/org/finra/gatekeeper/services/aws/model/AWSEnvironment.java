@@ -28,9 +28,10 @@ public class AWSEnvironment {
     private String region;
     private String sdlc;
 
-    public AWSEnvironment(String account, String region){
+    public AWSEnvironment(String account, String region, String sdlc){
         this.account = account;
         this.region = region;
+        this.sdlc = sdlc;
     }
 
     public String getAccount(){

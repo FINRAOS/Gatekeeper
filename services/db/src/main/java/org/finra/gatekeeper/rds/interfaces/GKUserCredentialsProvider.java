@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.rds.interfaces;
 
+import org.finra.gatekeeper.rds.model.RdsQuery;
+
 /**
  * An Interface to provide a custom implementation in which a unique Gatekeeper user's password can be retrieved
  */
@@ -25,11 +27,8 @@ public interface GKUserCredentialsProvider {
     /**
      * Get the secret for the gatekeeper accoount
      *
-     * @param account
-     * @param region
-     * @param sdlc
-     * @param dbName
-     * @return
+     * @param details - The RDS Query being used.
+     * @return - the secret for the given RdsQuery
      */
-    public String getGatekeeperSecret(String account, String region, String sdlc, String dbName);
+    public String getGatekeeperSecret(RdsQuery details);
 }

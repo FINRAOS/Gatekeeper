@@ -16,12 +16,17 @@
  */
 package org.finra.gatekeeper.services.db;
 
+import com.google.common.base.MoreObjects;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
+import org.finra.gatekeeper.rds.model.RdsQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class EnvVarDBCredentialsService implements GKUserCredentialsProvider {
 
+    private final Logger logger = LoggerFactory.getLogger(EnvVarDBCredentialsService.class);
     private String secret;
 
     @Autowired
@@ -30,7 +35,13 @@ public class EnvVarDBCredentialsService implements GKUserCredentialsProvider {
     }
 
     @Override
-    public String getGatekeeperSecret(String account, String region, String sdlc, String instanceName) {
+    public String getGatekeeperSecret(RdsQuery rdsQuery) {
+        logger.info("Getting Environment Variable based secret" );
+        logger.info(MoreObjects.toStringHelper(this)
+                .add("account", rdsQuery.getAccount())
+                .add("region", rdsQuery.getRegion())
+                .add("sdlc", rdsQuery.getSdlc())
+                .add("database", rdsQuery.getDbName()).toString());
         return secret;
     }
 }

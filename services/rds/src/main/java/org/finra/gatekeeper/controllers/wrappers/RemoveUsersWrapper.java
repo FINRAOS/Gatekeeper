@@ -25,6 +25,7 @@ public class RemoveUsersWrapper {
 
     private String account;
     private String region;
+    private String sdlc;
     private String instanceId;
     private String instanceName;
     private List<DbUser> users;
@@ -72,6 +73,15 @@ public class RemoveUsersWrapper {
 
     public RemoveUsersWrapper setUsers(List<DbUser> users) {
         this.users = users;
+        return this;
+    }
+
+    public String getSdlc() {
+        return sdlc;
+    }
+
+    public RemoveUsersWrapper setSdlc(String sdlc) {
+        this.sdlc = sdlc;
         return this;
     }
 

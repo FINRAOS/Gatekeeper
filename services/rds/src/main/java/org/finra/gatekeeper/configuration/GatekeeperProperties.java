@@ -362,7 +362,7 @@ public class GatekeeperProperties {
 
     public static class GatekeeperDbProperties{
         private String gkUser;
-        private String dbCredentialProvider;
+        private String gkCredentialProvider;
         private String gkPass;
         private String assumeMinServerVersion;
         private String ssl;
@@ -489,12 +489,12 @@ public class GatekeeperProperties {
             return this;
         }
 
-        public String getDbCredentialProvider() {
-            return dbCredentialProvider;
+        public String getGkCredentialProvider() {
+            return gkCredentialProvider;
         }
 
-        public GatekeeperDbProperties setDbCredentialProvider(String dbCredentialProvider) {
-            this.dbCredentialProvider = dbCredentialProvider;
+        public GatekeeperDbProperties setGkCredentialProvider(String gkCredentialProvider) {
+            this.gkCredentialProvider = gkCredentialProvider;
             return this;
         }
     }

@@ -200,4 +200,5 @@ gatekeeper:
       ssl: connectTimeout=${gatekeeper.rds.connectTimeout}&useSSL=${gatekeeper.rds.ssl}&requireSSL=${gatekeeper.rds.ssl}&serverSslCert=${gatekeeper.rds.sslCert}
     gkUser: ${gatekeeper.rds.user}
     gkPass: ${gatekeeper.rds.password}
+    gkCredentialProvider: ${gatekeeper.rds.gkCredentialProvider}
 

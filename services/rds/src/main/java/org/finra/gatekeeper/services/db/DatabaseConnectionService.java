@@ -17,19 +17,23 @@
 
 package org.finra.gatekeeper.services.db;
 
+import com.amazonaws.services.rds.model.DBCluster;
+import com.amazonaws.services.rds.model.DBInstance;
+import org.finra.gatekeeper.common.services.account.AccountInformationService;
+import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.exception.GatekeeperException;
-import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
-import org.finra.gatekeeper.rds.model.DbUser;
-import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.rds.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.services.db.factory.DatabaseConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -44,22 +48,28 @@ public class DatabaseConnectionService {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConnectionService.class);
 
+    private AccountInformationService accountInformationService;
     private DatabaseConnectionFactory databaseConnectionFactory;
-    private GKUserCredentialsProvider gkUserCredentialsProvider;
 
     @Autowired
-    public DatabaseConnectionService(DatabaseConnectionFactory databaseConnectionFactory, GKUserCredentialsProvider gkUserCredentialsProvider){
+    public DatabaseConnectionService(DatabaseConnectionFactory databaseConnectionFactory, AccountInformationService accountInformationService){
         this.databaseConnectionFactory = databaseConnectionFactory;
-        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
+        this.accountInformationService = accountInformationService;
     }
 
-    public Boolean grantAccess(AWSRdsDatabase db, String gkUserPass, String user, RoleType roleType, String password, Integer timeDays) throws GKUnsupportedDBException{
+    public Boolean grantAccess(AWSRdsDatabase db, AWSEnvironment awsEnvironment, String user, RoleType roleType, String password, Integer timeDays) throws GKUnsupportedDBException{
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
         boolean status = false;
         //initialize a map that will show the status of dbs in the request
         logger.info("Granting access to " + db + " for user {" + user + "} ");
         try{
-            status = databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(user, password, roleType,
-                    getAddress(db.getEndpoint(), db.getDbName()), gkUserPass, timeDays);
+            status = databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(
+                    new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), account.getSdlc(),
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getDbName())
+                    .withUser(user)
+                    .withPassword(password)
+                    .withRole(roleType)
+                    .withTime(timeDays));
             logger.info("User for " + user + " for role " + roleType.getRoleDescription() + " successfully created on " + db.getName() + "(" + db.getInstanceId() + ")");
         }catch(GKUnsupportedDBException e){
             logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
@@ -71,13 +81,17 @@ public class DatabaseConnectionService {
         return status;
     }
 
-    public Boolean revokeAccess(AWSRdsDatabase db, String gkUserPass, RoleType roleType, String user) throws GKUnsupportedDBException{
+    public Boolean revokeAccess(AWSRdsDatabase db, AWSEnvironment awsEnvironment, RoleType roleType, String user) throws GKUnsupportedDBException{
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
         //initialize a map that will show the status of dbs in the request
         boolean status = false;
         logger.info("Revoking access on " + db.getName() + "(" + db.getEndpoint() + ")");
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine())
-                    .revokeAccess(user, roleType, getAddress(db.getEndpoint(), db.getDbName()), gkUserPass);
+                    .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getDbName())
+                            .withUser(user)
+                            .withRole(roleType));
             logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + status);
         }catch(GKUnsupportedDBException e){
             logger.info("Skipping access for " + db.getName() + " as Engine " + db.getEngine() + " is not supported");
@@ -91,12 +105,14 @@ public class DatabaseConnectionService {
 
     /**
      * Revokes a list of users from a given database
-     * @param database - the database to revoke access from
+     * @param db - the database to revoke access from
      * @return
      * @throws Exception
      */
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
-    public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance database, String gkUserPassword, List<DbUser> users ) throws Exception {
+    public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance db, AWSEnvironment awsEnvironment, List<DbUser> users ) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+
         List<DbUser> nonGkUsers = users.stream()
                 .filter(user -> !user.getUsername().toLowerCase().startsWith("gk_"))
                 .collect(Collectors.toList());
@@ -107,8 +123,10 @@ public class DatabaseConnectionService {
 
         List<String> usersRemoved = new ArrayList<>();
         for(DbUser user:  users){
-            boolean outcome = databaseConnectionFactory.getConnection(database.getEngine()).revokeAccess(user.getUsername(), null,
-                    getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
+            boolean outcome = databaseConnectionFactory.getConnection(db.getEngine())
+                    .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName())
+                            .withUser(user.getUsername()));
             if(!outcome){
                 usersRemoved.add(user.getUsername());
             }
@@ -118,33 +136,100 @@ public class DatabaseConnectionService {
     }
 
     //UI will usually call this one
-    public Map<RoleType, List<String>> getAvailableSchemasForDb(GatekeeperRDSInstance database, String gkUserPassword) throws Exception {
-        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
+    public Map<RoleType, List<String>> getAvailableSchemasForDb(GatekeeperRDSInstance database, AWSEnvironment awsEnvironment) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(
+                new RdsQuery()
+                    .withAccount(account.getAlias())
+                    .withAccountId(account.getAccountId())
+                    .withRegion(awsEnvironment.getRegion())
+                    .withSdlc(awsEnvironment.getSdlc())
+                    .withAddress(getAddress(database.getEndpoint(), database.getName()))
+                    .withDbName(database.getName()));
     }
 
     //This is usually called through the Activiti workflow
-    public Map<RoleType, List<String>> getAvailableSchemasForDb(AWSRdsDatabase database, String gkUserPassword) throws Exception {
-        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
+    public Map<RoleType, List<String>> getAvailableSchemasForDb(AWSRdsDatabase database, AWSEnvironment awsEnvironment) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(
+                new RdsQuery()
+                        .withAccount(account.getAlias())
+                        .withAccountId(account.getAccountId())
+                        .withRegion(awsEnvironment.getRegion())
+                        .withSdlc(awsEnvironment.getSdlc())
+                        .withAddress(getAddress(database.getEndpoint(), database.getName()))
+                        .withDbName(database.getName()));
     }
 
-    public String checkDb(String engine, String address, String gkUserPassword) throws GKUnsupportedDBException{
-        List<String> issues = databaseConnectionFactory.getConnection(engine).checkDb(address, gkUserPassword);
+    public String checkDb(DBInstance database, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        List<String> issues = databaseConnectionFactory.getConnection(database.getEngine()).checkDb(
+                new RdsQuery()
+                        .withAccount(account.getAlias())
+                        .withAccountId(account.getAccountId())
+                        .withRegion(awsEnvironment.getRegion())
+                        .withSdlc(awsEnvironment.getSdlc())
+                        .withAddress(getAddress(database.getEndpoint().getAddress(), database.getDBInstanceIdentifier()))
+                        .withDbName(database.getDBInstanceIdentifier())
+        );
         return issues.stream().collect(Collectors.joining(","));
     }
 
-    public List<DbUser> getUsersForDb(GatekeeperRDSInstance database, String gkUserPassword) throws Exception {
-        return databaseConnectionFactory.getConnection(database.getEngine()).getUsers(getAddress(database.getEndpoint(), database.getDbName()), gkUserPassword);
+    public String checkDb(DBCluster database, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        List<String> issues = databaseConnectionFactory.getConnection(database.getEngine()).checkDb(
+                new RdsQuery()
+                        .withAccount(account.getAlias())
+                        .withAccountId(account.getAccountId())
+                        .withRegion(awsEnvironment.getRegion())
+                        .withSdlc(awsEnvironment.getSdlc())
+                        .withAddress(getAddress(database.getEndpoint(), database.getDBClusterIdentifier()))
+                        .withDbName(database.getDBClusterIdentifier())
+        );
+        return issues.stream().collect(Collectors.joining(","));
     }
 
-    public List<String> getAvailableRolesForDb(String engine, String address, String gkUserPassword) throws Exception {
-        return databaseConnectionFactory.getConnection(engine).getAvailableRoles(address, gkUserPassword);
+    public List<DbUser> getUsersForDb(GatekeeperRDSInstance db, AWSEnvironment awsEnvironment) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        return databaseConnectionFactory.getConnection(db.getEngine()).getUsers(
+                new RdsQuery()
+                        .withAccount(account.getAlias())
+                        .withAccountId(account.getAccountId())
+                        .withRegion(awsEnvironment.getRegion())
+                        .withSdlc(awsEnvironment.getSdlc())
+                        .withAddress(getAddress(db.getEndpoint(), db.getName()))
+                        .withDbName(db.getName()));
     }
+
+    public List<String> getAvailableRolesForDb(DBInstance db, AWSEnvironment awsEnvironment) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        return databaseConnectionFactory.getConnection(db.getEngine()).getAvailableRoles( new RdsQuery()
+                .withAccount(account.getAlias())
+                .withAccountId(account.getAccountId())
+                .withRegion(awsEnvironment.getRegion())
+                .withSdlc(awsEnvironment.getSdlc())
+                .withAddress(getAddress(db.getEndpoint().getAddress(), db.getDBInstanceIdentifier()))
+                .withDbName(db.getDBInstanceIdentifier()));
+    }
+
+    public List<String> getAvailableRolesForDb(DBCluster db, AWSEnvironment awsEnvironment) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        return databaseConnectionFactory.getConnection(db.getEngine()).getAvailableRoles( new RdsQuery()
+                .withAccount(account.getAlias())
+                .withAccountId(account.getAccountId())
+                .withRegion(awsEnvironment.getRegion())
+                .withSdlc(awsEnvironment.getSdlc())
+                .withAddress(getAddress(db.getEndpoint(), db.getDBClusterIdentifier()))
+                .withDbName(db.getDBClusterIdentifier()));
+    }
+
     /**
      * Check to see if the users in the request exist in the databases and have some kind of dependency constraint that could cause
      * gatekeeper to fail
      * @return
      */
-    public List<String> checkUsersAndDbs(List<UserRole> roles, List<User> users, AWSRdsDatabase db, String gkUserPassword) throws Exception{
+    public List<String> checkUsersAndDbs(List<UserRole> roles, List<User> users, AWSRdsDatabase db, AWSEnvironment awsEnvironment) throws Exception{
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
         List<String> userWithRoles = new ArrayList<>();
         roles.forEach(role -> {
             users.forEach(user -> {
@@ -154,7 +239,9 @@ public class DatabaseConnectionService {
         List<String> outcome = new ArrayList<>();
         try {
             outcome = databaseConnectionFactory.getConnection(db.getEngine())
-                    .checkIfUsersHasTables(getAddress(db.getEndpoint(), db.getDbName()), userWithRoles, gkUserPassword);
+                    .checkIfUsersHasTables(
+                            new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
+                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName()));
         }catch(Exception ex){
             logger.error("Failed to check users on database: ", ex);
         }

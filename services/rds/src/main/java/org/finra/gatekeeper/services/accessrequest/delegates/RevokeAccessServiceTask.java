@@ -21,17 +21,18 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
-import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,17 +45,14 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final DatabaseConnectionService databaseConnectionService;
-    private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final ManagementService managementService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    DatabaseConnectionService databaseConnectionService,
-                                   GKUserCredentialsProvider gkUserCredentialsProvider,
                                    ManagementService managementService) {
         this.emailServiceWrapper = emailServiceWrapper;
         this.databaseConnectionService = databaseConnectionService;
-        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.managementService = managementService;
     }
 
@@ -66,12 +64,12 @@ public class RevokeAccessServiceTask implements JavaDelegate {
         Job job = managementService.createJobQuery().processInstanceId(execution.getProcessInstanceId()).singleResult();
         AccessRequest accessRequest = (AccessRequest)execution.getVariable("accessRequest");
         try {
+            AWSEnvironment awsEnvironment = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc());
             logger.info("Revoking access for Users, Attempts remaining: " + job.getRetries());
             for(User user : accessRequest.getUsers()){
                 for(UserRole role : accessRequest.getRoles()) {
                     AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
-                    String gkUserCredentials = gkUserCredentialsProvider.getGatekeeperSecret(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc(), database.getName());
-                    databaseConnectionService.revokeAccess(database, gkUserCredentials, RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
+                    databaseConnectionService.revokeAccess(database, awsEnvironment, RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
                 }
             }
 

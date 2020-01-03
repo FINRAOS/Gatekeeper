@@ -27,7 +27,7 @@ class RdsUsersDataService extends SearchableDataService{
     constructor($http,$state){
         super($http,$state);
         this.resource = 'getUsers';
-        this.params= ['account','region','instanceId','instanceName'];
+        this.params= ['account','region','sdlc','instanceId','instanceName'];
     }
 
 }

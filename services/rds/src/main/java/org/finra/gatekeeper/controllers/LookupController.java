@@ -52,23 +52,30 @@ class LookupController {
     }
 
     @RequestMapping(value = "/searchDBInstances", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<GatekeeperRDSInstance> searchRDSInstances(@RequestParam("account") String account, @RequestParam("region") String region,
-                                                          @RequestParam("searchText") String searchString, @RequestParam("type") String type){
-        return rdsLookupService.getInstances(new AWSEnvironment(account.toUpperCase(), region), type, searchString.toLowerCase());
+    public List<GatekeeperRDSInstance> searchRDSInstances(@RequestParam("account") String account,
+                                                          @RequestParam("region") String region,
+                                                          @RequestParam("sdlc") String sdlc,
+                                                          @RequestParam("searchText") String searchString,
+                                                          @RequestParam("type") String type){
+        return rdsLookupService.getInstances(new AWSEnvironment(account.toUpperCase(), region, sdlc), type, searchString.toLowerCase());
     }
 
     @RequestMapping(value = "/getAvailableSchemas", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<RoleType, List<String>> getAvailableSchemas(@RequestParam("account") String account, @RequestParam("region") String region,
-                                                           @RequestParam("instanceId") String instanceId, @RequestParam("instanceName") String instanceName) throws Exception{
-        return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId, instanceName);
+    public Map<RoleType, List<String>> getAvailableSchemas(@RequestParam("account") String account,
+                                                           @RequestParam("region") String region,
+                                                           @RequestParam("sdlc") String sdlc,
+                                                           @RequestParam("instanceId") String instanceId,
+                                                           @RequestParam("instanceName") String instanceName) throws Exception{
+        return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region, sdlc), instanceId, instanceName);
     }
 
     @RequestMapping(value="/getUsers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<DbUser> getUsersForInstance(@RequestParam("account") String account,
                                             @RequestParam("region") String region,
+                                            @RequestParam("sdlc") String sdlc,
                                             @RequestParam("instanceId") String instanceId,
                                             @RequestParam("instanceName") String instanceName) throws Exception{
-        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region), instanceId, instanceName);
+        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region, sdlc), instanceId, instanceName);
 
     }
 }

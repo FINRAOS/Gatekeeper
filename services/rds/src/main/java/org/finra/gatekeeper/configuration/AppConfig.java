@@ -53,10 +53,10 @@ public class AppConfig implements ApplicationContextAware {
         return configuration;
     }
 
-    @Bean
+    @Bean(name="credentialsProvider")
     public GKUserCredentialsProvider credentialsProviderConfig(GatekeeperProperties gatekeeperProperties){
         logger.info("************** CREDENTIALS PROVIDER SETUP **************");
-        String credentialProvider = gatekeeperProperties.getDb().getDbCredentialProvider();
+        String credentialProvider = gatekeeperProperties.getDb().getGkCredentialProvider();
         if(credentialProvider == null){
             logger.info("No credentials provider was provided, using default environmental credentials provider.");
             return new EnvVarDBCredentialsService(gatekeeperProperties);

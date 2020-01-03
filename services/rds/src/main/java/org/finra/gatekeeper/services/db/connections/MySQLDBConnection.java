@@ -22,11 +22,12 @@ import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.rds.interfaces.DBConnection;
-import org.finra.gatekeeper.rds.model.DbUser;
-import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
+import org.finra.gatekeeper.rds.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,14 +45,133 @@ import java.util.*;
 public class MySQLDBConnection implements DBConnection {
     private final Logger logger = LoggerFactory.getLogger(MySQLDBConnection.class);
 
+    private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final String gkUserName;
     private final String ssl;
 
     @Autowired
-    public MySQLDBConnection(GatekeeperProperties gatekeeperProperties){
+    public MySQLDBConnection(GatekeeperProperties gatekeeperProperties,
+                             @Qualifier("credentialsProvider") GKUserCredentialsProvider gkUserCredentialsProvider){
+        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.gkUserName = gatekeeperProperties.getDb().getGkUser();
         this.ssl = gatekeeperProperties.getDb().getMysql().getSsl();
 
+    }
+
+    public boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
+        try {
+            createUser(rdsGrantAccessQuery);
+            return true;
+        }catch(Exception ex){
+            logger.error("An exception was thrown trying to create user " + getGkUserName(rdsGrantAccessQuery.getUser(), rdsGrantAccessQuery.getRole())
+                    + " at address " + rdsGrantAccessQuery.getAddress(), ex);
+            return false;
+        }
+    }
+
+    public boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws Exception{
+        String user = rdsRevokeAccessQuery.getUser();
+        String address = rdsRevokeAccessQuery.getAddress();
+        String userRole = getGkUserName(user, rdsRevokeAccessQuery.getRole());
+
+        try{
+            JdbcTemplate conn = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery));
+            logger.info("Deleting User " + user + " if they already exist on DB " + address);
+            conn.execute("GRANT USAGE ON *.* to " + userRole);
+            conn.execute("DROP USER '" + userRole + "'");
+
+            logger.info("Deleted existing " + userRole + " on database " + address);
+            return true;
+        }catch (Exception ex){
+            logger.error("An exception was thrown Trying to revoke access to " + userRole + " from " + address, ex);
+            return false;
+        }
+    }
+
+    public List<String> checkDb(RdsQuery rdsQuery) throws GKUnsupportedDBException{
+        String checkGrants = "SHOW GRANTS FOR CURRENT_USER";
+        String address = rdsQuery.getAddress();
+        List<String> issues = new ArrayList<>();
+
+        try{
+            logger.info("Checking the gatekeeper setup for " + address);
+            JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+            String roleCheckResult = template.queryForObject(checkGrants, String.class);
+            if(!roleCheckResult.contains("CREATE USER")){
+                issues.add("gatekeeper is missing CREATE USER");
+            }
+        }catch(SQLException e){
+            logger.error("Error running check query", e);
+        }
+        catch(CannotGetJdbcConnectionException ex){
+            logger.error("Could not connect", ex);
+            if(ex.getMessage().contains("password")) {
+                issues.add("Password authentication failed for gatekeeper user");
+            } else{
+                issues.add("Unable to connect to DB (Check network configuration)");
+            }
+        }
+
+        return issues;
+    }
+
+    public List<DbUser> getUsers(RdsQuery rdsQuery) throws SQLException {
+        String getUsers = "select user from mysql.user";
+        List<DbUser> users = new ArrayList<>();
+        try {
+            JdbcTemplate template = connect(rdsQuery.getAddress(), gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+            users = template.query(getUsers, new MySqlDbUserMapper());
+        }catch(SQLException e){
+            logger.error("Error retrieving users from DB", e);
+        }
+
+        return users;
+    }
+
+    public List<String> checkIfUsersHasTables(RdsCheckUsersTableQuery rdsQuery){
+        return Collections.emptyList();
+    }
+
+    public List<String> getAvailableRoles(RdsQuery rdsQuery) throws SQLException{
+        return Arrays.asList("gk_readonly", "gk_datafix", "gk_dba");
+    }
+
+    /**
+     * MySQL has a limit of 16 characters in the user name, if the user that gatekeeper wants to generate that is > 16 characters then
+     * gatekeeper will attempt to use a shorter role, if it's STILL too long then just cut off from the username (hope this is rare case.)
+     *
+     * @param user
+     * @param role
+     * @return
+     */
+    private String getGkUserName(String user, RoleType role){
+        return role != null ? user + "_" + role.getShortSuffix() : user;
+    }
+
+    //pulls all the non system schemas for granting
+    private List<String> getSchemasForDb(JdbcTemplate conn){
+        String getSchemas = "select distinct table_schema from information_schema.tables where table_schema not in ('information_schema', 'mysql', 'sys', 'performance_schema')";
+        return conn.queryForList(getSchemas, String.class);
+    }
+
+    public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws SQLException{
+        String address = rdsQuery.getAddress();
+        Map<RoleType, List<String>> results = new HashMap<>();
+        JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        String schemaQuery = "select concat(table_schema,'.',table_name) from information_schema.tables where table_schema not in ('information_schema', 'mysql', 'sys', 'performance_schema')";
+        for(RoleType roleType : RoleType.values()) {
+            try {
+                results.put(roleType, template.queryForList(schemaQuery, String.class));
+            } catch (Exception ex) {
+                logger.error("An exception was thrown while trying to fetch tables over MySQL at address " + address, ex);
+                results.put(roleType, Collections.singletonList("Unable to get available schemas"));
+            }
+        }
+        return results;
+    }
+
+    private String generateQuery(String roles, String user, String schema){
+        return "GRANT "+roles+" ON " + schema + ".* TO " + user + " REQUIRE SSL";
     }
 
     private JdbcTemplate connect(String url, String gkUserPassword) throws SQLException {
@@ -68,22 +188,22 @@ public class MySQLDBConnection implements DBConnection {
 
         return new JdbcTemplate(dataSource);
     }
-    public boolean grantAccess(String user, String password, RoleType role, String address, String gkUserPassword, Integer time) throws Exception{
-        try {
-            createUser(address, user, password, role, gkUserPassword, String.valueOf(time));
-            return true;
-        }catch(Exception ex){
-            logger.error("An exception was thrown trying to create user " + getGkUserName(user, role) + " at address " + address, ex);
-            return false;
-        }
-    }
 
-    private void createUser(String address, String user, String password, RoleType role, String gkuserPassword, String expirationTime) throws Exception{
+    private void createUser(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
+        String address = rdsGrantAccessQuery.getAddress();
+        String user = rdsGrantAccessQuery.getUser();
+        String password = rdsGrantAccessQuery.getPassword();
+        RoleType role = rdsGrantAccessQuery.getRole();
+
+        String gkuserPassword = gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery);
         JdbcTemplate conn = connect(address, gkuserPassword);
 
         String userRole = getGkUserName(user, role); //16 is the maximum length for a user in MySQL, if there's a user hitting this limit, a shorter suffix shall be used
         //revoke the user if they exist
-        revokeAccess(user, role, address, gkuserPassword);
+        revokeAccess(new RdsRevokeAccessQuery(rdsGrantAccessQuery.getAccount(), rdsGrantAccessQuery.getAccountId(), rdsGrantAccessQuery.getRegion(), rdsGrantAccessQuery.getSdlc(),
+                rdsGrantAccessQuery.getAddress(), rdsGrantAccessQuery.getDbName())
+                    .withUser(user)
+                    .withRole(role));
 
         logger.info("Creating User " + userRole + " if they dont already exist");
         boolean wasUserCreated = conn.execute(new MySqlStatement("CREATE USER " + userRole + " IDENTIFIED BY '" + password + "'"));
@@ -122,108 +242,6 @@ public class MySQLDBConnection implements DBConnection {
         logger.info("Successfully Created " + userRole + " with "+ role + " for the following schemas " + schemasToGrant);
     }
 
-    /**
-     * MySQL has a limit of 16 characters in the user name, if the user that gatekeeper wants to generate that is > 16 characters then
-     * gatekeeper will attempt to use a shorter role, if it's STILL too long then just cut off from the username (hope this is rare case.)
-     *
-     * @param user
-     * @param role
-     * @return
-     */
-    private String getGkUserName(String user, RoleType role){
-        return role != null ? user + "_" + role.getShortSuffix() : user;
-    }
-
-    //pulls all the non system schemas for granting
-    private List<String> getSchemasForDb(JdbcTemplate conn){
-        String getSchemas = "select distinct table_schema from information_schema.tables where table_schema not in ('information_schema', 'mysql', 'sys', 'performance_schema')";
-        return conn.queryForList(getSchemas, String.class);
-    }
-
-    public Map<RoleType, List<String>> getAvailableTables(String address, String gkUserPassword) throws SQLException{
-        Map<RoleType, List<String>> results = new HashMap<>();
-        JdbcTemplate template = connect(address, gkUserPassword);
-        String schemaQuery = "select concat(table_schema,'.',table_name) from information_schema.tables where table_schema not in ('information_schema', 'mysql', 'sys', 'performance_schema')";
-        for(RoleType roleType : RoleType.values()) {
-            try {
-                results.put(roleType, template.queryForList(schemaQuery, String.class));
-            } catch (Exception ex) {
-                logger.error("An exception was thrown while trying to fetch tables over MySQL at address " + address, ex);
-                results.put(roleType, Collections.singletonList("Unable to get available schemas"));
-            }
-        }
-        return results;
-    }
-
-    private String generateQuery(String roles, String user, String schema){
-        return "GRANT "+roles+" ON " + schema + ".* TO " + user + " REQUIRE SSL";
-    }
-
-    public boolean revokeAccess(String user, RoleType role, String address, String gkuserPassword) throws Exception{
-        String userRole = getGkUserName(user, role);
-
-        try{
-            JdbcTemplate conn = connect(address, gkuserPassword);
-            logger.info("Deleting User " + user + " if they already exist on DB " + address);
-            conn.execute("GRANT USAGE ON *.* to " + userRole);
-            conn.execute("DROP USER '" + userRole + "'");
-
-            logger.info("Deleted existing " + userRole + " on database " + address);
-            return true;
-        }catch (Exception ex){
-            logger.error("An exception was thrown Trying to revoke access to " + userRole + " from " + address, ex);
-            return false;
-        }
-    }
-
-    public List<String> checkDb(String address, String gkUserPassword) throws GKUnsupportedDBException{
-        String checkGrants = "SHOW GRANTS FOR CURRENT_USER";
-
-        List<String> issues = new ArrayList<>();
-
-        try{
-            logger.info("Checking the gatekeeper setup for " + address);
-            JdbcTemplate template = connect(address, gkUserPassword);
-            String roleCheckResult = template.queryForObject(checkGrants, String.class);
-            if(!roleCheckResult.contains("CREATE USER")){
-                issues.add("gatekeeper is missing CREATE USER");
-            }
-        }catch(SQLException e){
-            logger.error("Error running check query", e);
-        }
-        catch(CannotGetJdbcConnectionException ex){
-            logger.error("Could not connect", ex);
-            if(ex.getMessage().contains("password")) {
-                issues.add("Password authentication failed for gatekeeper user");
-            } else{
-                issues.add("Unable to connect to DB (Check network configuration)");
-            }
-        }
-
-        return issues;
-    }
-
-    public List<DbUser> getUsers(String address, String gkUserPassword) throws SQLException {
-        String getUsers = "select user from mysql.user";
-        List<DbUser> users = new ArrayList<>();
-        try {
-            JdbcTemplate template = connect(address, gkUserPassword);
-            users = template.query(getUsers, new MySqlDbUserMapper());
-        }catch(SQLException e){
-            logger.error("Error retrieving users from DB", e);
-        }
-
-        return users;
-    }
-
-    public List<String> checkIfUsersHasTables(String address, List<String> users, String gkUserPass){
-        return Collections.emptyList();
-    }
-
-    public List<String> getAvailableRoles(String address, String gkUserPass) throws SQLException{
-        return Arrays.asList("gk_readonly", "gk_datafix", "gk_dba");
-    }
-
     private class MySqlStatement implements StatementCallback<Boolean>{
         private String sql;
 
@@ -242,5 +260,4 @@ public class MySQLDBConnection implements DBConnection {
                     .setUsername(rs.getString(1));
         }
     }
-
 }

@@ -117,6 +117,7 @@ class GkRdsSearch extends Directive{
                         type: vm.forms.awsInstanceForm.selectedType,
                         account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                         region: vm.forms.awsInstanceForm.selectedRegion.name,
+                        sdlc: vm.forms.awsInstanceForm.selectedAccount.sdlc,
                         searchText:vm.forms.awsInstanceForm.searchText,
                     });
 

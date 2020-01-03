@@ -31,6 +31,7 @@ import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +56,6 @@ public class RdsLookupService {
 
     private final AwsSessionService awsSessionService;
     private final DatabaseConnectionService databaseConnectionService;
-    private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final SGLookupService sgLookupService;
     private final GatekeeperProperties gatekeeperProperties;
     private final String STATUS_AVAILABLE = "available";
@@ -64,12 +64,10 @@ public class RdsLookupService {
     @Autowired
     public RdsLookupService(AwsSessionService awsSessionService,
                             DatabaseConnectionService databaseConnectionService,
-                            GKUserCredentialsProvider gkUserCredentialsProvider,
                             SGLookupService sgLookupService,
                             GatekeeperProperties gatekeeperProperties) {
         this.awsSessionService = awsSessionService;
         this.databaseConnectionService = databaseConnectionService;
-        this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.sgLookupService = sgLookupService;
         this.gatekeeperProperties = gatekeeperProperties;
     }
@@ -113,7 +111,7 @@ public class RdsLookupService {
         logger.info("Getting Schema info for " +instanceName + "(" + instanceId + ") On Account " + environment.getAccount() + " and Region " + environment.getRegion());
         Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
         if(instance.isPresent()){
-            return databaseConnectionService.getAvailableSchemasForDb(instance.get(), getCredential(environment, instanceName));
+            return databaseConnectionService.getAvailableSchemasForDb(instance.get(), environment);
         }else{
             return unavailableMap();
         }
@@ -124,7 +122,7 @@ public class RdsLookupService {
         Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
 
         if(instance.isPresent()){
-            return databaseConnectionService.getUsersForDb(instance.get(), getCredential(environment, instanceName));
+            return databaseConnectionService.getUsersForDb(instance.get(), environment);
         }else{
             logger.error("Could not find database with " + instanceName + " on account " + environment.getAccount() + "(" + environment.getRegion() + ")");
             return Collections.emptyList();
@@ -169,7 +167,6 @@ public class RdsLookupService {
             List<String> availableRoles = null;
             String dbName = item.getDBName();
             String address = getAddress(item.getEndpoint().getAddress(),String.valueOf(port),dbName);
-            String credential = getCredential(environment, item.getDBInstanceIdentifier());
             if(item.getDBInstanceStatus().equalsIgnoreCase(STATUS_AVAILABLE)
                     || item.getDBInstanceStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
                 enabled = item.getVpcSecurityGroups().stream()
@@ -214,7 +211,7 @@ public class RdsLookupService {
                 if(enabled){
                     //if enabled lets check if the DB is working
                     try {
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), address, credential);
+                        String dbStatus = databaseConnectionService.checkDb(item, environment);
                         status = !dbStatus.isEmpty() ? dbStatus : status;
                         enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
                     }catch(GKUnsupportedDBException e){
@@ -226,7 +223,7 @@ public class RdsLookupService {
                     if(enabled && status.equals(item.getDBInstanceStatus())) {
                         // get available roles for DB
                         try {
-                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), address, credential);
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item, environment);
                             Collections.sort(availableRoles);
                             logger.info("Found the following roles on " + item.getDBInstanceIdentifier() + " (" + availableRoles +").");
                         } catch (Exception e) {
@@ -264,8 +261,6 @@ public class RdsLookupService {
             Integer port = item.getPort();
             List<String> availableRoles = null;
             String dbName = item.getDatabaseName();
-            String address = getAddress(item.getEndpoint(),String.valueOf(port),dbName);
-            String credential = getCredential(environment, item.getDBClusterIdentifier());
 
             if(item.getStatus().equalsIgnoreCase(STATUS_AVAILABLE)
                     || item.getStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
@@ -295,7 +290,7 @@ public class RdsLookupService {
 
                 if(enabled) {
                     try {
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), address, credential);
+                        String dbStatus = databaseConnectionService.checkDb(item, environment);
                         status = !dbStatus.isEmpty() ? dbStatus : status;
                         enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
                     }catch(GKUnsupportedDBException e){
@@ -307,7 +302,7 @@ public class RdsLookupService {
                     if(enabled){
                         // get available roles for DB
                         try {
-                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), address, credential);
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item, environment);
                             Collections.sort(availableRoles);
                             logger.info("Found the following roles on " + item.getDBClusterIdentifier() + " (" + availableRoles +").");
                         } catch (Exception e) {
@@ -395,9 +390,5 @@ public class RdsLookupService {
         }
 
         return empty;
-    }
-
-    private String getCredential(AWSEnvironment environment, String instanceName){
-        return gkUserCredentialsProvider.getGatekeeperSecret(environment.getAccount(), environment.getRegion(), environment.getSdlc(), instanceName);
     }
 }
