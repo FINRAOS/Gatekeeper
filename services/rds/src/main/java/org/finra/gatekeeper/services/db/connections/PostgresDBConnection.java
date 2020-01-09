@@ -215,7 +215,7 @@ public class PostgresDBConnection implements DBConnection {
      * Check to see if this user is the owner of any tables on the DB
      *
      * @param rdsCheckUsersTableQuery - the query details for the db
-     * @return boolean - true if the user still owns tables, false otherwise (they don't exist)
+     * @return List of String - List of users that still own tables
      *
      * @throws SQLException - if there's an issue executing the query on the database
      */

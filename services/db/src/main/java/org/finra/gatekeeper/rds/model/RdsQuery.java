@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.rds.model;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 public class RdsQuery {
     /**
@@ -99,7 +100,7 @@ public class RdsQuery {
         return dbInstanceName;
     }
 
-    public RdsQuery withDbName(String dbName) {
+    public RdsQuery withDbInstanceName(String dbName) {
         this.dbInstanceName = dbName;
         return this;
     }
@@ -126,5 +127,23 @@ public class RdsQuery {
                 .add("address", address)
                 .add("dbInstanceName", dbInstanceName)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RdsQuery)) return false;
+        RdsQuery rdsQuery = (RdsQuery) o;
+        return Objects.equal(account, rdsQuery.account) &&
+                Objects.equal(accountId, rdsQuery.accountId) &&
+                Objects.equal(region, rdsQuery.region) &&
+                Objects.equal(sdlc, rdsQuery.sdlc) &&
+                Objects.equal(address, rdsQuery.address) &&
+                Objects.equal(dbInstanceName, rdsQuery.dbInstanceName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(account, accountId, region, sdlc, address, dbInstanceName);
     }
 }

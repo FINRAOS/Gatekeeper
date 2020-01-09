@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.rds.model;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 public class RdsGrantAccessQuery extends RdsQuery {
     /**
@@ -95,5 +96,22 @@ public class RdsGrantAccessQuery extends RdsQuery {
                 .add("role", role)
                 .add("time", time)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RdsGrantAccessQuery)) return false;
+        if (!super.equals(o)) return false;
+        RdsGrantAccessQuery that = (RdsGrantAccessQuery) o;
+        return Objects.equal(user, that.user) &&
+                Objects.equal(password, that.password) &&
+                role == that.role &&
+                Objects.equal(time, that.time);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), user, password, role, time);
     }
 }

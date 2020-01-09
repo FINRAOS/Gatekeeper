@@ -33,7 +33,6 @@ import org.finra.gatekeeper.services.db.factory.DatabaseConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -106,8 +105,8 @@ public class DatabaseConnectionService {
     /**
      * Revokes a list of users from a given database
      * @param db - the database to revoke access from
-     * @return
-     * @throws Exception
+     * @return the list of user ids that did not get removed
+     * @throws Exception if there is any issue removing the users
      */
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
     public List<String> forceRevokeAccessUsersOnDatabase(GatekeeperRDSInstance db, AWSEnvironment awsEnvironment, List<DbUser> users ) throws Exception {
@@ -121,18 +120,18 @@ public class DatabaseConnectionService {
             throw new GatekeeperException("Forced removal of non-gatekeeper users is not supported. The following unsupported users are: " + nonGkUsers.toString() );
         }
 
-        List<String> usersRemoved = new ArrayList<>();
+        List<String> usersNotRemoved = new ArrayList<>();
         for(DbUser user:  users){
             boolean outcome = databaseConnectionFactory.getConnection(db.getEngine())
                     .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
                             getAddress(db.getEndpoint(), db.getDbName()), db.getName())
                             .withUser(user.getUsername()));
             if(!outcome){
-                usersRemoved.add(user.getUsername());
+                usersNotRemoved.add(user.getUsername());
             }
         }
 
-        return usersRemoved;
+        return usersNotRemoved;
     }
 
     //UI will usually call this one
@@ -144,8 +143,8 @@ public class DatabaseConnectionService {
                     .withAccountId(account.getAccountId())
                     .withRegion(awsEnvironment.getRegion())
                     .withSdlc(awsEnvironment.getSdlc())
-                    .withAddress(getAddress(database.getEndpoint(), database.getName()))
-                    .withDbName(database.getName()));
+                    .withAddress(getAddress(database.getEndpoint(), database.getDbName()))
+                    .withDbInstanceName(database.getName()));
     }
 
     //This is usually called through the Activiti workflow
@@ -157,8 +156,8 @@ public class DatabaseConnectionService {
                         .withAccountId(account.getAccountId())
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
-                        .withAddress(getAddress(database.getEndpoint(), database.getName()))
-                        .withDbName(database.getName()));
+                        .withAddress(getAddress(database.getEndpoint(), database.getDbName()))
+                        .withDbInstanceName(database.getName()));
     }
 
     public String checkDb(DBInstance database, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
@@ -169,8 +168,8 @@ public class DatabaseConnectionService {
                         .withAccountId(account.getAccountId())
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
-                        .withAddress(getAddress(database.getEndpoint().getAddress(), database.getDBInstanceIdentifier()))
-                        .withDbName(database.getDBInstanceIdentifier())
+                        .withAddress(getAddress(database.getEndpoint().getAddress(), database.getDBName()))
+                        .withDbInstanceName(database.getDBInstanceIdentifier())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -183,8 +182,8 @@ public class DatabaseConnectionService {
                         .withAccountId(account.getAccountId())
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
-                        .withAddress(getAddress(database.getEndpoint(), database.getDBClusterIdentifier()))
-                        .withDbName(database.getDBClusterIdentifier())
+                        .withAddress(getAddress(database.getEndpoint(), database.getDatabaseName()))
+                        .withDbInstanceName(database.getDBClusterIdentifier())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -197,8 +196,8 @@ public class DatabaseConnectionService {
                         .withAccountId(account.getAccountId())
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
-                        .withAddress(getAddress(db.getEndpoint(), db.getName()))
-                        .withDbName(db.getName()));
+                        .withAddress(getAddress(db.getEndpoint(), db.getDbName()))
+                        .withDbInstanceName(db.getName()));
     }
 
     public List<String> getAvailableRolesForDb(DBInstance db, AWSEnvironment awsEnvironment) throws Exception {
@@ -208,8 +207,8 @@ public class DatabaseConnectionService {
                 .withAccountId(account.getAccountId())
                 .withRegion(awsEnvironment.getRegion())
                 .withSdlc(awsEnvironment.getSdlc())
-                .withAddress(getAddress(db.getEndpoint().getAddress(), db.getDBInstanceIdentifier()))
-                .withDbName(db.getDBInstanceIdentifier()));
+                .withAddress(getAddress(db.getEndpoint().getAddress(), db.getDBName()))
+                .withDbInstanceName(db.getDBInstanceIdentifier()));
     }
 
     public List<String> getAvailableRolesForDb(DBCluster db, AWSEnvironment awsEnvironment) throws Exception {
@@ -219,8 +218,8 @@ public class DatabaseConnectionService {
                 .withAccountId(account.getAccountId())
                 .withRegion(awsEnvironment.getRegion())
                 .withSdlc(awsEnvironment.getSdlc())
-                .withAddress(getAddress(db.getEndpoint(), db.getDBClusterIdentifier()))
-                .withDbName(db.getDBClusterIdentifier()));
+                .withAddress(getAddress(db.getEndpoint(), db.getDatabaseName()))
+                .withDbInstanceName(db.getDBClusterIdentifier()));
     }
 
     /**

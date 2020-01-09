@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.rds.model;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.util.List;
 
@@ -50,5 +51,19 @@ public class RdsCheckUsersTableQuery extends RdsQuery {
         return MoreObjects.toStringHelper(this)
                 .add("users", users)
                 .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RdsCheckUsersTableQuery)) return false;
+        if (!super.equals(o)) return false;
+        RdsCheckUsersTableQuery that = (RdsCheckUsersTableQuery) o;
+        return Objects.equal(users, that.users);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), users);
     }
 }
