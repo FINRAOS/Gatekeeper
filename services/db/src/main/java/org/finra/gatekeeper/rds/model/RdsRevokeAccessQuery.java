@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.rds.model;
 
+import com.google.common.base.MoreObjects;
+
 public class RdsRevokeAccessQuery extends RdsQuery {
     /**
      * The user to create
@@ -46,13 +48,21 @@ public class RdsRevokeAccessQuery extends RdsQuery {
         return this;
     }
 
-    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbName, String user, RoleType role) {
-        super(account, accountId, region, sdlc, address, dbName);
+    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String user, RoleType role) {
+        super(account, accountId, region, sdlc, address, dbInstanceName);
         this.user = user;
         this.role = role;
     }
 
-    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbName) {
-        super(account, accountId, region, sdlc, address, dbName);
+    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName) {
+        super(account, accountId, region, sdlc, address, dbInstanceName);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("user", user)
+                .add("role", role)
+                .toString();
     }
 }

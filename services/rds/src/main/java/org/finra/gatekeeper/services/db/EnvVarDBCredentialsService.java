@@ -41,7 +41,7 @@ public class EnvVarDBCredentialsService implements GKUserCredentialsProvider {
                 .add("account", rdsQuery.getAccount())
                 .add("region", rdsQuery.getRegion())
                 .add("sdlc", rdsQuery.getSdlc())
-                .add("database", rdsQuery.getDbName()).toString());
+                .add("database", rdsQuery.getDbInstanceName()).toString());
         return secret;
     }
 }

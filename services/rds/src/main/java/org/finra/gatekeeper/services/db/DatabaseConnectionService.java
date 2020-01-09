@@ -65,7 +65,7 @@ public class DatabaseConnectionService {
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(
                     new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), account.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getDbName())
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName())
                     .withUser(user)
                     .withPassword(password)
                     .withRole(roleType)
@@ -89,7 +89,7 @@ public class DatabaseConnectionService {
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine())
                     .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getDbName())
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName())
                             .withUser(user)
                             .withRole(roleType));
             logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + status);
@@ -241,7 +241,8 @@ public class DatabaseConnectionService {
             outcome = databaseConnectionFactory.getConnection(db.getEngine())
                     .checkIfUsersHasTables(
                             new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName()));
+                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName())
+                                        .withUsers(userWithRoles));
         }catch(Exception ex){
             logger.error("Failed to check users on database: ", ex);
         }

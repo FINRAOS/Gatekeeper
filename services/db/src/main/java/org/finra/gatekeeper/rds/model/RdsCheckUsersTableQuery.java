@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.rds.model;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.List;
 
 public class RdsCheckUsersTableQuery extends RdsQuery {
@@ -34,13 +36,19 @@ public class RdsCheckUsersTableQuery extends RdsQuery {
         return this;
     }
 
-    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbName) {
-        super(account, accountId, region, sdlc, address, dbName);
+    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName) {
+        super(account, accountId, region, sdlc, address, dbInstanceName);
     }
 
-    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbName, List<String> users) {
-        super(account, accountId, region, sdlc, address, dbName);
+    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, List<String> users) {
+        super(account, accountId, region, sdlc, address, dbInstanceName);
         this.users = users;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("users", users)
+                .toString();
+    }
 }

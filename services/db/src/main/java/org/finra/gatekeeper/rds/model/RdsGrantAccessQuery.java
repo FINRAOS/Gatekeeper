@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.rds.model;
 
+import com.google.common.base.MoreObjects;
+
 public class RdsGrantAccessQuery extends RdsQuery {
     /**
      * The user to create
@@ -77,12 +79,21 @@ public class RdsGrantAccessQuery extends RdsQuery {
         super(account, accountId, region, sdlc, address, dbName);
     }
 
-    public RdsGrantAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbName, String user, String password, RoleType role, Integer time) {
-        super(account, accountId, region, sdlc, address, dbName);
+    public RdsGrantAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String user, String password, RoleType role, Integer time) {
+        super(account, accountId, region, sdlc, address, dbInstanceName);
         this.user = user;
         this.password = password;
         this.role = role;
         this.time = time;
     }
 
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("user", user)
+                .add("password", password)
+                .add("role", role)
+                .add("time", time)
+                .toString();
+    }
 }

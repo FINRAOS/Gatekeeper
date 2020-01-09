@@ -17,6 +17,8 @@
 
 package org.finra.gatekeeper.rds.model;
 
+import com.google.common.base.MoreObjects;
+
 public class RdsQuery {
     /**
      * The name of the AWS account
@@ -44,9 +46,9 @@ public class RdsQuery {
     private String address;
 
     /**
-     * The Database's DB name
+     * The Database's Instance name
      */
-    private String dbName;
+    private String dbInstanceName;
 
     public String getAccount() {
         return account;
@@ -93,24 +95,36 @@ public class RdsQuery {
         return this;
     }
 
-    public String getDbName() {
-        return dbName;
+    public String getDbInstanceName() {
+        return dbInstanceName;
     }
 
     public RdsQuery withDbName(String dbName) {
-        this.dbName = dbName;
+        this.dbInstanceName = dbName;
         return this;
     }
 
-    public RdsQuery(String account, String accountId, String region, String sdlc, String address, String dbName) {
+    public RdsQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName) {
         this.account = account;
         this.accountId = accountId;
         this.region = region;
         this.sdlc = sdlc;
         this.address = address;
-        this.dbName = dbName;
+        this.dbInstanceName = dbInstanceName;
     }
 
     public RdsQuery() {
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("account", account)
+                .add("accountId", accountId)
+                .add("region", region)
+                .add("sdlc", sdlc)
+                .add("address", address)
+                .add("dbInstanceName", dbInstanceName)
+                .toString();
     }
 }
