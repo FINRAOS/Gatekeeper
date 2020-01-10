@@ -145,7 +145,7 @@ describe('GateKeeper RDS admin component', function () {
                let resp = {data:[{username:'testuser'},{username:'another'}]};
                testInit(true);
                controller.forms.awsInstanceForm = {
-                   selectedAccount: { alias:'ut'},
+                   selectedAccount: { alias:'ut', sdlc:'unittest'},
                    selectedRegion: { name:'us-east-1'}
                };
                let row = {name:'testid', instanceId: 'testInstanceId'};
@@ -155,6 +155,7 @@ describe('GateKeeper RDS admin component', function () {
                expect(gkRdsUserService.search).toHaveBeenCalledWith({
                    account:controller.forms.awsInstanceForm.selectedAccount.alias,
                    region:controller.forms.awsInstanceForm.selectedRegion.name,
+                   sdlc:controller.forms.awsInstanceForm.selectedAccount.sdlc,
                    instanceId: row.instanceId,
                    instanceName:row.name
                });

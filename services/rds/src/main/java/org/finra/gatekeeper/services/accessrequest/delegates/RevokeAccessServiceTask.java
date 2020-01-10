@@ -22,14 +22,17 @@ import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
 import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,10 +64,12 @@ public class RevokeAccessServiceTask implements JavaDelegate {
         Job job = managementService.createJobQuery().processInstanceId(execution.getProcessInstanceId()).singleResult();
         AccessRequest accessRequest = (AccessRequest)execution.getVariable("accessRequest");
         try {
+            AWSEnvironment awsEnvironment = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc());
             logger.info("Revoking access for Users, Attempts remaining: " + job.getRetries());
             for(User user : accessRequest.getUsers()){
                 for(UserRole role : accessRequest.getRoles()) {
-                    databaseConnectionService.revokeAccess(accessRequest.getAwsRdsInstances(), RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
+                    AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
+                    databaseConnectionService.revokeAccess(database, awsEnvironment, RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
                 }
             }
 

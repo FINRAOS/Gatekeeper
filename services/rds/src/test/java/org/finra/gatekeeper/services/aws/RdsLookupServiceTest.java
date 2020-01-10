@@ -21,13 +21,14 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.*;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
+import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -44,6 +45,10 @@ public class RdsLookupServiceTest {
     private DatabaseConnectionService databaseConnectionService;
     @Mock
     private SGLookupService sgLookupService;
+
+    @Mock
+    private GKUserCredentialsProvider gkUserCredentialsProvider;
+
     private GatekeeperProperties gatekeeperProperties;
     @Mock
     private AmazonRDSClient amazonRDSClient;
@@ -62,13 +67,22 @@ public class RdsLookupServiceTest {
     private final String DB_NAME = "postgres";
     private final Integer DB_PORT = 5432;
     private final List<String> roles = Arrays.asList("gk_readonly", "gk_datafix", "gk_dba");
+    private final AWSRdsDatabase postgres = new AWSRdsDatabase()
+            .setEngine(RDS_ENGINE_PG);
+
+    private final AWSRdsDatabase oracle = new AWSRdsDatabase()
+            .setEngine(RDS_ENGINE_ORACLE);
+
+    private DBInstance dbA, dbB, dbC, dbD, dbE, dbF, dbG, dbH, dbI;
+    private DBCluster clusterA, clusterB, clusterC, clusterD, clusterE, clusterF, clusterG, clusterH, clusterI, clusterJ;
+
 
     @Before
     public void setUp() throws Exception {
         gatekeeperProperties = new GatekeeperProperties()
                 .setAppIdentityTag(APP_IDENTITY);
         rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties);
-        test = new AWSEnvironment("test", "test");
+        test = new AWSEnvironment("test", "test", "test");
 
         Mockito.when(awsSessionService.getRDSSession(test)).thenReturn(amazonRDSClient);
 
@@ -79,29 +93,37 @@ public class RdsLookupServiceTest {
                         new OptionGroup()
                                 .withOptionGroupName("test-og")
                                 .withOptions(new Option().withOptionName("SSL").withPort(1234))));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("instance"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_ORACLE), Mockito.contains("instance"))).thenReturn("");
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("instance"))).thenReturn(roles);
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_ORACLE), Mockito.contains("instance"))).thenReturn(roles);
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq("sqlserver"), Mockito.contains("unsupported"))).thenThrow(new GKUnsupportedDBException("Unsupported DB"));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("missing"))).thenReturn("gatekeeper user missing createrole");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailunable"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailpassword"))).thenReturn("");
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailunable"))).thenThrow(new Exception("Unable to get roles"));
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(RDS_ENGINE_PG), Mockito.contains("rolesfailpassword"))).thenThrow(new Exception("Unable to login: password authentication failed"));
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbA), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbB), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbC), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbD), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbE), Mockito.any())).thenThrow(GKUnsupportedDBException.class);
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbF), Mockito.any())).thenReturn("Gatekeeper user missing createrole");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbG), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbH), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(dbI), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(dbA), Mockito.any())).thenReturn(roles);
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(dbI), Mockito.any())).thenReturn(roles);
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(dbG), Mockito.any())).thenThrow(new Exception("Unable to get roles"));
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(dbH), Mockito.any())).thenThrow(new Exception("Unable to login: password authentication failed"));
 
         //AURORA
         Mockito.when(amazonRDSClient.describeDBClusters(Mockito.any())).thenReturn(initializeClusters());
         Mockito.when(amazonRDSClient.listTagsForResource(Mockito.any())).thenReturn(initializeTags());
         Mockito.when(sgLookupService.fetchSgsForAccountRegion(test)).thenReturn(Arrays.asList(SG_ONE, SG_TWO));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("dbendpoint"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailunable"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailpassword"))).thenReturn("");
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("unsupported"))).thenThrow(new GKUnsupportedDBException("Unsupported DB"));
-        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("missing"))).thenReturn("gatekeeper user missing createrole");
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("dbendpoint"))).thenReturn(roles);
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailunable"))).thenThrow(new Exception("Unable to get roles"));
-        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(AURORA_ENGINE), Mockito.contains("rolesfailpassword"))).thenThrow(new Exception("Unable to login: password authentication failed"));
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterA), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterB), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterC), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterD), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterE), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterF), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterG), Mockito.any())).thenThrow(GKUnsupportedDBException.class);
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterH), Mockito.any())).thenReturn("Gatekeeper user missing createrole");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterI), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.checkDb(Mockito.eq(clusterJ), Mockito.any())).thenReturn("");
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(clusterA), Mockito.any())).thenReturn(roles);
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(clusterI), Mockito.any())).thenThrow(new Exception("Unable to get roles"));
+        Mockito.when(databaseConnectionService.getAvailableRolesForDb(Mockito.eq(clusterJ), Mockito.any())).thenThrow(new Exception("Unable to login: password authentication failed"));
     }
 
     @Test(expected=IllegalArgumentException.class)
@@ -177,7 +199,7 @@ public class RdsLookupServiceTest {
         instances = rdsLookupService.getInstances(test, "RDS", "gk-F");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
-        Assert.assertEquals("gatekeeper user missing createrole", instance.getStatus());
+        Assert.assertEquals("Gatekeeper user missing createrole", instance.getStatus());
         Assert.assertFalse(instance.getEnabled());
     }
 
@@ -317,7 +339,7 @@ public class RdsLookupServiceTest {
         instances = rdsLookupService.getInstances(test, "AURORA", "gk-H");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
-        Assert.assertEquals("gatekeeper user missing createrole", instance.getStatus());
+        Assert.assertEquals("Gatekeeper user missing createrole", instance.getStatus());
         Assert.assertFalse(instance.getEnabled());
     }
 
@@ -370,30 +392,30 @@ public class RdsLookupServiceTest {
 
     private DescribeDBInstancesResult initializeInstances(){
         return new DescribeDBInstancesResult().withDBInstances(Arrays.asList(
-                initializeInstance("instance1", RDS_ENGINE_PG, "gk-A-instance", "db-gk1", STATUS_AVAILABLE, SG_ONE, null),
-                initializeInstance("instance2", AURORA_ENGINE, "gk-B-instance", "db-gk2", STATUS_AVAILABLE, SG_ONE, null),
-                initializeInstance("instance3", RDS_ENGINE_PG, "gk-C-instance", "db-gk3", STATUS_AVAILABLE, "gk-unsupport", null),
-                initializeInstance("instance4", RDS_ENGINE_PG, "gk-D-instance", "db-gk4", STATUS_AVAILABLE, SG_ONE, "replica1"),
-                initializeInstance("unsupported", "sqlserver", "gk-E-instance", "db-gk5", STATUS_AVAILABLE, SG_TWO, null),
-                initializeInstance("missing", RDS_ENGINE_PG, "gk-F-instance", "db-gk6", STATUS_AVAILABLE, SG_TWO, null),
-                initializeInstance("rolesfailunable", RDS_ENGINE_PG, "gk-G-instance", "db-gk7", STATUS_AVAILABLE, SG_TWO, null),
-                initializeInstance("rolesfailpassword", RDS_ENGINE_PG, "gk-H-instance", "db-gk8", STATUS_AVAILABLE, SG_TWO, null),
-                initializeInstance("instance5", RDS_ENGINE_ORACLE, "gk-I-instance", "db-gk9", STATUS_AVAILABLE, SG_TWO, null)
+                (dbA = initializeInstance("instance1", RDS_ENGINE_PG, "gk-A-instance", "db-gk1", STATUS_AVAILABLE, SG_ONE, null)),
+                (dbB = initializeInstance("instance2", AURORA_ENGINE, "gk-B-instance", "db-gk2", STATUS_AVAILABLE, SG_ONE, null)),
+                (dbC = initializeInstance("instance3", RDS_ENGINE_PG, "gk-C-instance", "db-gk3", STATUS_AVAILABLE, "gk-unsupport", null)),
+                (dbD = initializeInstance("instance4", RDS_ENGINE_PG, "gk-D-instance", "db-gk4", STATUS_AVAILABLE, SG_ONE, "replica1")),
+                (dbE = initializeInstance("unsupported", "sqlserver", "gk-E-instance", "db-gk5", STATUS_AVAILABLE, SG_TWO, null)),
+                (dbF = initializeInstance("missing", RDS_ENGINE_PG, "gk-F-instance", "db-gk6", STATUS_AVAILABLE, SG_TWO, null)),
+                (dbG = initializeInstance("rolesfailunable", RDS_ENGINE_PG, "gk-G-instance", "db-gk7", STATUS_AVAILABLE, SG_TWO, null)),
+                (dbH = initializeInstance("rolesfailpassword", RDS_ENGINE_PG, "gk-H-instance", "db-gk8", STATUS_AVAILABLE, SG_TWO, null)),
+                (dbI = initializeInstance("instance5", RDS_ENGINE_ORACLE, "gk-I-instance", "db-gk9", STATUS_AVAILABLE, SG_TWO, null))
         ));
     }
 
     private DescribeDBClustersResult initializeClusters(){
         return new DescribeDBClustersResult().withDBClusters(Arrays.asList(
-                initializeCluster("dbendpoint1", "gk-A-cluster", "cluster-gk1", STATUS_AVAILABLE, SG_ONE, null, 2, true),
-                initializeCluster("dbendpoint2", "gk-B-cluster", "cluster-gk2", STATUS_STOPPED, SG_ONE, null, 1, true),
-                initializeCluster("dbendpoint3", "gk-C-cluster", "cluster-gk3", STATUS_AVAILABLE, SG_TWO, "replica1", 1, true),
-                initializeCluster("dbendpoint4", "gk-D-cluster", "cluster-gk4", STATUS_AVAILABLE, "gk-unsupportedsg", null, 3, true),
-                initializeCluster("dbendpoint5", "gk-E-cluster", "cluster-gk5", STATUS_AVAILABLE, SG_TWO, null, 0, true),
-                initializeCluster("dbendpoint6", "gk-F-cluster", "cluster-gk6", STATUS_AVAILABLE, SG_ONE, null, 2, false),
-                initializeCluster("unsupported", "gk-G-cluster", "cluster-gk7", STATUS_AVAILABLE, SG_ONE, null, 2, true),
-                initializeCluster("missing", "gk-H-cluster", "cluster-gk8", STATUS_AVAILABLE, SG_ONE, null, 2, true),
-                initializeCluster("rolesfailunable", "gk-I-cluster", "cluster-gk9", STATUS_AVAILABLE, SG_ONE, null, 2, true),
-                initializeCluster("rolesfailpassword", "gk-J-cluster", "cluster-gk10", STATUS_AVAILABLE, SG_ONE, null, 2, true)
+                (clusterA = initializeCluster("dbendpoint1", "gk-A-cluster", "cluster-gk1", STATUS_AVAILABLE, SG_ONE, null, 2, true)),
+                (clusterB = initializeCluster("dbendpoint2", "gk-B-cluster", "cluster-gk2", STATUS_STOPPED, SG_ONE, null, 1, true)),
+                (clusterC = initializeCluster("dbendpoint3", "gk-C-cluster", "cluster-gk3", STATUS_AVAILABLE, SG_TWO, "replica1", 1, true)),
+                (clusterD = initializeCluster("dbendpoint4", "gk-D-cluster", "cluster-gk4", STATUS_AVAILABLE, "gk-unsupportedsg", null, 3, true)),
+                (clusterE = initializeCluster("dbendpoint5", "gk-E-cluster", "cluster-gk5", STATUS_AVAILABLE, SG_TWO, null, 0, true)),
+                (clusterF = initializeCluster("dbendpoint6", "gk-F-cluster", "cluster-gk6", STATUS_AVAILABLE, SG_ONE, null, 2, false)),
+                (clusterG = initializeCluster("unsupported", "gk-G-cluster", "cluster-gk7", STATUS_AVAILABLE, SG_ONE, null, 2, true)),
+                (clusterH = initializeCluster("missing", "gk-H-cluster", "cluster-gk8", STATUS_AVAILABLE, SG_ONE, null, 2, true)),
+                (clusterI = initializeCluster("rolesfailunable", "gk-I-cluster", "cluster-gk9", STATUS_AVAILABLE, SG_ONE, null, 2, true)),
+                (clusterJ = initializeCluster("rolesfailpassword", "gk-J-cluster", "cluster-gk10", STATUS_AVAILABLE, SG_ONE, null, 2, true))
         ));
     }
 

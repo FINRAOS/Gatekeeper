@@ -20,6 +20,7 @@ package org.finra.gatekeeper.services.aws;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.*;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
@@ -30,6 +31,7 @@ import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -93,10 +95,10 @@ public class RdsLookupService {
         if(dbInstanceIdentifier.startsWith("cluster")){
             DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(
                     new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName));
-            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(amazonRDSClient, result.getDBClusters(), securityGroupIds);
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds);
         }else {
             DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
-            gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient, result.getDBInstances(), securityGroupIds);
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstance(environment, amazonRDSClient, result.getDBInstances(), securityGroupIds);
         }
 
         logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
@@ -109,7 +111,7 @@ public class RdsLookupService {
         logger.info("Getting Schema info for " +instanceName + "(" + instanceId + ") On Account " + environment.getAccount() + " and Region " + environment.getRegion());
         Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
         if(instance.isPresent()){
-            return databaseConnectionService.getAvailableSchemasForDb(instance.get());
+            return databaseConnectionService.getAvailableSchemasForDb(instance.get(), environment);
         }else{
             return unavailableMap();
         }
@@ -120,7 +122,7 @@ public class RdsLookupService {
         Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
 
         if(instance.isPresent()){
-            return databaseConnectionService.getUsersForDb(instance.get());
+            return databaseConnectionService.getUsersForDb(instance.get(), environment);
         }else{
             logger.error("Could not find database with " + instanceName + " on account " + environment.getAccount() + "(" + environment.getRegion() + ")");
             return Collections.emptyList();
@@ -154,7 +156,7 @@ public class RdsLookupService {
      * @param instances
      * @return
      */
-    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstance(AmazonRDSClient client, List<DBInstance> instances, List<String> securityGroupIds){
+    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstance(AWSEnvironment environment, AmazonRDSClient client, List<DBInstance> instances, List<String> securityGroupIds){
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
 
         instances.forEach(item -> {
@@ -165,7 +167,6 @@ public class RdsLookupService {
             List<String> availableRoles = null;
             String dbName = item.getDBName();
             String address = getAddress(item.getEndpoint().getAddress(),String.valueOf(port),dbName);
-
             if(item.getDBInstanceStatus().equalsIgnoreCase(STATUS_AVAILABLE)
                     || item.getDBInstanceStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
                 enabled = item.getVpcSecurityGroups().stream()
@@ -210,7 +211,7 @@ public class RdsLookupService {
                 if(enabled){
                     //if enabled lets check if the DB is working
                     try {
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), address);
+                        String dbStatus = databaseConnectionService.checkDb(item, environment);
                         status = !dbStatus.isEmpty() ? dbStatus : status;
                         enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
                     }catch(GKUnsupportedDBException e){
@@ -222,7 +223,7 @@ public class RdsLookupService {
                     if(enabled && status.equals(item.getDBInstanceStatus())) {
                         // get available roles for DB
                         try {
-                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), address);
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item, environment);
                             Collections.sort(availableRoles);
                             logger.info("Found the following roles on " + item.getDBInstanceIdentifier() + " (" + availableRoles +").");
                         } catch (Exception e) {
@@ -250,7 +251,7 @@ public class RdsLookupService {
      * This looks at database clusters for Aurora, similar to the function loadToGatekeeperRDSInstance() but the difference
      * being we have to look at the cluster as a whole vs the single instance
      */
-    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds){
+    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds){
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
 
         instances.forEach(item -> {
@@ -260,7 +261,6 @@ public class RdsLookupService {
             Integer port = item.getPort();
             List<String> availableRoles = null;
             String dbName = item.getDatabaseName();
-            String address = getAddress(item.getEndpoint(),String.valueOf(port),dbName);
 
             if(item.getStatus().equalsIgnoreCase(STATUS_AVAILABLE)
                     || item.getStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
@@ -290,7 +290,7 @@ public class RdsLookupService {
 
                 if(enabled) {
                     try {
-                        String dbStatus = databaseConnectionService.checkDb(item.getEngine(), address);
+                        String dbStatus = databaseConnectionService.checkDb(item, environment);
                         status = !dbStatus.isEmpty() ? dbStatus : status;
                         enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
                     }catch(GKUnsupportedDBException e){
@@ -302,7 +302,7 @@ public class RdsLookupService {
                     if(enabled){
                         // get available roles for DB
                         try {
-                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item.getEngine(), address);
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item, environment);
                             Collections.sort(availableRoles);
                             logger.info("Found the following roles on " + item.getDBClusterIdentifier() + " (" + availableRoles +").");
                         } catch (Exception e) {
@@ -329,13 +329,13 @@ public class RdsLookupService {
 
     private List<GatekeeperRDSInstance> loadInstances(AWSEnvironment environment, Predicate<? super DBInstance> filter) {
         logger.info("Refreshing RDS Instance Data");
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest();
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
         DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest);
 
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstance(amazonRDSClient,
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstance(environment, amazonRDSClient,
                 result.getDBInstances()
                         .stream()
                         .filter(filter)
@@ -344,7 +344,7 @@ public class RdsLookupService {
         //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
         while(result.getMarker() != null) {
             result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest.withMarker(result.getMarker()));
-            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstance(amazonRDSClient,
+            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstance(environment, amazonRDSClient,
                     result.getDBInstances()
                             .stream()
                             .filter(filter)
@@ -363,7 +363,7 @@ public class RdsLookupService {
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
         DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(describeDBClustersRequest);
 
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(amazonRDSClient,
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment,amazonRDSClient,
                 result.getDBClusters()
                         .stream()
                         .filter(filter)
@@ -372,7 +372,7 @@ public class RdsLookupService {
         //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
         while(result.getMarker() != null) {
             result = amazonRDSClient.describeDBClusters(describeDBClustersRequest.withMarker(result.getMarker()));
-            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstanceAurora(amazonRDSClient,
+            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient,
                     result.getDBClusters()
                             .stream()
                             .filter(filter)

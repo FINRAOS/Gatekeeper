@@ -18,8 +18,7 @@
 package org.finra.gatekeeper.services.aws.model;
 
 import com.google.common.base.MoreObjects;
-
-import java.util.Objects;
+import com.google.common.base.Objects;
 
 /**
  * Simple POJO used to manage cache.
@@ -27,10 +26,12 @@ import java.util.Objects;
 public class AWSEnvironment {
     private String account;
     private String region;
+    private String sdlc;
 
-    public AWSEnvironment(String account, String region){
+    public AWSEnvironment(String account, String region, String sdlc){
         this.account = account;
         this.region = region;
+        this.sdlc = sdlc;
     }
 
     public String getAccount(){
@@ -41,24 +42,23 @@ public class AWSEnvironment {
         return region;
     }
 
-    @Override
-    public boolean equals(Object o){
-        if(this == o){
-            return true;
-        }
-
-        if (o == null || !getClass().equals(o.getClass())) {
-            return false;
-        }
-
-        AWSEnvironment that = (AWSEnvironment)o;
-        return Objects.equals(this.account, that.getAccount()) && Objects.equals(this.region, that.getRegion());
+    public String getSdlc() {
+        return sdlc;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AWSEnvironment that = (AWSEnvironment) o;
+        return Objects.equal(account, that.account) &&
+                Objects.equal(region, that.region) &&
+                Objects.equal(sdlc, that.sdlc);
+    }
 
     @Override
     public int hashCode() {
-        return Objects.hash(account, region);
+        return Objects.hashCode(account, region, sdlc);
     }
 
     @Override
@@ -66,6 +66,7 @@ public class AWSEnvironment {
         return MoreObjects.toStringHelper(this)
                 .add("account", account)
                 .add("region", region)
+                .add("sdlc", sdlc)
                 .toString();
     }
 }

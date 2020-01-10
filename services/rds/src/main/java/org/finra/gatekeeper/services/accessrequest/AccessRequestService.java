@@ -116,9 +116,6 @@ public class AccessRequestService {
 
         //throw gk in front of all the user id's
         request.getUsers().forEach(u -> u.setUserId("gk_" + u.getUserId()));
-        Account theAccount = accountInformationService.getAccountByAlias(request.getAccount());
-
-        AWSEnvironment environment = new AWSEnvironment(theAccount.getAlias().toUpperCase(), request.getRegion());
 
         AccessRequest accessRequest = new AccessRequest()
                 .setAccount(request.getAccount().toUpperCase())
@@ -136,11 +133,13 @@ public class AccessRequestService {
 
         logger.info("Checking Users associated with this access request");
 
-        Map<String, List<String>> checkResult;
+        List<String> checkResult;
+        AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
         try {
-            checkResult = databaseConnectionService.checkUsersAndDbs(request.getRoles(), request.getUsers(), request.getInstances());
+            checkResult = databaseConnectionService.checkUsersAndDbs(request.getRoles(), request.getUsers(), request.getInstances().get(0),
+                    new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc()));
         }catch(Exception e){
-            throw new GatekeeperException("Unable to verify the Users for the provided databases");
+            throw new GatekeeperException("Unable to verify the Users for the provided databases", e);
         }
 
         if(!checkResult.isEmpty()){
