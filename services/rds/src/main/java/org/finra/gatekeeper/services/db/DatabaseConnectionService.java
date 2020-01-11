@@ -19,6 +19,7 @@ package org.finra.gatekeeper.services.db;
 
 import com.amazonaws.services.rds.model.DBCluster;
 import com.amazonaws.services.rds.model.DBInstance;
+import com.amazonaws.services.rds.model.Endpoint;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.exception.GatekeeperException;
@@ -160,30 +161,30 @@ public class DatabaseConnectionService {
                         .withDbInstanceName(database.getName()));
     }
 
-    public String checkDb(DBInstance database, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
+    public String checkDb(DBInstance db, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
         Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
-        List<String> issues = databaseConnectionFactory.getConnection(database.getEngine()).checkDb(
+        List<String> issues = databaseConnectionFactory.getConnection(db.getEngine()).checkDb(
                 new RdsQuery()
                         .withAccount(account.getAlias())
                         .withAccountId(account.getAccountId())
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
-                        .withAddress(getAddress(database.getEndpoint().getAddress(), database.getDBName()))
-                        .withDbInstanceName(database.getDBInstanceIdentifier())
+                        .withAddress(getAddress(db.getEndpoint(), db.getDBName()))
+                        .withDbInstanceName(db.getDBInstanceIdentifier())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
 
-    public String checkDb(DBCluster database, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
+    public String checkDb(DBCluster db, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
         Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
-        List<String> issues = databaseConnectionFactory.getConnection(database.getEngine()).checkDb(
+        List<String> issues = databaseConnectionFactory.getConnection(db.getEngine()).checkDb(
                 new RdsQuery()
                         .withAccount(account.getAlias())
                         .withAccountId(account.getAccountId())
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
-                        .withAddress(getAddress(database.getEndpoint(), database.getDatabaseName()))
-                        .withDbInstanceName(database.getDBClusterIdentifier())
+                        .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
+                        .withDbInstanceName(db.getDBClusterIdentifier())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -207,7 +208,7 @@ public class DatabaseConnectionService {
                 .withAccountId(account.getAccountId())
                 .withRegion(awsEnvironment.getRegion())
                 .withSdlc(awsEnvironment.getSdlc())
-                .withAddress(getAddress(db.getEndpoint().getAddress(), db.getDBName()))
+                .withAddress(getAddress(db.getEndpoint(), db.getDBName()))
                 .withDbInstanceName(db.getDBInstanceIdentifier()));
     }
 
@@ -218,7 +219,7 @@ public class DatabaseConnectionService {
                 .withAccountId(account.getAccountId())
                 .withRegion(awsEnvironment.getRegion())
                 .withSdlc(awsEnvironment.getSdlc())
-                .withAddress(getAddress(db.getEndpoint(), db.getDatabaseName()))
+                .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
                 .withDbInstanceName(db.getDBClusterIdentifier()));
     }
 
@@ -251,4 +252,16 @@ public class DatabaseConnectionService {
     private String getAddress(String endpoint, String dbName){
         return endpoint + "/" + dbName;
     }
+
+    /*
+     * helper method for the checkDB and getAvailableRolesForDB methods
+     */
+    private String getAddress(Endpoint endpoint, String dbName){
+        return getAddress(endpoint.getAddress(), endpoint.getPort(), dbName);
+    }
+
+    private String getAddress(String endpoint, Integer port, String dbName){
+        return String.format("%s:%s/%s", endpoint, port, dbName);
+    }
+
 }

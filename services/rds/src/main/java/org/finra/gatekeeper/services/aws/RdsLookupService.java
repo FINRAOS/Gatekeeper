@@ -198,6 +198,7 @@ public class RdsLookupService {
                         // if the SSL Option is present then set the port and stop searching
                         if(sslOption.isPresent()){
                             port = sslOption.get().getPort();
+                            item.getEndpoint().setPort(port); //for oracle need to set the ssl port to be different.
                             break;
                         }
                     }
@@ -255,6 +256,12 @@ public class RdsLookupService {
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
 
         instances.forEach(item -> {
+            // Only concerned with Aurora clusters apparently AWS lumps in docdb and neptune, etc clusters with the call on the RDS API
+            // if the engine is not aurora then skip it.
+            if(!item.getEngine().contains("aurora")){
+                return;
+            }
+
             String application = getApplicationTagforInstanceArn(client, item.getDBClusterArn());
             boolean enabled = false;
             String status = item.getStatus();
