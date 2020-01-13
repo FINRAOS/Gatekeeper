@@ -77,19 +77,20 @@ public class DatabaseConnectionServiceTest {
     private DbUser gkDbUser;
     private DbUser gkDbUser2;
     private DbUser nonGkDbUser;
-
+    private String endpoint;
 
     private DatabaseConnectionService databaseConnectionService;
 
     @Before
     public void setUp() throws GKUnsupportedDBException {
+        endpoint = "test-db-name.1234567890.us-east-1.rds.amazonaws.com";
         database = new AWSRdsDatabase()
                 .setEngine(TEST_ENGINE)
                 .setApplication("TESTAPP")
                 .setDbName("testdb")
                 .setInstanceId("db-123456")
                 .setName("test-db-name")
-                .setEndpoint("test-db-name.1234567890.us-east-1.rds.amazonaws.com")
+                .setEndpoint(endpoint)
                 .setStatus("Available")
                 .setArn("testArn");
 
@@ -102,7 +103,7 @@ public class DatabaseConnectionServiceTest {
                 .withEngine(database.getEngine())
                 .withDBName(database.getDbName())
                 .withDbiResourceId(database.getInstanceId())
-                .withEndpoint(new Endpoint().withAddress(database.getEndpoint()))
+                .withEndpoint(new Endpoint().withAddress(database.getEndpoint()).withPort(5432))
                 .withDBInstanceStatus(database.getStatus())
                 .withDBInstanceArn(database.getArn());
 
@@ -112,6 +113,7 @@ public class DatabaseConnectionServiceTest {
                 .withDatabaseName(database.getDbName())
                 .withDbClusterResourceId(database.getInstanceId())
                 .withEndpoint(database.getEndpoint())
+                .withPort(5432)
                 .withStatus(database.getStatus())
                 .withDBClusterArn(database.getArn());
 
@@ -137,6 +139,13 @@ public class DatabaseConnectionServiceTest {
                 .setRoles(Collections.emptyList());
 
         String endpoint = database.getEndpoint() + "/" + database.getDbName();
+        expectedRequest = new RdsQuery()
+                .withAccount(account.getAlias())
+                .withAccountId(account.getAccountId())
+                .withRegion(environment.getRegion())
+                .withSdlc(environment.getSdlc())
+                .withAddress(endpoint)
+                .withDbInstanceName(database.getName());
         expectedRequest = new RdsQuery()
                 .withAccount(account.getAlias())
                 .withAccountId(account.getAccountId())
@@ -316,6 +325,8 @@ public class DatabaseConnectionServiceTest {
         String result = databaseConnectionService.checkDb(rdsInstance, environment);
         Mockito.verify(mockDBConnection).checkDb(argumentCaptor.capture());
         RdsQuery actualCall = argumentCaptor.getValue();
+        //since this is using AWS provided arguments the endpoint is expected to be constructed with a combo of the port and the db
+        expectedRequest.withAddress(endpoint+":5432/testdb");
         Assert.assertEquals(expectedRequest, actualCall);
         Assert.assertEquals("", result);
     }
@@ -333,6 +344,8 @@ public class DatabaseConnectionServiceTest {
         String result = databaseConnectionService.checkDb(auroraCluster, environment);
         Mockito.verify(mockDBConnection).checkDb(argumentCaptor.capture());
         RdsQuery actualCall = argumentCaptor.getValue();
+        //since this is using AWS provided arguments the endpoint is expected to be constructed with a combo of the port and the db
+        expectedRequest.withAddress(endpoint+":5432/testdb");
         Assert.assertEquals(expectedRequest, actualCall);
         Assert.assertEquals("", result);
     }
@@ -368,6 +381,8 @@ public class DatabaseConnectionServiceTest {
         List<String> result = databaseConnectionService.getAvailableRolesForDb(rdsInstance, environment);
         Mockito.verify(mockDBConnection).getAvailableRoles(argumentCaptor.capture());
         RdsQuery actualCall = argumentCaptor.getValue();
+        //since this is using AWS provided arguments the endpoint is expected to be constructed with a combo of the port and the db
+        expectedRequest.withAddress(endpoint+":5432/testdb");
         Assert.assertEquals(expectedRequest, actualCall);
         Assert.assertEquals(3, result.size());
     }
@@ -378,6 +393,8 @@ public class DatabaseConnectionServiceTest {
         List<String> result = databaseConnectionService.getAvailableRolesForDb(auroraCluster, environment);
         Mockito.verify(mockDBConnection).getAvailableRoles(argumentCaptor.capture());
         RdsQuery actualCall = argumentCaptor.getValue();
+        //since this is using AWS provided arguments the endpoint is expected to be constructed with a combo of the port and the db
+        expectedRequest.withAddress(endpoint+":5432/testdb");
         Assert.assertEquals(expectedRequest, actualCall);
         Assert.assertEquals(3, result.size());
     }
