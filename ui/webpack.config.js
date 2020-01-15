@@ -19,7 +19,7 @@ var vendor = [
 var plugins = [
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.optimize.CommonsChunkPlugin('common', '[name].[hash].js')
+    new webpack.optimize.CommonsChunkPlugin('common', isProd ? '[name].[hash].js' : '[name].js')
 ];
 if (isProd) {
     plugins.splice(2, 0, new webpack.optimize.UglifyJsPlugin({
@@ -59,7 +59,7 @@ module.exports = {
     devtool: isProd ? '' : 'source-map',
     output: {
         path: isProd ? './dist' : './app',
-        filename: '[name].[hash].js'
+        filename: isProd ? '[name].[hash].js' : '[name].js'
     },
     plugins: plugins,
     module: {
