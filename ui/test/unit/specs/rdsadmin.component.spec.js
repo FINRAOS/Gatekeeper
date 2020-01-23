@@ -93,6 +93,10 @@ describe('GateKeeper RDS admin component', function () {
                         }
                     ]
                 },
+                export: {
+                    filename: 'rds-users',
+                    fields: ['username'],
+                },
                 headers: [
                     {dataType: 'string', display: 'User Name', value: 'username'},
                 ],

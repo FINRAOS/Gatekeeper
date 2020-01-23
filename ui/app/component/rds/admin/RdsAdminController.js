@@ -59,6 +59,10 @@ class RdsAdminController extends GatekeeperAdminController{
                         filterFn: vm.filterGk
                     }]
             },
+            export: {
+                filename: 'rds-users',
+                fields: ['username'],
+            },
             // onSelect: $scope.onSelectFn,
             // onDeselect: $scope.onDeselectFn,
             headers: [
