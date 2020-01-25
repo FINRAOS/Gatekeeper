@@ -164,6 +164,7 @@ describe('GateKeeper RDS admin component', function () {
                    instanceName:row.name
                });
                expect(controller.usersTable.data).toEqual(resp.data);
+               expect(controller.usersTable.export.filename).toBe('testid-rds-users');
            });
         });
 
