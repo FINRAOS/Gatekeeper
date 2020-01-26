@@ -19,6 +19,7 @@
     <div class="md-toolbar-tools" layout="row" layout-padding layout-align="space-between center">
         <span>{{config.toolbar.header}}</span>
         <div>
+            <md-button ng-if="config.export" ng-disabled="config.fetching" ng-click="ctrl.export()" class="md-raised md-primary" style="color: rgba(255,255,255,0.87)">Export</md-button>
             <md-checkbox ng-repeat="checkbox in config.toolbar.checkboxFilters" ng-model="checkbox.checked" aria-label="checkbox.label">{{checkbox.label}}</md-checkbox>
             <md-input-container class="gk-table-header-input">
                 <md-icon md-svg-src="content:filter_list" class="md-avatar" ></md-icon>

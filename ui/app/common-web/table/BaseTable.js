@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { parse } from 'json2csv';
+import { saveAs } from 'file-saver';
 import Directive from '../utils/BaseDirective';
 
 /**
@@ -27,6 +29,15 @@ class BaseTable extends Directive{
         this.scope = {
             config: '='
         };
+        this.controllerAs = 'ctrl';
+    }
+
+    controller($scope) {
+        this.export = () => {
+            const { filename = 'data', fields } = $scope.config.export;
+            const blob = new Blob([parse($scope.config.data, { fields })], { type: 'text/csv;charset=utf-8' });
+            saveAs(blob, `${filename}.csv`);
+        }
     }
 }
 

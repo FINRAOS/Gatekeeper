@@ -59,6 +59,10 @@ class RdsAdminController extends GatekeeperAdminController{
                         filterFn: vm.filterGk
                     }]
             },
+            export: {
+                filename: 'rds-users',
+                fields: ['username'],
+            },
             // onSelect: $scope.onSelectFn,
             // onDeselect: $scope.onDeselectFn,
             headers: [
@@ -94,6 +98,7 @@ class RdsAdminController extends GatekeeperAdminController{
         delete vm.error.users;
         vm.usersTable.fetching = true;
         vm.usersTable.data.splice(0, vm.usersTable.data.length);
+        vm.usersTable.export.filename = `${row.name}-rds-users`;
         vm.usersTable.promise = vm[USERS].search(
             {
                 account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
