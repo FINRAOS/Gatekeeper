@@ -329,7 +329,10 @@ public class PostgresDBConnection implements DBConnection {
 
     private void createUser(JdbcTemplate conn, String address, String user, String password, RoleType role, String expirationTime ) throws SQLException{
         logger.info("Creating user " + user + " on " + address + " with role " + role.getDbRole());
-        conn.execute("CREATE USER " + user + " PASSWORD '" + password + "' VALID UNTIL " + " '" + expirationTime + "'", new PostgresCallableStatementExecutor());
+        conn.execute("CREATE USER " + user, new PostgresCallableStatementExecutor());
+        conn.execute("SET log_statement='none'", new PostgresCallableStatementExecutor());
+        conn.execute("ALTER USER " + user + " PASSWORD '" + password + "' VALID UNTIL " + " '" + expirationTime + "'", new PostgresCallableStatementExecutor());
+        conn.execute("SET log_statement='ddl'", new PostgresCallableStatementExecutor());
         conn.execute("GRANT " + role.getDbRole() + " TO " + user, new PostgresCallableStatementExecutor());
         logger.info("Done Creating user " + user + " on " + address + " with role " + role.getDbRole());
     }
