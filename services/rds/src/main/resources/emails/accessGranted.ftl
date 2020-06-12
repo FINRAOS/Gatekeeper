@@ -11,7 +11,7 @@
     <div><h4>Databases</h4></div>
     <ul>
         <#list request.getAwsRdsInstances() as db>
-            <li><b>${db.getInstanceId()}</b> -- ${db.getName()?has_content?string(db.getName(), 'Unknown')} -- ${db.getEngine()}</li>
+            <li><b>${db.getInstanceId()}</b> -- ${db.getName()?has_content?string(db.getName(), 'Unknown')} -- ${db.getEngine()} (${db.getEndpoint()})</li>
         </#list>
     </ul>
     <div>

@@ -36,8 +36,10 @@ public class GatekeeperRDSInstance {
     private String application;
     private List<String> availableRoles;
     private boolean enabled;
+    private boolean globalCluster;
 
-    public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint, String application, List<String> availableRoles, Boolean enabled){
+    public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint,
+                                 String application, List<String> availableRoles, Boolean enabled, Boolean globalCluster){
         this.instanceId = instanceId;
         this.name = name;
         this.dbName = dbName;
@@ -48,32 +50,108 @@ public class GatekeeperRDSInstance {
         this.application = application;
         this.availableRoles = availableRoles;
         this.enabled = enabled;
+        this.globalCluster = globalCluster;
     }
 
-    public String getInstanceId(){
+    public String getInstanceId() {
         return instanceId;
     }
 
-    public String getEngine(){
+    public GatekeeperRDSInstance setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+        return this;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public GatekeeperRDSInstance setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public String getDbName() {
+        return dbName;
+    }
+
+    public GatekeeperRDSInstance setDbName(String dbName) {
+        this.dbName = dbName;
+        return this;
+    }
+
+    public String getEngine() {
         return engine;
     }
 
-    public String getStatus(){
+    public GatekeeperRDSInstance setEngine(String engine) {
+        this.engine = engine;
+        return this;
+    }
+
+    public String getStatus() {
         return status;
     }
 
-    public String getName() { return name; }
+    public GatekeeperRDSInstance setStatus(String status) {
+        this.status = status;
+        return this;
+    }
 
-    public String getDbName() { return  dbName; }
+    public String getArn() {
+        return arn;
+    }
 
-    public String getArn() { return arn; }
+    public GatekeeperRDSInstance setArn(String arn) {
+        this.arn = arn;
+        return this;
+    }
 
-    public String getEndpoint() { return endpoint; }
+    public String getEndpoint() {
+        return endpoint;
+    }
 
-    public String getApplication() { return application; }
+    public GatekeeperRDSInstance setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
+        return this;
+    }
 
-    public List<String> getAvailableRoles() { return availableRoles; }
-    public Boolean getEnabled() { return enabled;}
+    public String getApplication() {
+        return application;
+    }
+
+    public GatekeeperRDSInstance setApplication(String application) {
+        this.application = application;
+        return this;
+    }
+
+    public List<String> getAvailableRoles() {
+        return availableRoles;
+    }
+
+    public GatekeeperRDSInstance setAvailableRoles(List<String> availableRoles) {
+        this.availableRoles = availableRoles;
+        return this;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    public GatekeeperRDSInstance setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
+    public boolean isGlobalCluster() {
+        return globalCluster;
+    }
+
+    public GatekeeperRDSInstance setGlobalCluster(boolean globalCluster) {
+        this.globalCluster = globalCluster;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o){
         if(this == o){
@@ -94,12 +172,13 @@ public class GatekeeperRDSInstance {
                 && Objects.equals(this.endpoint, that.getEndpoint())
                 && Objects.equals(this.application, that.getApplication())
                 && Objects.equals(this.availableRoles, that.getAvailableRoles())
-                && Objects.equals(this.enabled, that.getEnabled());
+                && Objects.equals(this.enabled, that.getEnabled())
+                && Objects.equals(this.globalCluster, that.isGlobalCluster());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceId, name, dbName, engine, status, arn, endpoint, application, availableRoles, enabled);
+        return Objects.hash(instanceId, name, dbName, engine, status, arn, endpoint, application, availableRoles, enabled, globalCluster);
     }
 
     @Override
@@ -115,6 +194,7 @@ public class GatekeeperRDSInstance {
                 .add("Application", application)
                 .add("Available Roles", availableRoles)
                 .add("Enabled?", enabled)
+                .add("Global Cluster", globalCluster)
                 .toString();
     }
 }

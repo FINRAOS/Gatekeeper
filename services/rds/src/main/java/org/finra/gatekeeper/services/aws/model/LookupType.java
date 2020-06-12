@@ -17,5 +17,5 @@
 package org.finra.gatekeeper.services.aws.model;
 
 public enum LookupType {
-    RDS, AURORA
+    RDS, AURORA_REGIONAL, AURORA_GLOBAL
 }

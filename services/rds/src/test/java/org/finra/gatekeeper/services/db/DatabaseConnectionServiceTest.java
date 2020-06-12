@@ -95,9 +95,9 @@ public class DatabaseConnectionServiceTest {
                 .setArn("testArn");
 
         supportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), database.getEngine(), database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true);
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, false);
         unsupportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), TEST_UNSUPPORTED_ENGINE, database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true);
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, false);
         rdsInstance = new DBInstance()
                 .withDBInstanceIdentifier(database.getName())
                 .withEngine(database.getEngine())

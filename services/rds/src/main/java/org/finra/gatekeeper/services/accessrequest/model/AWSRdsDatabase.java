@@ -38,6 +38,7 @@ public class AWSRdsDatabase {
     private String endpoint;
     private String arn;
     private String status;
+    private Boolean globalCluster;
 
     @ManyToOne
     private AccessRequest accessRequest;
@@ -161,12 +162,22 @@ public class AWSRdsDatabase {
         this.status = status;
         return this;
     }
+
+    public Boolean getGlobalCluster() {
+        return globalCluster;
+    }
+
+    public AWSRdsDatabase setGlobalCluster(Boolean global) {
+        this.globalCluster = global;
+        return this;
+    }
+
     /**
      * Constructors
      */
     public AWSRdsDatabase() {}
 
-    public AWSRdsDatabase(String name, String dbName, String application, String instanceId, String engine, String endpoint, String arn, String status) {
+    public AWSRdsDatabase(String name, String dbName, String application, String instanceId, String engine, String endpoint, String arn, String status, Boolean globalCluster) {
         this.name = name;
         this.dbName = dbName;
         this.application = application;
@@ -175,6 +186,7 @@ public class AWSRdsDatabase {
         this.endpoint = endpoint;
         this.arn = arn;
         this.status = status;
+        this.globalCluster = globalCluster;
     }
 
     @Override
@@ -196,12 +208,13 @@ public class AWSRdsDatabase {
                 && Objects.equals(instanceId, that.instanceId)
                 && Objects.equals(endpoint, that.endpoint)
                 && Objects.equals(status, that.status)
-                && Objects.equals(endpoint, that.endpoint);
+                && Objects.equals(endpoint, that.endpoint)
+                && Objects.equals(globalCluster, that.globalCluster);
     }
 
     @Override
     public int hashCode(){
-        return Objects.hash(id, application, name, dbName, instanceId, engine, endpoint, status);
+        return Objects.hash(id, application, name, dbName, instanceId, engine, endpoint, status, globalCluster);
     }
 
     @Override
@@ -216,6 +229,7 @@ public class AWSRdsDatabase {
                 .add("RDS Database Endpoint", endpoint)
                 .add("RDS Database ARN", arn)
                 .add("Status", status)
+                .add("Global", globalCluster)
                 .toString();
     }
 }

@@ -34,12 +34,17 @@ class GkRdsSearch extends Directive{
             selection: '@'
         };
         this.transclude = true;
-        this.controllerAs="ctrl";
+        this.controllerAs = 'ctrl';
     }
 
     controller($scope, $mdDialog, gkRDSService, gkAccountService){
         let vm = this;
-        vm.types = ['RDS', 'Aurora'];
+        vm.types = [
+            {name: 'RDS', key: 'RDS'},
+            {name: 'Aurora (Regional)', key: 'AURORA_REGIONAL'},
+            {name: 'Aurora (Global)', key: 'AURORA_GLOBAL'}
+            ];
+
         vm.rdsService = gkRDSService;
         gkAccountService.fetch().then((response) =>{
             vm.awsAccounts = response.data;
@@ -114,7 +119,7 @@ class GkRdsSearch extends Directive{
                 vm.awsTable.data.splice(0, vm.awsTable.data.length);
                 vm.awsTable.promise = vm.rdsService.search(
                     {
-                        type: vm.forms.awsInstanceForm.selectedType,
+                        type: vm.forms.awsInstanceForm.selectedType.key,
                         account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                         region: vm.forms.awsInstanceForm.selectedRegion.name,
                         sdlc: vm.forms.awsInstanceForm.selectedAccount.sdlc,
@@ -122,7 +127,6 @@ class GkRdsSearch extends Directive{
                     });
 
                 vm.awsTable.promise.then((response) => {
-                    console.info(response);
                     response.data.forEach((item) => {
                         let roles = '';
                         if(item.availableRoles !== null) {

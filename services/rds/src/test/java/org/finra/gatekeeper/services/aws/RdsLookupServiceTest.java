@@ -25,6 +25,7 @@ import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
+import org.finra.gatekeeper.services.aws.model.LookupType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -138,11 +139,11 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstancesFilter(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk");
         Assert.assertEquals(8, instances.size());
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-A");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-A");
         Assert.assertEquals(1, instances.size());
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-B");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-B");
         Assert.assertEquals(0, instances.size());
     }
 
@@ -150,7 +151,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstancesHappy(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-A");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-A");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertTrue(instance.getEnabled());
@@ -163,7 +164,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstancesMissingSgs(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-C");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-C");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_MISSING_SGS, instance.getStatus());
@@ -174,7 +175,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstancesMissingReadReplica(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-D");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-D");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals("Unsupported (Read-Only replica of replica1)", instance.getStatus());
@@ -185,7 +186,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstancesUnsupported(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-E");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-E");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_UNSUPPORTED_DB_ENGINE, instance.getStatus());
@@ -196,7 +197,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstanceMisconfiguredUser(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-F");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-F");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals("Gatekeeper user missing createrole", instance.getStatus());
@@ -207,7 +208,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstanceCantGetRoles(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-G");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-G");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_COULD_NOT_FETCH_ROLES, instance.getStatus());
@@ -218,7 +219,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstanceCantLogin(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-H");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-H");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_UNABLE_TO_LOGIN, instance.getStatus());
@@ -229,7 +230,7 @@ public class RdsLookupServiceTest {
     public void rdsTestGetInstanceOracle(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "RDS", "gk-I");
+        instances = rdsLookupService.getInstances(test, LookupType.RDS.toString(), "gk-I");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals("TEST", instance.getApplication());
@@ -243,13 +244,13 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesFilter(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk");
         Assert.assertEquals(10, instances.size());
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-A");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-A");
         Assert.assertEquals(1, instances.size());
-        instances = rdsLookupService.getInstances(test, "AURORA", "cluster-gk2");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "cluster-gk2");
         Assert.assertEquals(1, instances.size());
-        instances = rdsLookupService.getInstances(test, "AURORA", "clusta-gk2");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "clusta-gk2");
         Assert.assertEquals(0, instances.size());
     }
 
@@ -257,7 +258,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesHappy(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-A");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-A");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertTrue(instance.getEnabled());
@@ -270,7 +271,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesReadReplica(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-C");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-C");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals("Unsupported (Read-Only replica of replica1)", instance.getStatus());
@@ -281,7 +282,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesStopped(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-B");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-B");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(STATUS_STOPPED, instance.getStatus());
@@ -292,7 +293,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesMissingSgs(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-D");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-D");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_MISSING_SGS, instance.getStatus());
@@ -303,7 +304,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesEmptyCluster(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-E");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-E");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_NO_INSTANCES, instance.getStatus());
@@ -314,7 +315,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstancesNoWriters(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-F");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-F");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_NO_WRITERS, instance.getStatus());
@@ -325,7 +326,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstanceUnsupported(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-G");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-G");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_UNSUPPORTED_DB_ENGINE, instance.getStatus());
@@ -336,7 +337,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstanceMisconfiguredUser(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-H");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-H");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals("Gatekeeper user missing createrole", instance.getStatus());
@@ -347,7 +348,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstanceCantGetRoles(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-I");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-I");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_COULD_NOT_FETCH_ROLES, instance.getStatus());
@@ -358,7 +359,7 @@ public class RdsLookupServiceTest {
     public void auroraTestGetInstanceCantLogin(){
         List<GatekeeperRDSInstance> instances;
 
-        instances = rdsLookupService.getInstances(test, "AURORA", "gk-J");
+        instances = rdsLookupService.getInstances(test, LookupType.AURORA_REGIONAL.toString(), "gk-J");
         Assert.assertEquals(1, instances.size());
         GatekeeperRDSInstance instance = instances.get(0);
         Assert.assertEquals(RdsLookupService.STATUS_UNABLE_TO_LOGIN, instance.getStatus());
