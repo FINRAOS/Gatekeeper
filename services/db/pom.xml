@@ -10,7 +10,7 @@
     <version>1.0</version>
 
     <properties>
-        <guava.version>24.0-jre</guava.version>
+        <guava.version>24.1.1-jre</guava.version>
     </properties>
     <dependencies>
         <dependency>
