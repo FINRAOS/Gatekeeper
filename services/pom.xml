@@ -198,11 +198,4 @@
             </plugin>
         </plugins>
     </build>
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub</name>
-            <url>https://maven.pkg.github.com/SMxJrz</url>
-        </repository>
-    </distributionManagement>
 </project>
