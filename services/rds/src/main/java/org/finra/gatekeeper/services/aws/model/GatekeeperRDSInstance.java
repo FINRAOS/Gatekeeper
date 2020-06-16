@@ -35,11 +35,11 @@ public class GatekeeperRDSInstance {
     private String endpoint;
     private String application;
     private List<String> availableRoles;
+    private DatabaseType databaseType;
     private boolean enabled;
-    private boolean globalCluster;
 
     public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint,
-                                 String application, List<String> availableRoles, Boolean enabled, Boolean globalCluster){
+                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType){
         this.instanceId = instanceId;
         this.name = name;
         this.dbName = dbName;
@@ -50,7 +50,7 @@ public class GatekeeperRDSInstance {
         this.application = application;
         this.availableRoles = availableRoles;
         this.enabled = enabled;
-        this.globalCluster = globalCluster;
+        this.databaseType = databaseType;
     }
 
     public String getInstanceId() {
@@ -143,12 +143,12 @@ public class GatekeeperRDSInstance {
         return this;
     }
 
-    public boolean isGlobalCluster() {
-        return globalCluster;
+    public DatabaseType getDatabaseType() {
+        return databaseType;
     }
 
-    public GatekeeperRDSInstance setGlobalCluster(boolean globalCluster) {
-        this.globalCluster = globalCluster;
+    public GatekeeperRDSInstance setDatabaseType(DatabaseType globalCluster) {
+        this.databaseType = globalCluster;
         return this;
     }
 
@@ -173,12 +173,12 @@ public class GatekeeperRDSInstance {
                 && Objects.equals(this.application, that.getApplication())
                 && Objects.equals(this.availableRoles, that.getAvailableRoles())
                 && Objects.equals(this.enabled, that.getEnabled())
-                && Objects.equals(this.globalCluster, that.isGlobalCluster());
+                && Objects.equals(this.databaseType, that.getDatabaseType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(instanceId, name, dbName, engine, status, arn, endpoint, application, availableRoles, enabled, globalCluster);
+        return Objects.hash(instanceId, name, dbName, engine, status, arn, endpoint, application, availableRoles, enabled, databaseType);
     }
 
     @Override
@@ -194,7 +194,7 @@ public class GatekeeperRDSInstance {
                 .add("Application", application)
                 .add("Available Roles", availableRoles)
                 .add("Enabled?", enabled)
-                .add("Global Cluster", globalCluster)
+                .add("Database Type", databaseType)
                 .toString();
     }
 }

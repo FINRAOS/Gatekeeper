@@ -29,6 +29,7 @@ import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.aws.RdsLookupService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.slf4j.Logger;
@@ -75,7 +76,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                     AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
                     // if the db was actually an aurora global cluster then we should re-fetch the primary cluster
                     // as that could have changed
-                    if(database.getGlobalCluster() != null && database.getGlobalCluster() == true){
+                    if(database.getDatabaseType() != null && database.getDatabaseType() == DatabaseType.AURORA_GLOBAL){
                         logger.info("Re-fetching the Primary Cluster for this global cluster since it could have changed over time.");
                         DBCluster primaryCluster = rdsLookupService.getPrimaryClusterForGlobalCluster(awsEnvironment, database.getName()).get();
                         database.setEndpoint(String.format("%s:%s", primaryCluster.getEndpoint(), primaryCluster.getPort()));

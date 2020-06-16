@@ -24,7 +24,7 @@ import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
-import org.finra.gatekeeper.services.aws.model.LookupType;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.slf4j.Logger;
@@ -73,7 +73,7 @@ public class RdsLookupService {
 
 
     public List<GatekeeperRDSInstance> getInstances(AWSEnvironment environment, String lookupType, String searchString) {
-        switch(LookupType.valueOf(lookupType.toUpperCase())){
+        switch(DatabaseType.valueOf(lookupType.toUpperCase())){
             case RDS:
                 return doFilterRds(environment, searchString);
             case AURORA_REGIONAL:
@@ -110,7 +110,7 @@ public class RdsLookupService {
         if(dbInstanceIdentifier.startsWith("cluster")){
             DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(
                     new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName));
-            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, false);
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_REGIONAL);
         }else {
             DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
             gatekeeperRDSInstances = loadToGatekeeperRDSInstance(environment, amazonRDSClient, result.getDBInstances(), securityGroupIds);
@@ -147,7 +147,7 @@ public class RdsLookupService {
     private List<GatekeeperRDSInstance> doFilterRds(AWSEnvironment environment, String searchString) {
         // Get all instances that match the given search string
         return loadInstances(environment, instance -> (instance.getDBInstanceIdentifier().toLowerCase().contains(searchString.toLowerCase())
-                || instance.getDbiResourceId().toLowerCase().contains(searchString.toLowerCase())) && !instance.getEngine().contains("aurora"));
+                || instance.getDbiResourceId().toLowerCase().contains(searchString.toLowerCase())));
     }
 
     private List<GatekeeperRDSInstance> doFilterAurora(AWSEnvironment environment, String searchString) {
@@ -264,7 +264,7 @@ public class RdsLookupService {
 
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
                     dbName != null ? dbName : "", item.getEngine(), status,
-                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled,false));
+                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled, DatabaseType.RDS));
         });
 
         return gatekeeperRDSInstances;
@@ -274,7 +274,7 @@ public class RdsLookupService {
      * This looks at database clusters for Aurora, similar to the function loadToGatekeeperRDSInstance() but the difference
      * being we have to look at the cluster as a whole vs the single instance
      */
-    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds, boolean globalCluster){
+    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds, DatabaseType globalCluster){
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
 
         instances.forEach(item -> {
@@ -359,7 +359,8 @@ public class RdsLookupService {
     private List<GatekeeperRDSInstance> loadInstances(AWSEnvironment environment, Predicate<? super DBInstance> filter) {
         logger.info("Refreshing RDS Instance Data");
         long startTime = System.currentTimeMillis();
-        DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest();
+        DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest()
+                .withFilters(new Filter().withName("engine").withValues("postgres", "mysql", "oracle-se1", "oracle-se2"));
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
         DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest);
@@ -384,7 +385,7 @@ public class RdsLookupService {
         return gatekeeperRDSInstances;
     }
 
-    private List<GatekeeperRDSInstance> loadInstancesAurora(AWSEnvironment environment, Predicate<? super DBCluster> filter) {
+    protected List<GatekeeperRDSInstance> loadInstancesAurora(AWSEnvironment environment, Predicate<? super DBCluster> filter) {
         logger.info("Looking up Aurora Clusters");
         Long startTime = System.currentTimeMillis();
         DescribeDBClustersRequest describeDBClustersRequest = new DescribeDBClustersRequest();
@@ -415,7 +416,7 @@ public class RdsLookupService {
                         .stream()
                         .filter(cluster -> !auroraClusterGlobalClusterMapping.containsKey(cluster.getDBClusterArn()))
                         .filter(filter)
-                        .collect(Collectors.toList()), securityGroupIds, false);
+                        .collect(Collectors.toList()), securityGroupIds, DatabaseType.AURORA_REGIONAL);
 
         //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
         while(result.getMarker() != null) {
@@ -424,20 +425,19 @@ public class RdsLookupService {
                     result.getDBClusters()
                             .stream()
                             .filter(filter)
-                            .collect(Collectors.toList()), securityGroupIds, false));
+                            .collect(Collectors.toList()), securityGroupIds, DatabaseType.AURORA_REGIONAL));
         }
         logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
         return gatekeeperRDSInstances;
     }
 
-    private List<GatekeeperRDSInstance> loadInstancesAuroraGlobal(AWSEnvironment environment, Predicate<? super GlobalCluster> filter) {
+    protected List<GatekeeperRDSInstance> loadInstancesAuroraGlobal(AWSEnvironment environment, Predicate<? super GlobalCluster> filter) {
         logger.info("Looking up Aurora Global Clusters");
         Long startTime = System.currentTimeMillis();
         DescribeDBClustersRequest describeDBClustersRequest = new DescribeDBClustersRequest();
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
-        DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(describeDBClustersRequest);
 
         List<GlobalCluster> auroraGlobalClusters = getGlobalClusters(amazonRDSClient).stream()
                 .filter(filter)
@@ -472,9 +472,9 @@ public class RdsLookupService {
         primaryClusters.forEach(
                 dbCluster -> dbCluster.setDBClusterIdentifier(primaryToGlobalMapping.get(dbCluster.getDBClusterArn()))
         );
-        // process the primary aurora regional clusters
+        // process the primary aurora regional clusters, this re-uses the aurora processing with the global cluster as the cluster id instead of the primary cluster
         List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment,amazonRDSClient,
-                primaryClusters, securityGroupIds, true);
+                primaryClusters, securityGroupIds, DatabaseType.AURORA_GLOBAL);
 
 
         logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
