@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.services.accessrequest.delegates;
 
+import com.amazonaws.services.rds.model.DBCluster;
 import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -26,13 +27,14 @@ import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.RdsLookupService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,15 +47,18 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final DatabaseConnectionService databaseConnectionService;
+    private final RdsLookupService rdsLookupService;
     private final ManagementService managementService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    DatabaseConnectionService databaseConnectionService,
-                                   ManagementService managementService) {
+                                   ManagementService managementService,
+                                   RdsLookupService rdsLookupService) {
         this.emailServiceWrapper = emailServiceWrapper;
         this.databaseConnectionService = databaseConnectionService;
         this.managementService = managementService;
+        this.rdsLookupService = rdsLookupService;
     }
 
     /***
@@ -69,6 +74,13 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             for(User user : accessRequest.getUsers()){
                 for(UserRole role : accessRequest.getRoles()) {
                     AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
+                    // if the db was actually an aurora global cluster then we should re-fetch the primary cluster
+                    // as that could have changed
+                    if(database.getDatabaseType() != null && database.getDatabaseType() == DatabaseType.AURORA_GLOBAL){
+                        logger.info("Re-fetching the Primary Cluster for this global cluster since it could have changed over time.");
+                        DBCluster primaryCluster = rdsLookupService.getPrimaryClusterForGlobalCluster(awsEnvironment, database.getName()).get();
+                        database.setEndpoint(String.format("%s:%s", primaryCluster.getEndpoint(), primaryCluster.getPort()));
+                    }
                     databaseConnectionService.revokeAccess(database, awsEnvironment, RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
                 }
             }

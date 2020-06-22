@@ -29,6 +29,7 @@ import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.factory.DatabaseConnectionFactory;
 import org.finra.gatekeeper.services.db.mockconnection.MockDBConnection;
@@ -95,9 +96,9 @@ public class DatabaseConnectionServiceTest {
                 .setArn("testArn");
 
         supportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), database.getEngine(), database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true);
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS);
         unsupportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), TEST_UNSUPPORTED_ENGINE, database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true);
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS);
         rdsInstance = new DBInstance()
                 .withDBInstanceIdentifier(database.getName())
                 .withEngine(database.getEngine())

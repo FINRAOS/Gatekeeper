@@ -23,7 +23,7 @@
                 <md-input-container md-no-float>
                     <label>Select a Type</label>
                     <md-select ng-model="ctrl.forms.awsInstanceForm.selectedType" ng-change="ctrl.clearInstances()" required>
-                        <md-option ng-value="opt" ng-repeat="opt in ctrl.types">{{ opt }}</md-option>
+                        <md-option ng-value="opt" ng-repeat="opt in ctrl.types">{{ opt.name }}</md-option>
                     </md-select>
                 </md-input-container>
             </div>

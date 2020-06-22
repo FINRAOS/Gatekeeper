@@ -29,7 +29,7 @@
 
     <properties>
         <activiti.version>5.20.0</activiti.version>
-        <aws.sdk.version>1.11.333</aws.sdk.version>
+        <aws.sdk.version>1.11.800</aws.sdk.version>
         <compiler.version>3.3</compiler.version>
         <failsafe.version>2.18.1</failsafe.version>
         <guava.version>24.0-jre</guava.version>
