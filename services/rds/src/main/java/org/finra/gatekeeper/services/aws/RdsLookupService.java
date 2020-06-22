@@ -455,29 +455,32 @@ public class RdsLookupService {
                     });
         });
 
-        DescribeDBClustersResult describeDBClustersResult = amazonRDSClient.describeDBClusters(
-                describeDBClustersRequest.withFilters(new Filter()
-                    .withName("db-cluster-id")
-                    .withValues(primaryDBClusterARNs)));
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = Collections.emptyList();
 
-        List<DBCluster> primaryClusters = new ArrayList<>(describeDBClustersResult.getDBClusters());
+        // if there's no global clusters matched then don't make the call to look for primary clusters as the AWS API will fail. (AWS Internal Error)
+        if(!primaryDBClusterARNs.isEmpty()) {
+            DescribeDBClustersResult describeDBClustersResult = amazonRDSClient.describeDBClusters(
+                    describeDBClustersRequest.withFilters(new Filter()
+                            .withName("db-cluster-id")
+                            .withValues(primaryDBClusterARNs)));
+            List<DBCluster> primaryClusters = new ArrayList<>(describeDBClustersResult.getDBClusters());
 
-        while(describeDBClustersResult.getMarker() != null) {
-            describeDBClustersResult = amazonRDSClient.describeDBClusters(new DescribeDBClustersRequest()
-                    .withMarker(describeDBClustersResult.getMarker()));
-            primaryClusters.addAll(describeDBClustersResult.getDBClusters());
+            while (describeDBClustersResult.getMarker() != null) {
+                describeDBClustersResult = amazonRDSClient.describeDBClusters(new DescribeDBClustersRequest()
+                        .withMarker(describeDBClustersResult.getMarker()));
+                primaryClusters.addAll(describeDBClustersResult.getDBClusters());
+            }
+
+            // rename the cluster to the name of the global cluster
+            primaryClusters.forEach(
+                    dbCluster -> dbCluster.setDBClusterIdentifier(primaryToGlobalMapping.get(dbCluster.getDBClusterArn()))
+            );
+            // process the primary aurora regional clusters, this re-uses the aurora processing with the global cluster as the cluster id instead of the primary cluster
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient,
+                    primaryClusters, securityGroupIds, DatabaseType.AURORA_GLOBAL);
+
+            logger.info("Refreshed instance data in " + ((double) (System.currentTimeMillis() - startTime) / 1000) + " Seconds");
         }
-
-        // rename the cluster to the name of the global cluster
-        primaryClusters.forEach(
-                dbCluster -> dbCluster.setDBClusterIdentifier(primaryToGlobalMapping.get(dbCluster.getDBClusterArn()))
-        );
-        // process the primary aurora regional clusters, this re-uses the aurora processing with the global cluster as the cluster id instead of the primary cluster
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment,amazonRDSClient,
-                primaryClusters, securityGroupIds, DatabaseType.AURORA_GLOBAL);
-
-
-        logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
         return gatekeeperRDSInstances;
     }
