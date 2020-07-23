@@ -58,6 +58,12 @@ public class AuthController {
         } else {
             logger.info("User " + user.getUserId() + " is not an approver.");
         }
+        result.setAuditor(gatekeeperRoleService.isAuditor());
+        if(result.getAuditor()) {
+            logger.info("User " + user.getUserId() + " is an auditor.");
+        } else {
+            logger.info("User " + user.getUserId() + " is not an auditor.");
+        }
         return result;
     }
 }

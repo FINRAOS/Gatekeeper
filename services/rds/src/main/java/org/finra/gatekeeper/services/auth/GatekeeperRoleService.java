@@ -232,9 +232,15 @@ public class GatekeeperRoleService {
         return gatekeeperAuthorizationService.getMemberships().contains(gatekeeperAuthProperties.getApproverGroup());
     }
 
+    public boolean isAuditor(){
+        return gatekeeperAuthorizationService.getMemberships().contains(gatekeeperAuthProperties.getAuditGroup());
+    }
+
     private GatekeeperRdsRole checkGatekeeperRdsRole() {
         if(gatekeeperAuthorizationService.getMemberships().contains(gatekeeperAuthProperties.getApproverGroup())) {
             return GatekeeperRdsRole.APPROVER;
+        }else if(gatekeeperAuthorizationService.getMemberships().contains(gatekeeperAuthProperties.getAuditGroup())) {
+            return GatekeeperRdsRole.AUDITOR;
         }else if(!getDbaMemberships().isEmpty()){
             return GatekeeperRdsRole.DBA;
         }else if(!getDevMemberships().isEmpty()) {

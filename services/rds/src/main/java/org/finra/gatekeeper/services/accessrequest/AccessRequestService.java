@@ -387,6 +387,7 @@ public class AccessRequestService {
 
     private List<? extends AccessRequestWrapper> filterResults(List<? extends AccessRequestWrapper> results) {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRdsRole.APPROVER)
+                || gatekeeperRoleService.getRole().equals(GatekeeperRdsRole.AUDITOR)
                 || gatekeeperRoleService.getUserProfile().getUserId().equalsIgnoreCase(AccessRequestWrapper.getRequestorId()))
                 .collect(Collectors.toList());
     }

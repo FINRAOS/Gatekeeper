@@ -21,5 +21,5 @@ package org.finra.gatekeeper.services.auth;
  * Enums for Gatekeeper RDS Roles
  */
 public enum GatekeeperRdsRole {
-    APPROVER, DBA, DEV, OPS, UNAUTHORIZED
+    APPROVER, AUDITOR, DBA, DEV, OPS, UNAUTHORIZED
 }
