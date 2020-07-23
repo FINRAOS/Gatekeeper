@@ -24,6 +24,7 @@ import GatekeeperController from '../GatekeeperController';
 let STATE = Symbol();
 let ROLES = {
     approver: 'APPROVER',
+    auditor: 'AUDITOR',
     developer: 'DEV',
     operations: 'OPS',
     dba:'DBA',
@@ -98,6 +99,7 @@ class GatekeeperRdsController extends GatekeeperController{
             vm.global.userInfo.user = data.name;
             vm.global.userInfo.email = data.email;
             vm.global.userInfo.isApprover = data.approver;
+            vm.global.userInfo.isAuditor = data.auditor;
             vm.global.rdsOverridePolicy = data.overridePolicy;
             vm.global.rdsMaxDays = data.maxDays;
 
@@ -106,7 +108,7 @@ class GatekeeperRdsController extends GatekeeperController{
             }else{
                 vm.global.userInfo.roleMemberships = data.roleMemberships;
             }
-            vm.global.tabData.admin.hidden = !vm.global.userInfo.isApprover;
+            vm.global.tabData.admin.hidden = (!vm.global.userInfo.isApprover && !vm.global.userInfo.isAuditor);
 
             if(vm.global.userInfo.isApprover === true) {
                 if(vm.global.selectedIndex === -1) {

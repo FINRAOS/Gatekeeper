@@ -23,6 +23,7 @@ import GatekeeperRequestDialogRequestorController from '../../shared/request/Gat
 let VM;
 let ROLES = {
     approver: 'APPROVER',
+    auditor: 'AUDITOR',
     developer: 'DEV',
     operations: 'OPS',
     support:'SUPPORT',

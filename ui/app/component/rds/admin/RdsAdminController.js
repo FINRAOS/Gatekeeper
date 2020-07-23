@@ -24,9 +24,10 @@ const TOAST = Symbol();
 let vm;
 
 class RdsAdminController extends GatekeeperAdminController{
-    constructor($mdDialog, $mdToast, gkRdsUsersService, gkRdsRevokeUsersService, gkAccountService){
+    constructor($mdDialog, $mdToast, $rootScope, gkRdsUsersService, gkRdsRevokeUsersService, gkAccountService){
         super($mdDialog, $mdToast);
         vm = this;
+        vm.global = $rootScope;
         vm[USERS] = gkRdsUsersService;
         vm[REVOKE] = gkRdsRevokeUsersService;
         vm[TOAST] = $mdToast;
@@ -115,6 +116,12 @@ class RdsAdminController extends GatekeeperAdminController{
         }).finally(() =>{
             vm.usersTable.fetching = false;
         });
+    }
+
+
+    canRevokeUsers(){
+        let canRevoke = vm.global.userInfo.isApprover;
+        return canRevoke;
     }
 
     revokeUsersFromDb(){
