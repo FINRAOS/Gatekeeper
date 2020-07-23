@@ -524,6 +524,29 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(nonOwnerRequest.getTaskId(), "taskTwo");
     }
 
+
+    /**
+     * Test for checking that, when the user is AUDITOR, they should be able to see
+     * any active request. Even ones that they do not own.
+     */
+    @Test
+    public void testGetActiveRequestsAuditor() {
+        when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.AUDITOR);
+        List<ActiveAccessRequestWrapper> activeRequests = accessRequestService.getActiveRequests();
+        Assert.assertTrue(activeRequests.size() == 2);
+
+        ActiveAccessRequestWrapper ownerRequest = activeRequests.get(0);
+        Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
+        Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
+        Assert.assertEquals(ownerRequest.getCreated().toString(), new Date(4500000).toString());
+        Assert.assertEquals(ownerRequest.getTaskId(), "taskOne");
+        ActiveAccessRequestWrapper nonOwnerRequest = activeRequests.get(1);
+        Assert.assertEquals(nonOwnerRequest.getUserCount(), new Integer(0));
+        Assert.assertEquals(nonOwnerRequest.getInstanceCount(), new Integer(1));
+        Assert.assertEquals(nonOwnerRequest.getCreated().toString(), testDate.toString());
+        Assert.assertEquals(nonOwnerRequest.getTaskId(), "taskTwo");
+    }
+
     /**
      * Test for checking that, when the user is DEV, they should be able to see
      * only the requests that are active and were requested by themselves
@@ -560,6 +583,33 @@ public class AccessRequestServiceTest {
     @Test
     public void testGetCompletedRequestsAdmin() {
         when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.APPROVER);
+        List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
+        Assert.assertTrue(completedRequests.size() == 2);
+
+
+        CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(0);
+        Assert.assertEquals(nonOwnerRequest.getUserCount(), new Integer(0));
+        Assert.assertEquals(nonOwnerRequest.getInstanceCount(), new Integer(1));
+        Assert.assertEquals(nonOwnerRequest.getCreated().toString(), new Date(45002).toString());
+        Assert.assertEquals(nonOwnerRequest.getUpdated().toString(), new Date(45003).toString());
+
+        CompletedAccessRequestWrapper ownerRequest = completedRequests.get(1);
+        Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
+        Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
+        Assert.assertEquals(ownerRequest.getCreated().toString(), new Date(45000).toString());
+        Assert.assertEquals(ownerRequest.getUpdated().toString(), new Date(45002).toString());
+
+
+
+    }
+
+    /**
+     * Test for checking that, when the user is AUDITOR, they should be able to see
+     * any completed request. Even ones that they do not own.
+     */
+    @Test
+    public void testGetCompletedRequestsAuditor() {
+        when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.AUDITOR);
         List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
         Assert.assertTrue(completedRequests.size() == 2);
 

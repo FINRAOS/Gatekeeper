@@ -49,7 +49,7 @@ class RdsAdminController extends GatekeeperAdminController{
 
         vm.usersTable = {
             fetching: false,
-            selection: 'multiple',
+            selection: vm.canRevokeUsers()? 'multiple': 'none',
             // selectionId: 'userId',
             toolbar: {
                 header: '',
