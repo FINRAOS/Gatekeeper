@@ -304,7 +304,7 @@ public class GatekeeperRoleServiceTest {
 
     @Test
     public void testIsAudit() {
-        when(gatekeeperAuthProperties.getAuditGroup()).thenReturn("GATEKEEPER_AUDIT_TEST_GROUP");
+        when(gatekeeperAuthProperties.getAuditorGroup()).thenReturn("GATEKEEPER_AUDIT_TEST_GROUP");
 
         memberships = new HashSet<>();
         memberships.add("GATEKEEPER_AUDIT_TEST_GROUP");
