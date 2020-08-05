@@ -82,6 +82,13 @@ public class AccessRequestController {
         return accessRequestService.getCompletedRequests();
     }
 
+    @RequestMapping(value = "/getLiveRequests", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CompletedAccessRequestWrapper> getLiveRequests() {
+        List<CompletedAccessRequestWrapper> liveReqeusts = accessRequestService.getLiveRequests();
+        logger.info(liveReqeusts.toString());
+        return liveReqeusts;
+    }
+
     @RequestMapping(value = "/approveRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object approveRequest(@RequestBody ActiveAccessRequestWrapper request) {
         return accessRequestService.approveRequest(request.getTaskId(), request.getId(), request.getApproverComments());

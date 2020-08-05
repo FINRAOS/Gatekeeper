@@ -43,12 +43,17 @@ import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManagerFactory;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -326,6 +331,34 @@ public class AccessRequestService {
         }
 
         return (List<CompletedAccessRequestWrapper>)filterResults(results);
+    }
+
+    /**
+     * Gets all live requests currently active within the gatekeeper system
+     * @return - all live AccessRequest objects in the Gatekeeper System
+     */
+    public List<CompletedAccessRequestWrapper> getLiveRequests() {
+        List<AccessRequest> liveRequests = accessRequestRepository.getLiveAccessRequests();
+        Map<String, Map<String, Object>> liveRequestExpirationData = accessRequestRepository.getLiveAccessRequestExpirations()
+                .stream()
+                .collect(Collectors.toMap(item -> item.get("id").toString(), item -> item));
+
+        return liveRequests.stream().map(
+                item -> new CompletedAccessRequestWrapper(item)
+                    .setUpdated((Date)liveRequestExpirationData.get(String.valueOf(item.getId())).get("granted_on"))
+                    .setExpirationDate((Date)liveRequestExpirationData.get(String.valueOf(item.getId())).get("expire_time"))
+        ).collect(Collectors.toList());
+    }
+
+    /**
+     * This checks to see if there is any live requests still active for the user for the given account and database
+     * @param userId - the user id for the user
+     * @param accountName - the name of the account
+     * @param database - the name of the database
+     * @return a list of access requests that the user still has active on that database.
+     */
+    public List<AccessRequest> getLiveRequestsForUserOnDatabase(String userId, String accountName, String database, UserRole role) {
+        return accessRequestRepository.getLiveAccessRequestsForUserAccountDbNameAndRole(userId, accountName, database, role.getRole());
     }
 
     /**
