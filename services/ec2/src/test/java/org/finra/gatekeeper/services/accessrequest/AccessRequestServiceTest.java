@@ -39,6 +39,7 @@ import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.*;
+import org.hibernate.query.internal.NativeQueryImpl;
 import org.junit.Assert;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.junit.Before;
@@ -50,10 +51,14 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.context.ActiveProfiles;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
 
+import static org.finra.gatekeeper.services.accessrequest.AccessRequestService.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -151,7 +156,23 @@ public class AccessRequestServiceTest {
     @Mock
     private SsmService ssmService;
 
+    @Mock
+    private EntityManager entityManager;
+
+    @Mock
+    private NativeQueryImpl query;
+
+    @Mock
+    private NativeQueryImpl instanceQuery;
+
+    @Mock
+    private NativeQueryImpl userQuery;
+
     private Date testDate;
+
+    private List<Map<String, String>> requestsMap = new ArrayList<>();
+    private List<Map<String, String>> instanceMap = new ArrayList<>();
+    private List<Map<String, String>> userMap = new ArrayList<>();
 
     @Before
     public void initMocks() {
@@ -262,64 +283,42 @@ public class AccessRequestServiceTest {
 
         //Mocks for getCompletedRequest()
         List<HistoricVariableInstance> taskVars = new ArrayList<>();
-        when(ownerHistoricVariableInstanceAttempt.getProcessInstanceId()).thenReturn("ownerRequest");
-        when(ownerHistoricVariableInstanceStatus.getProcessInstanceId()).thenReturn("ownerRequest");
-        when(ownerHistoricVariableInstanceAccessRequest.getProcessInstanceId()).thenReturn("ownerRequest");
-
-        when(nonOwnerHistoricVariableInstanceAttempt.getProcessInstanceId()).thenReturn("nonOwnerRequest");
-        when(nonOwnerHistoricVariableInstanceStatus.getProcessInstanceId()).thenReturn("nonOwnerRequest");
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getProcessInstanceId()).thenReturn("nonOwnerRequest");
-
-
-        when(ownerHistoricVariableInstanceAttempt.getValue()).thenReturn(1);
-        when(ownerHistoricVariableInstanceAttempt.getVariableName()).thenReturn("attempts");
-        when(ownerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(new Date(45000));
-        when(ownerHistoricVariableInstanceAttempt.getTextValue2()).thenReturn("1");
-        when(ownerHistoricVariableInstanceStatus.getValue()).thenReturn("APPROVAL_GRANTED");
-        when(ownerHistoricVariableInstanceStatus.getVariableName()).thenReturn("requestStatus");
-        when(ownerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(new Date(45002));
-        when(ownerHistoricVariableInstanceStatus.getTextValue2()).thenReturn("1");
-        when(ownerHistoricVariableInstanceAccessRequest.getValue()).thenReturn(ownerRequest);
-        when(ownerHistoricVariableInstanceAccessRequest.getVariableName()).thenReturn("accessRequest");
-        when(ownerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(new Date(45000));
-        when(ownerHistoricVariableInstanceAccessRequest.getTextValue2()).thenReturn("1");
-        when(ownerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(new Date(45002));
-
-        when(nonOwnerHistoricVariableInstanceAttempt.getValue()).thenReturn(2);
-        when(nonOwnerHistoricVariableInstanceAttempt.getVariableName()).thenReturn("attempts");
-        when(nonOwnerHistoricVariableInstanceAttempt.getCreateTime()).thenReturn(new Date(45002));
-        when(nonOwnerHistoricVariableInstanceAttempt.getTextValue2()).thenReturn("2");
-        when(nonOwnerHistoricVariableInstanceStatus.getValue()).thenReturn(null);
-        when(nonOwnerHistoricVariableInstanceStatus.getVariableName()).thenReturn("requestStatus");
-        when(nonOwnerHistoricVariableInstanceStatus.getLastUpdatedTime()).thenReturn(new Date(45003));
-        when(nonOwnerHistoricVariableInstanceStatus.getTextValue2()).thenReturn("2");
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getValue()).thenReturn(nonOwnerRequest);
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getVariableName()).thenReturn("accessRequest");
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getCreateTime()).thenReturn(new Date(45002));
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getTextValue2()).thenReturn("2");
-        when(nonOwnerHistoricVariableInstanceAccessRequest.getLastUpdatedTime()).thenReturn(new Date(45003));
-        taskVars.add(ownerHistoricVariableInstanceAttempt);
-        taskVars.add(ownerHistoricVariableInstanceStatus);
-        taskVars.add(ownerHistoricVariableInstanceAccessRequest);
-
         taskVars.add(nonOwnerHistoricVariableInstanceAttempt);
         taskVars.add(nonOwnerHistoricVariableInstanceStatus);
         taskVars.add(nonOwnerHistoricVariableInstanceAccessRequest);
 
-        when(historyService.createHistoricVariableInstanceQuery()).thenReturn(historicVariableInstanceQuery);
-        when(historyService.createHistoricVariableInstanceQuery().list()).thenReturn(taskVars);
-        when(historicVariableInstanceQuery.excludeVariableInitialization()).thenReturn(historicVariableInstanceQuery);
-        when(historicVariableInstanceQuery.variableName(Mockito.any())).thenReturn(historicVariableInstanceQuery);
-        when(historyService.createNativeHistoricVariableInstanceQuery()).thenReturn(nativeHistoricVariableInstanceQuery);
-        when(nativeHistoricVariableInstanceQuery.sql(Mockito.any())).thenReturn(nativeHistoricVariableInstanceQuery);
-        when(nativeHistoricVariableInstanceQuery.list()).thenReturn(taskVars);
-
         Map<String,String> statusMap = new HashMap<>();
         statusMap.put("testId","Unknown");
         when(ssmService.checkInstancesWithSsm(any(),any())).thenReturn(statusMap);
-
         when(accountInformationService.getAccountByAlias(any())).thenReturn(mockAccount);
-        when(accessRequestRepository.getAccessRequestsByIdIn(Mockito.anyCollection())).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
+
+
+        Map<String, String> ownerMap = new HashMap<>();
+        Map<String, String> nonOwnerMap = new HashMap<>();
+        ownerMap.put("taskId", "1");
+        ownerMap.put("requestorId", "owner");
+        ownerMap.put("instanceCount", "1");
+        ownerMap.put("userCount", "1");
+        ownerMap.put("created", "1969-12-29T05:00:00");
+        ownerMap.put("updated", "1969-12-31T05:00:00");
+        nonOwnerMap.put("taskId", "1");
+        nonOwnerMap.put("requestorId", "non-owner");
+        nonOwnerMap.put("instanceCount", "1");
+        nonOwnerMap.put("userCount", "1");
+        nonOwnerMap.put("created", "1969-12-29T05:00:00");
+        nonOwnerMap.put("updated", "1969-12-31T05:00:00");
+
+        requestsMap.add(ownerMap);
+        requestsMap.add(nonOwnerMap);
+
+        Map<String, String> instanceList = new HashMap<>();
+        instanceList.put("instances_id", "1");
+        instanceMap.add(instanceList);
+
+        Map<String, String> userList = new HashMap<>();
+        userList.put("user_id", "1");
+        userMap.add(userList);
+
 
     }
 
@@ -581,25 +580,28 @@ public class AccessRequestServiceTest {
      * any completed request. Even ones that they do not own.
      */
     @Test
-    public void testGetCompletedRequestsAdmin() {
+    public void testGetCompletedRequestsAdmin() throws Exception {
         when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.APPROVER);
+        when(query.getResultList()).thenReturn(requestsMap);
+        doReturn(query).when(entityManager).createNativeQuery(anyString());
+
         List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
-        Assert.assertTrue(completedRequests.size() == 2);
 
-
-        CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(0);
-        Assert.assertEquals(nonOwnerRequest.getUserCount(), new Integer(0));
-        Assert.assertEquals(nonOwnerRequest.getInstanceCount(), new Integer(1));
-        Assert.assertEquals(nonOwnerRequest.getCreated().toString(), new Date(45002).toString());
-        Assert.assertEquals(nonOwnerRequest.getUpdated().toString(), new Date(45003).toString());
-
-        CompletedAccessRequestWrapper ownerRequest = completedRequests.get(1);
+        Assert.assertEquals(2, completedRequests.size());
+        CompletedAccessRequestWrapper ownerRequest = completedRequests.get(0);
         Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
         Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
-        Assert.assertEquals(ownerRequest.getCreated().toString(), new Date(45000).toString());
-        Assert.assertEquals(ownerRequest.getUpdated().toString(), new Date(45002).toString());
+//        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), ownerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), ownerRequest.getUpdated().toString());
 
 
+        CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(1);
+        Assert.assertEquals(new Integer(1), nonOwnerRequest.getUserCount());
+        Assert.assertEquals(new Integer(1), nonOwnerRequest.getInstanceCount());
+//        Assert.assertEquals(new Integer(2), nonOwnerRequest.getAttempts() );
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), nonOwnerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), nonOwnerRequest.getUpdated().toString());
 
     }
 
@@ -608,25 +610,28 @@ public class AccessRequestServiceTest {
      * any completed request. Even ones that they do not own.
      */
     @Test
-    public void testGetCompletedRequestsAuditor() {
+    public void testGetCompletedRequestsAuditor() throws Exception {
         when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.AUDITOR);
+        when(query.getResultList()).thenReturn(requestsMap);
+        doReturn(query).when(entityManager).createNativeQuery(anyString());
+
         List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
-        Assert.assertTrue(completedRequests.size() == 2);
 
-
-        CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(0);
-        Assert.assertEquals(nonOwnerRequest.getUserCount(), new Integer(0));
-        Assert.assertEquals(nonOwnerRequest.getInstanceCount(), new Integer(1));
-        Assert.assertEquals(nonOwnerRequest.getCreated().toString(), new Date(45002).toString());
-        Assert.assertEquals(nonOwnerRequest.getUpdated().toString(), new Date(45003).toString());
-
-        CompletedAccessRequestWrapper ownerRequest = completedRequests.get(1);
+        Assert.assertEquals(2, completedRequests.size());
+        CompletedAccessRequestWrapper ownerRequest = completedRequests.get(0);
         Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
         Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
-        Assert.assertEquals(ownerRequest.getCreated().toString(), new Date(45000).toString());
-        Assert.assertEquals(ownerRequest.getUpdated().toString(), new Date(45002).toString());
+//        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), ownerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), ownerRequest.getUpdated().toString());
 
 
+        CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(1);
+        Assert.assertEquals(new Integer(1), nonOwnerRequest.getUserCount());
+        Assert.assertEquals(new Integer(1), nonOwnerRequest.getInstanceCount());
+//        Assert.assertEquals(new Integer(2), nonOwnerRequest.getAttempts() );
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), nonOwnerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), nonOwnerRequest.getUpdated().toString());
 
     }
 
@@ -635,32 +640,63 @@ public class AccessRequestServiceTest {
      * only the requests that are active and were requested by themselves
      */
     @Test
-    public void testGetCompletedRequests() {
+    public void testGetCompletedRequests() throws Exception {
         when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("owner");
         when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.DEV);
+        when(query.getResultList()).thenReturn(requestsMap);
+        doReturn(query).when(entityManager).createNativeQuery(anyString());
 
         List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getCompletedRequests();
-        Assert.assertTrue(completedRequests.size() == 1);
-
+        Assert.assertEquals(1, completedRequests.size());
         CompletedAccessRequestWrapper ownerRequest = completedRequests.get(0);
         Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
         Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
-        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
-        Assert.assertEquals(ownerRequest.getCreated().toString(), new Date(45000).toString());
-        Assert.assertEquals(ownerRequest.getUpdated().toString(), new Date(45002).toString());
+//        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), ownerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), ownerRequest.getUpdated().toString());
 
 
         when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("non-owner");
         completedRequests = accessRequestService.getCompletedRequests();
-        Assert.assertEquals(completedRequests.size(),1);
-
+        Assert.assertEquals(1,completedRequests.size());
         CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(0);
-        Assert.assertEquals(nonOwnerRequest.getUserCount(), new Integer(0));
-        Assert.assertEquals(nonOwnerRequest.getInstanceCount(), new Integer(1));
-        Assert.assertEquals(nonOwnerRequest.getAttempts(), new Integer(2));
-        Assert.assertEquals(nonOwnerRequest.getCreated().toString(), new Date(45002).toString());
-        Assert.assertEquals(nonOwnerRequest.getUpdated().toString(), new Date(45003).toString());
+        Assert.assertEquals(new Integer(1), nonOwnerRequest.getUserCount());
+        Assert.assertEquals(new Integer(1), nonOwnerRequest.getInstanceCount());
+//        Assert.assertEquals(new Integer(2), nonOwnerRequest.getAttempts() );
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), nonOwnerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), nonOwnerRequest.getUpdated().toString());
 
+    }
+
+    /**
+     * Test for checking that, a user can retrieve an individual request
+     */
+    @Test
+    public void testGetRequest() throws Exception {
+        when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("owner");
+        when(gatekeeperLdapService.getRole()).thenReturn(GatekeeperRole.DEV);
+
+        when(query.getResultList()).thenReturn(requestsMap);
+        doReturn(query).when(entityManager).createNativeQuery(REQUEST_QUERY.toString());
+
+        when(userQuery.getResultList()).thenReturn(userMap);
+        doReturn(userQuery).when(entityManager).createNativeQuery(USER_QUERY);
+
+        when(instanceQuery.getResultList()).thenReturn(instanceMap);
+        doReturn(instanceQuery).when(entityManager).createNativeQuery(INSTANCE_QUERY);
+
+        List<CompletedAccessRequestWrapper> completedRequests = accessRequestService.getRequest(1L);
+        Assert.assertEquals(1, completedRequests.size());
+        CompletedAccessRequestWrapper ownerRequest = completedRequests.get(0);
+        List<AWSInstance> awsInstances = ownerRequest.getInstances();
+        List<User> userList = ownerRequest.getUsers();
+        Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
+        Assert.assertEquals(1, awsInstances.size());
+        Assert.assertEquals(1, userList.size());
+        Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
+//        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("29/12/1969").toString(), ownerRequest.getCreated().toString());
+        Assert.assertEquals(new SimpleDateFormat("dd/MM/yyyy").parse("31/12/1969").toString(), ownerRequest.getUpdated().toString());
     }
 
     /**

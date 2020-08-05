@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**

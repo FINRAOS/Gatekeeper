@@ -24,13 +24,13 @@ class Ec2RequestHistoryController extends GatekeeperRequestHistoryController{
 
         this.requestTable.template = require('./template/request.tpl.html');
 
-        this.requestTable.responseHandler = function(data){
-            data.forEach(function(row){
-                row.instances.forEach(function(instance){
-                    instance.icon = instance.status === 'Online' ?  'hardware:computer' :'notification:sync_problem';
-                });
-            });
-        };
+        // this.requestTable.responseHandler = function(data){
+        //     data.forEach(function(row){
+        //         row.instances.forEach(function(instance){
+        //             instance.icon = instance.status === 'Online' ?  'hardware:computer' :'notification:sync_problem';
+        //         });
+        //     });
+        // };
 
         this.getCompleted();
     }
