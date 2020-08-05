@@ -52,13 +52,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.context.ActiveProfiles;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 
 import static org.finra.gatekeeper.services.accessrequest.AccessRequestService.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -301,12 +299,14 @@ public class AccessRequestServiceTest {
         ownerMap.put("userCount", "1");
         ownerMap.put("created", "1969-12-29T00:00:00");
         ownerMap.put("updated", "1969-12-31T00:00:00");
+
         nonOwnerMap.put("taskId", "1");
         nonOwnerMap.put("requestorId", "non-owner");
         nonOwnerMap.put("instanceCount", "1");
         nonOwnerMap.put("userCount", "1");
         nonOwnerMap.put("created", "1969-12-29T00:00:00");
         nonOwnerMap.put("updated", "1969-12-31T00:00:00");
+
 
         requestsMap.add(ownerMap);
         requestsMap.add(nonOwnerMap);
@@ -602,6 +602,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", nonOwnerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", nonOwnerRequest.getUpdated().toGMTString());
 
+
     }
 
     /**
@@ -623,6 +624,7 @@ public class AccessRequestServiceTest {
 //        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", ownerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", ownerRequest.getUpdated().toGMTString());
+
 
         CompletedAccessRequestWrapper nonOwnerRequest = completedRequests.get(1);
         Assert.assertEquals(new Integer(1), nonOwnerRequest.getUserCount());
@@ -653,6 +655,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", ownerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", ownerRequest.getUpdated().toGMTString());
 
+
         when(gatekeeperLdapService.getUserProfile().getUserId()).thenReturn("non-owner");
         completedRequests = accessRequestService.getCompletedRequests();
         Assert.assertEquals(1,completedRequests.size());
@@ -662,6 +665,7 @@ public class AccessRequestServiceTest {
 //        Assert.assertEquals(new Integer(2), nonOwnerRequest.getAttempts() );
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", nonOwnerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", nonOwnerRequest.getUpdated().toGMTString());
+
 
     }
 
@@ -675,6 +679,7 @@ public class AccessRequestServiceTest {
 
         when(query.getResultList()).thenReturn(requestsMap);
         doReturn(query).when(entityManager).createNativeQuery(anyString());
+
 
         when(userQuery.getResultList()).thenReturn(userMap);
         doReturn(userQuery).when(entityManager).createNativeQuery(USER_QUERY);
@@ -694,6 +699,7 @@ public class AccessRequestServiceTest {
 //        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", ownerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", ownerRequest.getUpdated().toGMTString());
+
     }
 
     /**

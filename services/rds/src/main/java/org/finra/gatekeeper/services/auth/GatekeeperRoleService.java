@@ -234,6 +234,7 @@ public class GatekeeperRoleService {
 
     public boolean isAuditor(){
         return gatekeeperAuthorizationService.getMemberships().contains(gatekeeperAuthProperties.getAuditorGroup());
+
     }
 
     private GatekeeperRdsRole checkGatekeeperRdsRole() {

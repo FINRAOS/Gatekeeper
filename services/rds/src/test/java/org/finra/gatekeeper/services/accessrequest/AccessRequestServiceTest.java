@@ -379,12 +379,14 @@ public class AccessRequestServiceTest {
         ownerMap.put("userCount", "1");
         ownerMap.put("created", "1969-12-29T00:00:00");
         ownerMap.put("updated", "1969-12-31T00:00:00");
+
         nonOwnerMap.put("taskId", "1");
         nonOwnerMap.put("requestorId", "non-owner");
         nonOwnerMap.put("instanceCount", "1");
         nonOwnerMap.put("userCount", "1");
         nonOwnerMap.put("created", "1969-12-29T00:00:00");
         nonOwnerMap.put("updated", "1969-12-31T00:00:00");
+
 
         requestsMap.add(ownerMap);
         requestsMap.add(nonOwnerMap);
@@ -717,6 +719,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", ownerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", ownerRequest.getUpdated().toGMTString());
+
     }
 
     /**
@@ -744,6 +747,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", ownerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", ownerRequest.getUpdated().toGMTString());
+
     }
 
     /**
@@ -765,6 +769,7 @@ public class AccessRequestServiceTest {
         Assert.assertEquals(ownerRequest.getUserCount(), new Integer(1));
         Assert.assertEquals(ownerRequest.getInstanceCount(), new Integer(1));
 //        Assert.assertEquals(ownerRequest.getAttempts(), new Integer(1));
+
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", ownerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", ownerRequest.getUpdated().toGMTString());
 
@@ -780,6 +785,7 @@ public class AccessRequestServiceTest {
 //        Assert.assertEquals(nonOwnerRequest.getAttempts(), new Integer(2));
         Assert.assertEquals("29 Dec 1969 00:00:00 GMT", nonOwnerRequest.getCreated().toGMTString());
         Assert.assertEquals("31 Dec 1969 00:00:00 GMT", nonOwnerRequest.getUpdated().toGMTString());
+
     }
 
     /**
