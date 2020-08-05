@@ -793,13 +793,6 @@ public class AccessRequestServiceTest {
 
         when(query.getResultList()).thenReturn(requestsMap);
         doReturn(query).when(entityManager).createNativeQuery(new StringBuilder(REQUESTS_QUERY)
-                .insert(0,"       access_request.request_reason,\n")
-                .insert(0,"       access_request.region,\n")
-                .insert(0,"       access_request.approver_comments,\n")
-                .insert(0,"       access_request.actioned_by_user_name,\n")
-                .insert(0,"       access_request.actioned_by_user_id,\n")
-                .insert(0,"       access_request.ticket_id,\n")
-                .insert(0,"SELECT       access_request.account_sdlc,\n")
                 .append("and access_request.id = :request_id \n")
                 .append("order by updated desc;")
                 .toString());

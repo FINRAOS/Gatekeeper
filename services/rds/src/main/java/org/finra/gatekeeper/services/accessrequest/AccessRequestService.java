@@ -79,7 +79,14 @@ public class AccessRequestService {
     private final String CANCELED = "CANCELED";
 
     protected static final String REQUESTS_QUERY = new StringBuilder()
-            .append("access_request.id,\n")
+            .append("SELECT access_request.account_sdlc,\n")
+            .append("       access_request.request_reason,\n")
+            .append("       access_request.region,\n")
+            .append("       access_request.approver_comments,\n")
+            .append("       access_request.actioned_by_user_name,\n")
+            .append("       access_request.actioned_by_user_id,\n")
+            .append("       access_request.ticket_id,\n")
+            .append("       access_request.id,\n")
             .append("       access_request.account,\n")
             .append("       access_request.requestor_name,\n")
             .append("       access_request.requestor_email,\n")
@@ -299,13 +306,6 @@ public class AccessRequestService {
         List<CompletedAccessRequestWrapper> results = new ArrayList<>();
 
         String query = new StringBuilder(REQUESTS_QUERY)
-                .insert(0,"       access_request.request_reason,\n")
-                .insert(0,"       access_request.region,\n")
-                .insert(0,"       access_request.approver_comments,\n")
-                .insert(0,"       access_request.actioned_by_user_name,\n")
-                .insert(0,"       access_request.actioned_by_user_id,\n")
-                .insert(0,"       access_request.ticket_id,\n")
-                .insert(0,"SELECT       access_request.account_sdlc,\n")
                 .append("and access_request.id = :request_id \n")
                 .append("order by updated desc;")
                 .toString();
