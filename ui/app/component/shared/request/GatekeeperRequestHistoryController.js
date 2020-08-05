@@ -65,7 +65,7 @@ class GatekeeperRequestHistoryController {
     }
 
     getCompleted(){
-        this.requestTable.promise = this[REQUEST].getCompleted()
+        this.requestTable.promise = this[REQUEST].getCompleted();
         this.requestTable.promise.then((response)=>{
             this.fetched = true;
             let data = [];

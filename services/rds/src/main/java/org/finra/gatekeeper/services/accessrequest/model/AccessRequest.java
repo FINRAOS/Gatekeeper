@@ -22,6 +22,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -327,6 +328,9 @@ public class AccessRequest {
         this.approverComments = approverComments;
         this.actionedByUserId = actionedByUserId;
         this.actionedByUserName = actionedByUserName;
+        this.users = new ArrayList<>();
+        this.roles = new ArrayList<>();
+        this.awsRdsDatabases = new ArrayList<>();
     }
 
 

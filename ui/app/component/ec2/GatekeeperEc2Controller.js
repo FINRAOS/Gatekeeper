@@ -24,6 +24,7 @@ import GatekeeperController from '../GatekeeperController';
 let STATE = Symbol();
 let ROLES = {
     approver: 'APPROVER',
+    auditor: 'AUDITOR',
     developer: 'DEV',
     operations: 'OPS',
     support:'SUPPORT',
@@ -106,6 +107,7 @@ class GatekeeperEc2Controller extends GatekeeperController{
 
             switch (vm.global.userInfo.role) {
                 case ROLES.approver:
+                case ROLES.auditor:
                     if(vm.global.selectedIndex === -1) {
                         vm.global.tabData.requests.enabled = true;
                         vm.global.selectedIndex = findKeyIndex(vm.global.tabData, 'selfService');

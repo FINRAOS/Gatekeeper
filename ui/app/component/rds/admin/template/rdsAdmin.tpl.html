@@ -58,7 +58,9 @@
                 <span class="gk-error-text">{{ gkAdminCtrl.error.users }}</span>
             </div>
             <div ng-if="gkAdminCtrl.usersTable.selected.length !== 0" layout="row" layout-align="end center">
-                <button md-button type="submit" class="md-raised md-primary"
+                <button type="submit" md-button
+                        class="md-raised md-primary"
+                        ng-if="gkAdminCtrl.canRevokeUsers()"
                         ng-click="gkAdminCtrl.revokeUsersFromDb(gkAdminCtrl.usersTable.selected)"> Revoke Selected Users </button>
             </div>
         </md-card>

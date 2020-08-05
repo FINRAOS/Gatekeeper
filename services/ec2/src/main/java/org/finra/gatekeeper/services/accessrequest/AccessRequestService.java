@@ -16,6 +16,7 @@
 
 package org.finra.gatekeeper.services.accessrequest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
@@ -41,12 +42,18 @@ import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.internal.NativeQueryImpl;
+import org.hibernate.transform.AliasToEntityMapResultTransformer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -58,7 +65,6 @@ import java.util.stream.Collectors;
 public class AccessRequestService {
 
     private static final Logger logger = LoggerFactory.getLogger(AccessRequestController.class);
-
     private final TaskService taskService;
     private final AccessRequestRepository accessRequestRepository;
     private final GatekeeperRoleService gatekeeperRoleService;
@@ -67,10 +73,67 @@ public class AccessRequestService {
     private final GatekeeperApprovalProperties approvalPolicy;
     private final AccountInformationService accountInformationService;
     private final SsmService ssmService;
+    private final EntityManager entityManager;
     private final String REJECTED = "REJECTED";
     private final String APPROVED = "APPROVED";
     private final String CANCELED = "CANCELED";
 
+    protected static final StringBuilder REQUEST_QUERY = new StringBuilder()
+            .append("select access_request.id,\n")
+            .append("       access_request.account,\n")
+            .append("       access_request.requestor_name,\n")
+            .append("       access_request.requestor_email,\n")
+            .append("       access_request.requestor_id,\n")
+            .append("       access_request.request_reason,\n")
+            .append("       access_request.approver_comments,\n")
+            .append("       access_request.actioned_by_user_name,\n")
+            .append("       access_request.actioned_by_user_id,\n")
+            .append("       access_request.hours,\n")
+            .append("       access_request.platform,\n")
+            .append("       user_count,\n")
+            .append("       created,\n")
+            .append("       updated,\n")
+            .append("       instance_count,\n")
+            .append("       status\n")
+            .append("from gatekeeper.access_request access_request,\n")
+            .append("  -- This gets the access request id and their created time, their updated time and their request status from activiti tables\n")
+            .append("  (select cast(text2_ as numeric) access_request_id, create_time_ as created, last_updated_time_ as updated, status\n")
+            .append("   from (select a.proc_inst_id_, a.text2_\n")
+            .append("         from gatekeeper.act_hi_varinst a\n")
+            .append("         where name_ = 'accessRequest') accessRequestId,\n")
+            .append("        -- This gets the request status\n")
+            .append("        (select a.proc_inst_id_,\n")
+            .append("                a.create_time_,\n")
+            .append("                a.last_updated_time_,\n")
+            .append("                substring(encode(b.bytes_, 'escape'), '\\w+$') as status\n")
+            .append("         from gatekeeper.act_hi_varinst a\n")
+            .append("                join gatekeeper.act_ge_bytearray b on a.bytearray_id_ = b.id_) accessRequestStatus\n")
+            .append("   where accessRequestId.proc_inst_id_ = accessRequestStatus.proc_inst_id_\n")
+            .append("  ) gk_activiti,\n")
+            .append("  -- This counts the users oer request\n")
+            .append("  (select a.id, count(*) as user_count\n")
+            .append("   from gatekeeper.access_request a,\n")
+            .append("        gatekeeper.access_request_users b\n")
+            .append("   where a.id = b.access_request_id\n")
+            .append("   group by a.id) users,\n")
+            .append("  -- This counts the dbs per request\n")
+            .append("  (select a.id, count(*) as instance_count\n")
+            .append("   from gatekeeper.access_request a,\n")
+            .append("        gatekeeper.access_request_instances b\n")
+            .append("   where a.id = b.access_request_id\n")
+            .append("   group by a.id) instances\n")
+            .append("where access_request.id = gk_activiti.access_request_id\n")
+            .append("  and access_request.id = users.id\n")
+            .append("  and access_request.id = instances.id\n");
+
+    protected static final String INSTANCE_QUERY = "SELECT id, application, instances_id, ip, name, platform, status\n" +
+            "FROM gatekeeper.access_request_instances w, gatekeeper.request_instance c\n" +
+            "WHERE w.access_request_id = :request_id \n" +
+            "AND w.instances_id = c.id \n";
+    protected static final String USER_QUERY = "SELECT id, name, user_id, email\n" +
+            "FROM gatekeeper.access_request_users a, gatekeeper.request_user r\n" +
+            "WHERE a.access_request_id = :request_id \n" +
+            "AND a.users_id = r.id;";
 
     @Autowired
     public AccessRequestService(TaskService taskService,
@@ -80,7 +143,8 @@ public class AccessRequestService {
                                 HistoryService historyService,
                                 AccountInformationService accountInformationService,
                                 SsmService ssmService,
-                                GatekeeperApprovalProperties gatekeeperApprovalProperties){
+                                GatekeeperApprovalProperties gatekeeperApprovalProperties,
+                                EntityManager entityManager){
 
         this.taskService = taskService;
         this.accessRequestRepository = accessRequestRepository;
@@ -90,6 +154,7 @@ public class AccessRequestService {
         this.accountInformationService = accountInformationService;
         this.ssmService = ssmService;
         this.approvalPolicy = gatekeeperApprovalProperties;
+        this.entityManager = entityManager;
     }
 
     public AccessRequest storeAccessRequest(AccessRequestWrapper request) throws GatekeeperException {
@@ -178,7 +243,6 @@ public class AccessRequestService {
     }
 
 
-
     public List<ActiveAccessRequestWrapper> getActiveRequests() {
         List<Task> tasks = taskService.createTaskQuery().active().list();
         List<ActiveAccessRequestWrapper> response = new ArrayList<>();
@@ -197,99 +261,69 @@ public class AccessRequestService {
         return (List<ActiveAccessRequestWrapper>)filterResults(response);
     }
 
-    public List<CompletedAccessRequestWrapper> getCompletedRequests() {
-    /*  This object is all of the Activiti Variables associated with the request
-        This map will contain the following:
-        When the request was opened
-        When the request was actioned by an approver (or canceled by a user/approver)
-        How many attempts it took to approve the user*/
-        Map<String, Map<String, Object>> historicData = new HashMap<>();
 
-        //we have to map the activiti hitory items to the gatekeeper requests map activiti objects to the access requests
-        Map<String, Long> activitiAccessRequestMap = new HashMap<>();
-        //map gatekeeper access request ids
-        Map<Long, AccessRequest> gkAccessRequestMap = new HashMap<>();
-
-    /*this gets all of the access requests history items. We exclude variable initialization
-        because activiti will break if we ever change the access request object so we'll just fetch the items
-        ourselves */
-        List<HistoricVariableInstance> accessRequests = historyService.createHistoricVariableInstanceQuery()
-                .excludeVariableInitialization()
-                .variableName("accessRequest")
-                .list();
-
-        //we'll get all the access requests and store the created date into the historicData map
-        //as well as map the activiti item to the access request to which it corresponds
-        accessRequests.forEach(taskVar -> {
-            Map<String, Object> data = new HashMap<>();
-            data.put("created", taskVar.getCreateTime());
-            historicData.put(taskVar.getProcessInstanceId(), data);
-            activitiAccessRequestMap.put(taskVar.getProcessInstanceId(), Long.valueOf(((HistoricVariableInstanceEntity) taskVar).getTextValue2()));
-        });
-
-        //run a query to grab all of the access requests that we found in activiti (this pretty much returns all
-        //for now, until we implement it to use a time window)
-        accessRequestRepository.getAccessRequestsByIdIn(activitiAccessRequestMap.values())
-                .forEach(accessRequest -> { gkAccessRequestMap.put(accessRequest.getId(), accessRequest); });
-
-    /*  this one's kind of a hack but this query gets the RequestStatus value for a request
-        we do it like this because once again if the package name changes it won't update the database and will
-        activiti will try to instantiate the object using Reflection. to work around this we just pull out the value
-        for the enum and instantiate it ourselves
-
-        we also put the updated time into the historicData map here as this is when the request was updated
-     */
-        historyService.createNativeHistoricVariableInstanceQuery()
-                .sql("select a.*, substring(encode(b.bytes_, 'escape'), '\\w+$') as textValue\n" +
-                        "  from act_hi_varinst a join act_ge_bytearray b on a.bytearray_id_ = b.id_;\n")
-                .list()
-                .forEach(item -> {
-                    historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), ((HistoricVariableInstanceEntity)item).getTextValue());
-                    historicData.get(item.getProcessInstanceId()).put("updated", item.getLastUpdatedTime());
-                });
-
-        //This gets all the attempts data for the requests and inserts it into the historicData map
-        historyService.createHistoricVariableInstanceQuery()
-                .excludeVariableInitialization()
-                .variableName("attempts")
-                .list()
-                .forEach(item -> {
-                    historicData.get(item.getProcessInstanceId()).put(item.getVariableName(), item.getValue());
-                });
-
-
+    public List<CompletedAccessRequestWrapper> getRequest(Long id) {
+        final ObjectMapper mapper = new ObjectMapper();
         List<CompletedAccessRequestWrapper> results = new ArrayList<>();
 
-        //this section compiles the historicData into the response object for the UI to consume
-        for (String k : historicData.keySet()) {
-            Map<String, Object> varMap = historicData.get(k);
-            Long requestId = activitiAccessRequestMap.get(k);
-            AccessRequest request = gkAccessRequestMap.get(activitiAccessRequestMap.get(k));
+        NativeQueryImpl q = (NativeQueryImpl) entityManager.createNativeQuery(REQUEST_QUERY
+                .append("and access_request.id = :request_id \n")
+                .append("order by updated desc;").toString());
+        q.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        q.setParameter("request_id", id);
 
-            if(request != null ) {
-                //we instantiate the RequestStatus value here.
-                RequestStatus status = varMap.get("requestStatus") != null
-                        ? RequestStatus.valueOf((String) varMap.get("requestStatus"))
-                        : RequestStatus.APPROVAL_PENDING;
+        NativeQueryImpl instanceQuery =  (NativeQueryImpl) entityManager.createNativeQuery(INSTANCE_QUERY);
+        instanceQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        instanceQuery.setParameter("request_id", id);
 
-                if (status.equals(RequestStatus.APPROVAL_PENDING)) {
-                    request = updateInstanceStatus(request);
-                }
-                Date created = (Date) varMap.get("created");
-                Date updated = (Date) varMap.get("updated");
-                CompletedAccessRequestWrapper wrapper = new CompletedAccessRequestWrapper(request)
-                        .setUpdated(updated)
-                        .setAttempts((Integer) varMap.get("attempts"))
-                        .setStatus(status)
-                        .setActionedByUserId(request.getActionedByUserId())
-                        .setActionedByUserName(request.getActionedByUserName());
+        NativeQueryImpl userQuery = (NativeQueryImpl) entityManager.createNativeQuery(USER_QUERY);
+        userQuery.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+        userQuery.setParameter("request_id", id);
 
-                wrapper.setCreated(created);
+        List < Map < String, AccessRequestWrapper >> result = q.getResultList();
+        List < Map < String, User >> userResult = userQuery.getResultList();
+        List < Map < String, AWSInstance >> instanceResult = instanceQuery.getResultList();
 
-                results.add(wrapper);
-            } else {
-                logger.warn("Could not get request details for AccessRequest with ID: " + requestId + ". This request will not be returned ");
+        for (Map map: result) {
+            CompletedAccessRequestWrapper requestWrapper = mapper.convertValue(map, CompletedAccessRequestWrapper.class);
+
+            for (Map instanceMap: instanceResult) {
+                AWSInstance instance = mapper.convertValue(instanceMap, AWSInstance.class);
+                requestWrapper.getInstances().add(instance);
             }
+
+            for (Map userMap: userResult) {
+                User user = mapper.convertValue(userMap, User.class);
+                requestWrapper.getUsers().add(user);
+            }
+
+            results.add(requestWrapper);
+        }
+
+        return (List<CompletedAccessRequestWrapper>)filterResults(results);
+    }
+
+
+    public List<CompletedAccessRequestWrapper> getCompletedRequests() {
+        /*
+            This object is all of the Activiti Variables associated with the request
+            This map will contain the following:
+            When the request was opened
+            When the request was actioned by an approver (or canceled by a user/approver)
+            How many attempts it took to approve the user
+         */
+        final ObjectMapper mapper = new ObjectMapper();
+        List<CompletedAccessRequestWrapper> results = new ArrayList<>();
+
+        String query = REQUEST_QUERY + "ORDER BY updated DESC;";
+
+        NativeQueryImpl q = (NativeQueryImpl) entityManager.createNativeQuery(query);
+        q.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
+
+        List < Map < String, String >> result = q.getResultList();
+        for (Map map: result) {
+            CompletedAccessRequestWrapper requestWrapper = mapper.convertValue(map, CompletedAccessRequestWrapper.class);
+            results.add(requestWrapper);
         }
 
         return (List<CompletedAccessRequestWrapper>)filterResults(results);
@@ -486,6 +520,7 @@ public class AccessRequestService {
 
     private List<? extends AccessRequestWrapper> filterResults(List<? extends AccessRequestWrapper> results) {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRole.APPROVER)
+                || gatekeeperRoleService.getRole().equals(GatekeeperRole.AUDITOR)
                 || gatekeeperRoleService.getUserProfile().getUserId().equalsIgnoreCase(AccessRequestWrapper.getRequestorId()))
                 .collect(Collectors.toList());
     }

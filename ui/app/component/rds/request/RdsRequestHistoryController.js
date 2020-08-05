@@ -19,7 +19,7 @@ import GatekeeperRequestHistoryController from '../../shared/request/GatekeeperR
 
 class RdsRequestHistoryController extends GatekeeperRequestHistoryController{
     constructor(gkRequestService){
-        super(gkRequestService)
+        super(gkRequestService);
 
         this.requestTable.template = require('./template/request.tpl.html');
 
@@ -32,17 +32,8 @@ class RdsRequestHistoryController extends GatekeeperRequestHistoryController{
             {dataType:'string',display:'Requestor Email', value:'requestorEmail'},
             {dataType:'number',display:'Days Requested', value:'days'},
             {dataType:'number',display:'Users', value:'userCount'},
-            {dataType:'number',display:'Instances', value:'instanceCount'},
             {dataType:'string',display:'Outcome', value:'status'}
         ];
-
-        this.requestTable.responseHandler = function(data){
-            data.forEach(function(row){
-                row.instances.forEach(function(instance){
-                    instance.icon = instance.status === 'Available' ?  'device:storage' :'notification:sync_problem';
-                });
-            });
-        };
 
         this.getCompleted();
     }

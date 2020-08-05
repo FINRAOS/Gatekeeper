@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Controller providing basic gatekeeper services
@@ -64,6 +65,13 @@ public class AccessRequestController {
     public AccessRequest createRequest(@RequestBody AccessRequestWrapper request) throws GatekeeperException {
         //todo sam accountname for the requestor
         return accessRequestService.storeAccessRequest(request);
+    }
+
+    @RequestMapping(value = "/requests/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Optional<CompletedAccessRequestWrapper> getRequest(@PathVariable("id") Long id) {
+        return accessRequestService.getRequest(id)
+                .stream()
+                .findFirst();
     }
 
     @RequestMapping(value = "/getActiveRequests", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
