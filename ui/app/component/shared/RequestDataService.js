@@ -30,6 +30,7 @@ class RequestDataService extends DataService{
         this.approveRequest = 'approveRequest';
         this.rejectRequest = 'rejectRequest';
         this.cancelRequest = 'cancelRequest';
+        this.getRequests = 'requests';
     }
 
     getActive(){
@@ -38,6 +39,10 @@ class RequestDataService extends DataService{
     
     getCompleted(){
         return this.http.get(this.getApi()+'/'+this.getCompletedRequests);
+    }
+
+    getRequest(request){
+        return this.http.get(this.getApi()+'/'+this.getRequests+'/'+request);
     }
 
     approve(request){
