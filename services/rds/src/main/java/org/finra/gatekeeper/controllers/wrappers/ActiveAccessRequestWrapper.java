@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.controllers.wrappers;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 
 import java.util.Date;
@@ -26,6 +27,7 @@ import java.util.Date;
  */
 public class ActiveAccessRequestWrapper extends AccessRequestWrapper {
 
+    @JsonAlias("user_count")
     private Integer userCount;
     private Integer instanceCount;
     private String taskId;

@@ -42,7 +42,7 @@ class RdsRequestDialogAdminController extends GatekeeperRequestDialogAdminContro
         if(this.isBadRequest){
             this.actions.unshift(this.cancel);
         }else {
-            this.actions.unshift(approve, reject)
+            this.actions.unshift(approve, reject);
         }
     }
 

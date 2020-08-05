@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.services.accessrequest.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.google.common.base.MoreObjects;
 import org.finra.gatekeeper.services.aws.model.DatabaseType;
 
@@ -33,12 +34,15 @@ public class AWSRdsDatabase {
     private Long id;
     private String name;
     private String application;
+    @JsonAlias("instance_id")
     private String instanceId;
+    @JsonAlias("db_name")
     private String dbName;
     private String engine;
     private String endpoint;
     private String arn;
     private String status;
+    @JsonAlias("database_type")
     private DatabaseType databaseType;
 
     @ManyToOne

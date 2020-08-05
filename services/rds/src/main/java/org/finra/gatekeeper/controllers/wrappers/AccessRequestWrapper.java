@@ -17,10 +17,14 @@
 
 package org.finra.gatekeeper.controllers.wrappers;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 
+import javax.persistence.Entity;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,18 +32,23 @@ import java.util.List;
  */
 public class AccessRequestWrapper {
 
-
-
     private Long id;
     private Integer days;
+    @JsonAlias("requestor_id")
     private String requestorId;
+    @JsonAlias("requestor_name")
     private String requestorName;
+    @JsonAlias("requestor_email")
     private String requestorEmail;
     private String account;
+    @JsonAlias("account_sdlc")
     private String accountSdlc;
     private String region;
+    @JsonAlias("ticket_id")
     private String ticketId;
+    @JsonAlias("request_reason")
     private String requestReason;
+    @JsonAlias("approver_comments")
     private String approverComments;
     private List<User> users;
     private List<UserRole> roles;
@@ -92,7 +101,7 @@ public class AccessRequestWrapper {
     }
 
     public List<User> getUsers(){
-        return users;
+        return users != null? users : (this.users = new ArrayList<>());
     }
 
     public AccessRequestWrapper setUsers(List<User> users){
@@ -101,7 +110,7 @@ public class AccessRequestWrapper {
     }
 
     public List<AWSRdsDatabase> getInstances(){
-        return instances;
+        return instances != null? instances : (this.instances = new ArrayList<>());
     }
 
     public AccessRequestWrapper setInstances(List<AWSRdsDatabase> instances){
@@ -163,14 +172,11 @@ public class AccessRequestWrapper {
     }
 
     public List<UserRole> getRoles() {
-        return roles;
+        return roles != null? roles : (this.roles = new ArrayList<>());
     }
 
     public AccessRequestWrapper setRoles(List<UserRole> roles) {
         this.roles = roles;
         return this;
     }
-
-
-
 }
