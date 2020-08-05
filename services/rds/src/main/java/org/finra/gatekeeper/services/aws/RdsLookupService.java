@@ -132,7 +132,7 @@ public class RdsLookupService {
         }
     }
 
-    @PreAuthorize("@gatekeeperRoleService.isApprover()")
+    @PreAuthorize("@gatekeeperRoleService.isApprover() || @gatekeeperRoleService.isAuditor()")
     public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceId, String instanceName) throws Exception {
         Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
 

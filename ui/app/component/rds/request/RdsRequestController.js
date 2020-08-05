@@ -23,6 +23,7 @@ import GatekeeperRequestDialogRequestorController from '../../shared/request/Gat
 let VM;
 let ROLES = {
     approver: 'APPROVER',
+    auditor: 'AUDITOR',
     developer: 'DEV',
     operations: 'OPS',
     support:'SUPPORT',
@@ -54,7 +55,7 @@ class RdsRequestController extends GatekeeperRequestController{
         this.requestTable.responseHandler = function(data){
             data.forEach(function(row){
                 row.instances.forEach(function(instance){
-                    instance.icon = instance.status === 'Available' ?  'device:storage' :'notification:sync_problem';
+                    instance.icon = instance.status === 'available' ?  'device:storage' :'notification:sync_problem';
                 });
             });
         };
@@ -63,7 +64,7 @@ class RdsRequestController extends GatekeeperRequestController{
 
         $rootScope.$on("requestsUpdated", function(){
             VM.getActive();
-        })
+        });
 
 
     }

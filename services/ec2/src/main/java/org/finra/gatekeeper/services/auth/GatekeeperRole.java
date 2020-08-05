@@ -18,5 +18,5 @@
 package org.finra.gatekeeper.services.auth;
 
 public enum GatekeeperRole {
-    APPROVER, SUPPORT, OPS, DEV, UNAUTHORIZED;
+    APPROVER, AUDITOR, SUPPORT, OPS, DEV, UNAUTHORIZED;
 }

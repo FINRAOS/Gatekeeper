@@ -16,10 +16,12 @@
 
 package org.finra.gatekeeper.controllers.wrappers;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 
 import javax.persistence.Access;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,13 +31,19 @@ public class AccessRequestWrapper {
 
     private Long id;
     private Integer hours;
+    @JsonAlias("requestor_id")
     private String requestorId;
+    @JsonAlias("requestor_name")
     private String requestorName;
+    @JsonAlias("requestor_email")
     private String requestorEmail;
     private String account;
     private String region;
+    @JsonAlias("request_reason")
     private String requestReason;
+    @JsonAlias("ticket_id")
     private String ticketId;
+    @JsonAlias("approver_comments")
     private String approverComments;
     private String platform;
     private List<User> users;
@@ -43,6 +51,10 @@ public class AccessRequestWrapper {
 
     public Long getId() {
         return id;
+    }
+
+
+    public AccessRequestWrapper() {
     }
 
     public AccessRequestWrapper setId(Long id) {
@@ -78,7 +90,7 @@ public class AccessRequestWrapper {
     }
 
     public List<User> getUsers(){
-        return users;
+        return users != null ? users : (this.users = new ArrayList<>());
     }
 
     public AccessRequestWrapper setUsers(List<User> users){
@@ -87,7 +99,7 @@ public class AccessRequestWrapper {
     }
 
     public List<AWSInstance> getInstances(){
-        return instances;
+        return instances != null ? instances : (this.instances = new ArrayList<>());
     }
 
     public AccessRequestWrapper setInstances(List<AWSInstance> instances){

@@ -303,6 +303,24 @@ public class GatekeeperRoleServiceTest {
     }
 
     @Test
+    public void testIsAudit() {
+        when(gatekeeperAuthProperties.getAuditGroup()).thenReturn("GATEKEEPER_AUDIT_TEST_GROUP");
+
+        memberships = new HashSet<>();
+        memberships.add("GATEKEEPER_AUDIT_TEST_GROUP");
+        memberships.add("SOME_OTHER_GROUP");
+        memberships.add("COMPANY_PRJCT_DEV_DEV");
+        memberships.add("COMPANY_PRJCT_DEV_PROD");
+        memberships.add("COMPANY_PRJCT_DEV_QA");
+        memberships.add("COMPANY_TEST_DEV_QC");
+        memberships.add("COMPANY_TEST_OPS");
+        Mockito.when(gatekeeperAuthorizationService.getMemberships()).thenReturn(memberships);
+
+        boolean isAuditor = gatekeeperRoleService.isAuditor();
+        Assert.assertTrue(isAuditor);
+    }
+
+    @Test
     public void testGetUserRolesDevOnly() {
         initRoleMemberships();
         Set<GatekeeperRdsRole> result = gatekeeperRoleService.getUserRoles(roleMemberships);
