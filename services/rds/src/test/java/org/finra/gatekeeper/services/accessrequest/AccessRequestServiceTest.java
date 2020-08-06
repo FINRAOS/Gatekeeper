@@ -45,7 +45,6 @@ import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.account.model.Region;
 import org.finra.gatekeeper.services.auth.model.AppApprovalThreshold;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
-import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
@@ -61,6 +60,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 import static org.finra.gatekeeper.services.accessrequest.AccessRequestService.*;
@@ -919,6 +920,38 @@ public class AccessRequestServiceTest {
 
     }
 
+    @Test
+    public void testGetLiveRequests(){
+        Date ownerGranted = Date.from(LocalDateTime.now().toInstant(ZoneOffset.UTC));
+        Date ownerExpires = Date.from(LocalDateTime.now().plusDays(2).toInstant(ZoneOffset.UTC));
+        Date nonOwnerGranted = Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.UTC));
+        Date nonOwnerExpires = Date.from(LocalDateTime.now().plusDays(10).toInstant(ZoneOffset.UTC));
+
+        Map<String, Object> ownerRequestExpirations = new HashMap<>();
+        ownerRequestExpirations.put("id", 1L);
+        ownerRequestExpirations.put("granted_on", ownerGranted);
+        ownerRequestExpirations.put("expire_time", ownerExpires);
+
+        Map<String, Object> nonOwnerRequestExpirations = new HashMap<>();
+        nonOwnerRequestExpirations.put("id", 2L);
+        nonOwnerRequestExpirations.put("granted_on", nonOwnerGranted);
+        nonOwnerRequestExpirations.put("expire_time", nonOwnerExpires);
+
+        Mockito.when(accessRequestRepository.getLiveAccessRequests()).thenReturn(Arrays.asList(ownerRequest, nonOwnerRequest));
+        Mockito.when(accessRequestRepository.getLiveAccessRequestExpirations()).thenReturn(Arrays.asList(ownerRequestExpirations, nonOwnerRequestExpirations));
+
+        List<CompletedAccessRequestWrapper> requests = accessRequestService.getLiveRequests();
+        CompletedAccessRequestWrapper ownerResult = requests.get(0);
+        CompletedAccessRequestWrapper nonOwnerResult = requests.get(1);
+
+        Assert.assertEquals(ownerRequest.getId(), ownerResult.getId());
+        Assert.assertEquals(ownerGranted, ownerResult.getUpdated());
+        Assert.assertEquals(ownerExpires, ownerResult.getExpirationDate());
+
+        Assert.assertEquals(nonOwnerResult.getId(), nonOwnerResult.getId());
+        Assert.assertEquals(ownerGranted, ownerResult.getUpdated());
+        Assert.assertEquals(ownerExpires, ownerResult.getExpirationDate());
+    }
 
     private void initRoleMemberships(String application, boolean devMember, boolean opsMember, boolean dbaMember) {
         Map<GatekeeperRdsRole, Set<String>> roleMembershipMap = new HashMap<>();

@@ -80,6 +80,13 @@ public class AccessRequestController {
         return accessRequestService.getCompletedRequests();
     }
 
+    @RequestMapping(value = "/getLiveRequests", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<CompletedAccessRequestWrapper> getLiveRequests() {
+        List<CompletedAccessRequestWrapper> liveReqeusts = accessRequestService.getLiveRequests();
+        logger.info(liveReqeusts.toString());
+        return liveReqeusts;
+    }
+
     @RequestMapping(value = "/requests/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public Optional<CompletedAccessRequestWrapper> getRequest(@PathVariable("id") Long id) {
         return accessRequestService.getRequest(id)

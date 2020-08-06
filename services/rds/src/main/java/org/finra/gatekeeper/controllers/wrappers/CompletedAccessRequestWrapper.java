@@ -73,7 +73,17 @@ public class CompletedAccessRequestWrapper extends ActiveAccessRequestWrapper {
         return this;
     }
 
+    public Date getExpirationDate() {
+        return expirationDate;
+    }
+
+    public CompletedAccessRequestWrapper setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
+        return this;
+    }
+
     private Date updated;
+    private Date expirationDate;
     private Integer attempts;
     private RequestStatus status;
     @JsonAlias("actioned_by_user_id")
