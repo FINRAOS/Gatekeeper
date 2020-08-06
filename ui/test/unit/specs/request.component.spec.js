@@ -235,6 +235,7 @@ describe('GateKeeper UI Request Component', function () {
             deferred.reject(resp);
         }
 
+
         let expectedTable = {
             selection:'dialog',
             template:require('../../../app/component/ec2/request/template/request.tpl.html'),
@@ -242,7 +243,15 @@ describe('GateKeeper UI Request Component', function () {
             templateControllerAs: 'dialogCtrl',
             toolbar:{
                 header: "Recently Handled Requests",
-                inlineFilter:true
+                inlineFilter:true,
+                selectFilters: [
+                    {
+                        label: 'Environment',
+                        options: [],
+                        filterFn: gkRequestController.filterEnvironment,
+                        width: '118px'
+                    }
+                ]
             },
             headers:[
                 {dataType: 'date', config: {dateFormat:'short'}, display:'Created', value:"created"},

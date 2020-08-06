@@ -64,6 +64,7 @@ describe('GateKeeper RDS admin component', function () {
 
             $rootScope.userInfo = {
                 role: 'APPROVER',
+                isApprover: true,
                 userId:'testId',
                 user:'test',
                 email:'test@email.com'
@@ -77,7 +78,7 @@ describe('GateKeeper RDS admin component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new RdsAdminController($mdDialog, $mdToast, gkRdsUserService, gkRdsRevokeUsersService, gkAccountService);
+            controller = new RdsAdminController($mdDialog, $mdToast, $rootScope, gkRdsUserService, gkRdsRevokeUsersService, gkAccountService);
 
             let expected = {
                 fetching: false,

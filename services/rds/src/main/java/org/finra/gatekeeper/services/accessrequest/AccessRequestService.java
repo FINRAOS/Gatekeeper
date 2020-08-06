@@ -371,7 +371,6 @@ public class AccessRequestService {
         List<CompletedAccessRequestWrapper> results = new ArrayList<>();
 
         String query = new StringBuilder(REQUESTS_QUERY)
-                .insert(0,"SELECT ")
                 .append("order by updated desc;")
                 .toString();
 
