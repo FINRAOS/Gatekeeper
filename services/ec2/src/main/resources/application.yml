@@ -34,6 +34,7 @@ gatekeeper:
     userIdHeader: default
     approverGroup: DEFAULT_APPROVER
     supportGroup: DEFAULT_SUPPORT
+    auditorGroup: DEFAULT_AUDITOR
   db:
     sslParams: ssl=true&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
 

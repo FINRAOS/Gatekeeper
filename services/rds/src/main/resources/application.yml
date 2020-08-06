@@ -83,6 +83,7 @@ gatekeeper:
   auth:
     userIdHeader: useraccount
     approverGroup: GATEKEEPER_RDS_APPROVER
+    auditorGroup: GATEKEEPER_AUDITOR
     dbaGroupsPattern: COMPANY_([a-zA-Z]+)_ADBA
     opsGroupsPattern: COMPANY_([a-zA-Z]+)_OPS
     devGroupsPattern: COMPANY_([a-zA-Z]+)_(DEV|QC|QA|PROD)_INSTALL_ENGINEER
