@@ -21,6 +21,12 @@
         <div>
             <md-button ng-if="config.export" ng-disabled="config.fetching" ng-click="ctrl.export()" class="md-raised md-primary" style="color: rgba(255,255,255,0.87)">Export</md-button>
             <md-checkbox ng-repeat="checkbox in config.toolbar.checkboxFilters" ng-model="checkbox.checked" aria-label="checkbox.label">{{checkbox.label}}</md-checkbox>
+            <md-input-container  ng-repeat="select in config.toolbar.selectFilters" style="width: {{ select.width }}">
+                <label>{{ select.label }}</label>
+                <md-select  ng-model="select.checked" placeholder={{select.label}}>
+                    <md-option ng-value="opt" ng-repeat="opt in select.options">{{ opt }}</md-option>
+                </md-select>
+            </md-input-container>
             <md-input-container class="gk-table-header-input">
                 <md-icon md-svg-src="content:filter_list" class="md-avatar" ></md-icon>
                 <label>Filter Results</label>

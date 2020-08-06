@@ -27,7 +27,7 @@
             md-auto-select md-select="row" md-select-id="{{config.selectionId}}"
             md-on-select="config.onSelect"
             md-on-deselect="config.onDeselect"
-            ng-repeat="row in config.data | gkTableCheckboxFilter: config.toolbar.checkboxFilters |  filter: config.query.filter | orderBy: config.query.order | limitTo: config.query.limit : (config.query.page - 1 ) * config.query.limit">
+            ng-repeat="row in config.data | gkTableSelectFilter: config.toolbar.selectFilters| gkTableCheckboxFilter: config.toolbar.checkboxFilters |  filter: config.query.filter | orderBy: config.query.order | limitTo: config.query.limit : (config.query.page - 1 ) * config.query.limit">
             <td md-cell ng-repeat="header in config.headers">
                 <gk-table-data header="::header" row="::row"></gk-table-data>
             </td>

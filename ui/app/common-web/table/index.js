@@ -18,6 +18,7 @@
 import util from '../utils/DirectiveUtils';
 
 import GkTableCheckboxFilter from './GkTableCheckboxFilter';
+import GkTableSelectFilter from './GkTableSelectFilter';
 
 import BaseTable from './BaseTable';
 import GkTableConfig from './GkTableConfig';
@@ -39,4 +40,6 @@ export default angular.module('gk-tables', [md, table])
     .directive('gkTableDataString', util.newDirective(new GkTableDataConfig(require('./templates/gkTableDataString.tpl.html'))))
     .directive('gkTableDataNumber',  util.newDirective(new GkTableDataConfig(require('./templates/gkTableDataNumber.tpl.html'))))
     .directive('gkTableDataDate', util.newDirective(new GkTableDataConfig(require('./templates/gkTableDataDate.tpl.html'))))
-    .filter('gkTableCheckboxFilter', () => GkTableCheckboxFilter.GkTableCheckboxFilterFactory).name;
+    .filter('gkTableCheckboxFilter', () => GkTableCheckboxFilter.GkTableCheckboxFilterFactory)
+    .filter('gkTableSelectFilter', () => GkTableSelectFilter.GkTableSelectFilterFactory).name;
+

@@ -18,8 +18,11 @@
 import GatekeeperRequestDialogController from './GatekeeperRequestDialogController';
 
 let REQUEST = Symbol();
+let vm;
+
 class GatekeeperRequestHistoryController {
     constructor(gkRequestService){
+        vm = this;
         this[REQUEST] = gkRequestService;
         this.noData = "Currently there are no request history items";
         this.fetched = false;
@@ -31,7 +34,14 @@ class GatekeeperRequestHistoryController {
             templateControllerAs: 'dialogCtrl',
             toolbar:{
                 header: "Recently Handled Requests",
-                inlineFilter:true
+                inlineFilter:true,
+                selectFilters: [
+                    {
+                        label: 'Environment',
+                        filterFn: vm.filterEnvironment,
+                        options: [],
+                        width: '118px'
+                    }]
             },
             headers:[
                 {dataType:'date',  config:{dateFormat:'short'}, display:'Created', value:'created'},
@@ -64,6 +74,20 @@ class GatekeeperRequestHistoryController {
 
     }
 
+    filterEnvironment(input, row){
+        return row.account === input;
+    }
+
+    setAccountOptions(data){
+        let options = new Set();
+        for (let i of data){
+            options.add(i.account);
+        }
+        let array = Array.from(options).sort();
+        array.unshift('ALL');
+        this.requestTable.toolbar.selectFilters[0].options = array;
+    }
+
     getCompleted(){
         this.requestTable.promise = this[REQUEST].getCompleted();
         this.requestTable.promise.then((response)=>{
@@ -71,6 +95,7 @@ class GatekeeperRequestHistoryController {
             let data = [];
             this.requestTable.data = response.data;
             this.requestTable.responseHandler(this.requestTable.data);
+            this.setAccountOptions(this.requestTable.data);
         }).catch((error)=>{
             this.error = error;
         });
