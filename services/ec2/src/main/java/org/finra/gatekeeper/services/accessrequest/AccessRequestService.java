@@ -267,8 +267,8 @@ public class AccessRequestService {
         List<CompletedAccessRequestWrapper> results = new ArrayList<>();
 
         NativeQueryImpl q = (NativeQueryImpl) entityManager.createNativeQuery(REQUEST_QUERY
-                .append("and access_request.id = :request_id \n")
-                .append("order by updated desc;").toString());
+                +"and access_request.id = :request_id \n"
+                +"order by updated desc;");
         q.setResultTransformer(AliasToEntityMapResultTransformer.INSTANCE);
         q.setParameter("request_id", id);
 
