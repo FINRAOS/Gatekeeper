@@ -88,8 +88,8 @@ public class GatekeeperAuthProperties {
         return auditorGroup;
     }
 
-    public GatekeeperAuthProperties setAuditGroup(String auditGroup) {
-        this.auditorGroup = auditGroup;
+    public GatekeeperAuthProperties setAuditorGroup(String auditorGroup) {
+        this.auditorGroup = auditorGroup;
         return this;
     }
 
