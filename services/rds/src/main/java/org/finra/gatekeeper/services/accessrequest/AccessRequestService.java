@@ -95,6 +95,7 @@ public class AccessRequestService {
             .append("       access_request.account,\n")
             .append("       access_request.requestor_name,\n")
             .append("       access_request.requestor_email,\n")
+            .append("       access_request.requestor_id,\n")
             .append("       access_request.days,\n")
             .append("       created, \n")
             .append("       updated, \n")
