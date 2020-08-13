@@ -110,7 +110,7 @@ class GatekeeperRdsController extends GatekeeperController{
             }
             vm.global.tabData.admin.hidden = (!vm.global.userInfo.isApprover && !vm.global.userInfo.isAuditor);
 
-            if(vm.global.userInfo.isApprover === true) {
+            if(vm.global.userInfo.isApprover === true || vm.global.userInfo.isAuditor) {
                 if(vm.global.selectedIndex === -1) {
                     vm.global.tabData.requests.enabled = true;
                     vm.global.selectedIndex = findKeyIndex(vm.global.tabData, 'requests');

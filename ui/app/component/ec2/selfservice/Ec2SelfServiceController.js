@@ -190,21 +190,26 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
     }
 
     checkIfApprovalNeeded(){
-        vm.approvalRequired = false;
-        if(vm.global.userInfo.role !== 'APPROVER') {
+        vm.approvalRequired = true;
+
+        //approvers don't need approval
+        if(vm.global.userInfo.role === 'APPROVER') {
+            vm.approvalRequired = false;
+        } else {
             //first check hours
             if (vm.forms.awsInstanceForm.selectedAccount) {
-                vm.approvalRequired = vm.forms.grantForm.grantValue > vm.global.userInfo.approvalThreshold[vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]
+                vm.approvalRequired = vm.forms.grantForm.grantValue > vm.global.userInfo.approvalThreshold[vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
             }
             //if the hours didn't cross the threshold then check application on selected instances
-            if (!vm.approvalRequired && (vm.global.userInfo.role === 'DEV' || vm.global.userInfo.role === 'OPS')) {
+            if (!vm.approvalRequired) {
                 vm.awsTable.selected.forEach((item) => {
                     if (!vm.approvalRequired) {
                         vm.approvalRequired = vm.global.userInfo.memberships.indexOf(item.application) === -1;
                     }
-                })
+                });
             }
         }
+
     }
 
     grantAccess(){

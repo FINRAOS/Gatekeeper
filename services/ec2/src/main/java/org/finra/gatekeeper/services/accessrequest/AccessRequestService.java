@@ -203,7 +203,7 @@ public class AccessRequestService {
     private boolean isRequestorOwnerOfInstances(AccessRequest request) {
         Set<String> memberships = gatekeeperRoleService.getMemberships();
         for (AWSInstance instance : request.getInstances()) {
-            if (!memberships.contains(instance.getApplication())) {
+            if (memberships == null ||  !memberships.contains(instance.getApplication())) {
                 //return false because there exists an instance the requestor doesn't "own"
                 return false;
             }
@@ -223,6 +223,7 @@ public class AccessRequestService {
                 return false;
             case SUPPORT:
                 return request.getHours() > policy.get(theAccount.getSdlc().toLowerCase());
+            case AUDITOR:
             case DEV:
             case OPS:
                 return request.getHours() > policy.get(theAccount.getSdlc().toLowerCase()) || !isRequestorOwnerOfInstances(request);
