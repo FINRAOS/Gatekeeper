@@ -319,6 +319,7 @@ describe('GateKeeper UI self service component', function () {
 
         let grantAccess = (pressOk, happy) => {
             spyOn($mdToast, 'simple').and.callThrough();
+            spyOn($mdDialog, 'alert').and.callThrough();
 
             //fake the dialog
             let deferred = $q.defer();
@@ -384,7 +385,7 @@ describe('GateKeeper UI self service component', function () {
             }else {
                 if(pressOk){
                     expect(controller.error).toBeDefined();
-                    expect($mdToast.simple).toHaveBeenCalled();
+                    expect($mdDialog.show).toHaveBeenCalled();
                 }else{
                     expect($mdToast.simple).not.toHaveBeenCalled();
                 }
@@ -480,7 +481,7 @@ describe('GateKeeper UI self service component', function () {
             }
 
 
-       }
+       };
 
         it('Prompt should be displayed when a form is dirty - AD',function(){
             controller.forms.adForm = {

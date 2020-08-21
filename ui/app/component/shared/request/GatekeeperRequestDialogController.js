@@ -51,13 +51,34 @@ class GatekeeperRequestDialogController{
         }
     }
 
-    toast(message){
+    toast(message) {
         VM[TOAST].show(VM[TOAST].simple().textContent(message)
             .parent("#gkRequestContainer")
             .position('top right')
             .hideDelay(5000)
         );
     }
+
+    dialog(message) {
+        let config = {
+            clickOutsideToClose: true,
+            title: 'ERROR',
+            template: require("./template/error.tpl.html"),
+            parent: angular.element(document.body),
+            locals: {
+                message: message
+            },
+            controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                $scope.message = message;
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+            }
+            ]
+        };
+        dialog.show(config);
+    }
+
 
     getRequest(id) {
         VM.called = true;
@@ -69,7 +90,7 @@ class GatekeeperRequestDialogController{
             });
         }).catch(()=>{
             let msg = "There was an error while attempting to get request " + VM.row.id;
-            VM.toast(msg);
+            VM.dialog(msg);
             dialog.hide();
         });
     }
@@ -83,7 +104,7 @@ class GatekeeperRequestDialogController{
             VM[ROOTSCOPE].$emit("requestsUpdated");
         }).catch(()=>{
             let msg = "There was an error while attempting to cancel access request " + VM.row.id;
-            VM.toast(msg);
+            VM.dialog(msg);
             dialog.hide();
         });
     }
