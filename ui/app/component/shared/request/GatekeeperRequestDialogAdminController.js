@@ -43,7 +43,7 @@ class GatekeeperRequestDialogAdminController extends GatekeeperRequestDialogCont
             VM[ROOTSCOPE].$emit("requestsUpdated");
         }).catch(()=>{
             let msg = "There was an error while attempting to grant access for request " + VM.row.id;
-            VM.toast(msg);
+            VM.dialog(msg);
             dialog.hide();
         });
     }
@@ -57,7 +57,7 @@ class GatekeeperRequestDialogAdminController extends GatekeeperRequestDialogCont
             VM[ROOTSCOPE].$emit("requestsUpdated");
         }).catch(()=>{
             let msg = "There was an error while attempting to reject access for request " + VM.row.id;
-            VM.toast(msg);
+            VM.dialog(msg);
             dialog.hide();
         });
     }

@@ -407,44 +407,44 @@ describe('GateKeeper UI Request Component', function () {
         it('Should call $mdDialog hide when approved', function(){
             spyOn($mdDialog, "hide");
             spyOn($state, "reload").and.returnValue("");
-            spyOn($mdToast, "simple").and.callThrough();;
+            spyOn($mdToast, "show").and.callThrough();;
             gkRequestController.approveRequest();
             deferred.resolve({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdToast.show).toHaveBeenCalled();
 
         });
         
         it('Should call $mdDialog hide when rejected', function(){
             spyOn($mdDialog, "hide");
             spyOn($state, "reload").and.returnValue("");
-            spyOn($mdToast, "simple").and.callThrough();
+            spyOn($mdToast, "show").and.callThrough();
             gkRequestController.rejectRequest();
             deferred.resolve({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdToast.show).toHaveBeenCalled();
         });
 
         it('Should call $mdDialog hide when approved - negative', function(){
             spyOn($mdDialog, "hide");
-            spyOn($mdToast, "simple").and.callThrough();
+            spyOn($mdDialog, "show").and.callThrough();
             gkRequestController.approveRequest();
             deferred.reject({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdDialog.show).toHaveBeenCalled();
         });
 
         it('Should call $mdDialog hide when rejected - negative', function(){
             spyOn($mdDialog, "hide");
-            spyOn($mdToast, "simple").and.callThrough();
+            spyOn($mdDialog, "show").and.callThrough();
             gkRequestController.rejectRequest();
             deferred.reject({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdDialog.show).toHaveBeenCalled();
         });
     });
 });
