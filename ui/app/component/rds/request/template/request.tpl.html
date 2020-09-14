@@ -62,6 +62,18 @@
                     <td><span class="md-body-2">Days Requested: </span></td>
                     <td layout-padding><span>{{::dialogCtrl.row.days}} </span></td>
                 </tr>
+                <tr layout-padding>
+                    <td><span class="md-body-2">Request Created: </span></td>
+                    <td layout-padding><span>{{::dialogCtrl.row.created | date : 'medium'}} </span></td>
+                </tr>
+                <tr layout-padding>
+                    <td><span class="md-body-2">Request Updated: </span></td>
+                    <td layout-padding><span>{{::dialogCtrl.row.updated | date : 'medium'}} </span></td>
+                </tr>
+                <tr layout-padding>
+                    <td><span class="md-body-2">Outcome: </span></td>
+                    <td layout-padding><span>{{::dialogCtrl.row.status}} </span></td>
+                </tr>
                 <tr class="layout-bordered" layout-align="start start" layout-padding>
                     <td valign="top"><span class="md-body-2">Requested Roles:</span></td>
                     <td valign="top">
