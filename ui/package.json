@@ -72,16 +72,18 @@
   ],
   "dependencies": {
     "angular": "1.5.5",
-    "angular-mocks": "1.5.5",
     "angular-animate": "1.5.5",
     "angular-aria": "1.5.5",
-    "angular-messages": "1.5.5",
     "angular-material": "1.1.1",
     "angular-material-data-table": "0.10.9",
+    "angular-messages": "1.5.5",
+    "angular-mocks": "1.5.5",
     "angular-resource": "1.5.5",
     "angular-ui-router": "0.2.18",
-    "material-design-icons": "2.2.3",
+    "file-saver": "^2.0.2",
     "hover.css": "^2.0.2",
+    "json2csv": "^4.5.4",
+    "material-design-icons": "2.2.3",
     "moment": "2.10.6"
   }
 }

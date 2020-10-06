@@ -11,6 +11,7 @@ public class GetRoleResponseWrapper {
     private String userId;
     private String name;
     private Boolean isApprover;
+    private Boolean isAuditor;
     private Map<String, RoleMembership> roleMemberships;
     private String email;
     private Integer maxDays;
@@ -92,6 +93,15 @@ public class GetRoleResponseWrapper {
 
     public GetRoleResponseWrapper setOverridePolicy(Map<String, Map<String, Integer>> overridePolicy) {
         this.overridePolicy = overridePolicy;
+        return this;
+    }
+
+    public Boolean getAuditor() {
+        return isAuditor;
+    }
+
+    public GetRoleResponseWrapper setAuditor(Boolean auditor) {
+        isAuditor = auditor;
         return this;
     }
 }

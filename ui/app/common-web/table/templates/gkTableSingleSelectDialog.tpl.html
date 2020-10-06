@@ -25,7 +25,7 @@
         <tr md-row md-row ng-style="{'background-color': (config.disableRow(row) ? (config.disableBackgroundColor ? config.disableBackgroundColor  : 'lightgray') : 'none') }"
             ng-disabled="config.disableRow(row)"
             ng-click="ctrl.showDialog(row)"
-            ng-repeat="row in config.data | gkTableCheckboxFilter: config.toolbar.checkboxFilters |  filter: config.query.filter | orderBy: config.query.order | limitTo: config.query.limit : (config.query.page - 1 ) * config.query.limit">
+            ng-repeat="row in config.data | gkTableSelectFilter: config.toolbar.selectFilters | gkTableCheckboxFilter: config.toolbar.checkboxFilters |  filter: config.query.filter | orderBy: config.query.order | limitTo: config.query.limit : (config.query.page - 1 ) * config.query.limit">
             <td md-cell ng-repeat="header in config.headers">
                 <gk-table-data header="::header" row="::row"></gk-table-data>
             </td>

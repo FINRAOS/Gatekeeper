@@ -36,7 +36,7 @@ class GatekeeperRequestDialogController{
             action: this.cancelRequest,
             style: 'md-raised md-primary'
         };
-        
+
         this.actions = [close];
         this.row = row;
         this.readonly = true;
@@ -44,14 +44,55 @@ class GatekeeperRequestDialogController{
         this[REQUEST] = gkRequestService;
         this[TOAST] =  $mdToast;
         this[ROOTSCOPE] = $rootScope;
+
+        // Only lazy load Request History
+        if ($rootScope.selectedIndex === 2) {
+            this.getRequest(row.id);
+        }
     }
 
-    toast(message){
+    toast(message) {
         VM[TOAST].show(VM[TOAST].simple().textContent(message)
             .parent("#gkRequestContainer")
             .position('top right')
             .hideDelay(5000)
         );
+    }
+
+    dialog(message) {
+        let config = {
+            clickOutsideToClose: true,
+            title: 'ERROR',
+            template: require("./template/error.tpl.html"),
+            parent: angular.element(document.body),
+            locals: {
+                message: message
+            },
+            controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                $scope.message = message;
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+            }
+            ]
+        };
+        dialog.show(config);
+    }
+
+
+    getRequest(id) {
+        VM.called = true;
+        VM[REQUEST].getRequest(id).then((resp)=>{
+            VM.row = resp.data;
+            VM.called = false;
+            VM.row.instances.forEach(function(instance){
+                instance.icon = (instance.status === 'available' || instance.status === 'Online') ?  'device:storage' :'notification:sync_problem';
+            });
+        }).catch(()=>{
+            let msg = "There was an error while attempting to get request " + VM.row.id;
+            VM.dialog(msg);
+            dialog.hide();
+        });
     }
 
     cancelRequest(){
@@ -63,7 +104,7 @@ class GatekeeperRequestDialogController{
             VM[ROOTSCOPE].$emit("requestsUpdated");
         }).catch(()=>{
             let msg = "There was an error while attempting to cancel access request " + VM.row.id;
-            VM.toast(msg);
+            VM.dialog(msg);
             dialog.hide();
         });
     }

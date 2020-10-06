@@ -118,6 +118,10 @@ public class GatekeeperProperties {
          */
         private String approverGroup;
         /**
+         * The Group name for the Audit
+         */
+        private String auditorGroup;
+        /**
          * The Group name for the Support team
          */
         private String supportGroup;
@@ -143,6 +147,15 @@ public class GatekeeperProperties {
 
         public AuthenticationProperties setApproverGroup(String approverGroup) {
             this.approverGroup = approverGroup;
+            return this;
+        }
+
+        public String getAuditorGroup() {
+            return auditorGroup;
+        }
+
+        public AuthenticationProperties setAuditorGroup(String auditorGroup) {
+            this.auditorGroup = auditorGroup;
             return this;
         }
 
@@ -362,6 +375,7 @@ public class GatekeeperProperties {
 
     public static class GatekeeperDbProperties{
         private String gkUser;
+        private String gkCredentialProvider;
         private String gkPass;
         private String assumeMinServerVersion;
         private String ssl;
@@ -485,6 +499,15 @@ public class GatekeeperProperties {
 
         public GatekeeperDbProperties setMysql(MySqlDbProperties mysql) {
             this.mysql = mysql;
+            return this;
+        }
+
+        public String getGkCredentialProvider() {
+            return gkCredentialProvider;
+        }
+
+        public GatekeeperDbProperties setGkCredentialProvider(String gkCredentialProvider) {
+            this.gkCredentialProvider = gkCredentialProvider;
             return this;
         }
     }

@@ -24,9 +24,10 @@ const TOAST = Symbol();
 let vm;
 
 class RdsAdminController extends GatekeeperAdminController{
-    constructor($mdDialog, $mdToast, gkRdsUsersService, gkRdsRevokeUsersService, gkAccountService){
+    constructor($mdDialog, $mdToast, $rootScope, gkRdsUsersService, gkRdsRevokeUsersService, gkAccountService){
         super($mdDialog, $mdToast);
         vm = this;
+        vm.global = $rootScope;
         vm[USERS] = gkRdsUsersService;
         vm[REVOKE] = gkRdsRevokeUsersService;
         vm[TOAST] = $mdToast;
@@ -48,7 +49,7 @@ class RdsAdminController extends GatekeeperAdminController{
 
         vm.usersTable = {
             fetching: false,
-            selection: 'multiple',
+            selection: vm.canRevokeUsers()? 'multiple': 'none',
             // selectionId: 'userId',
             toolbar: {
                 header: '',
@@ -58,6 +59,10 @@ class RdsAdminController extends GatekeeperAdminController{
                         label: 'GK Users',
                         filterFn: vm.filterGk
                     }]
+            },
+            export: {
+                filename: 'rds-users',
+                fields: ['username'],
             },
             // onSelect: $scope.onSelectFn,
             // onDeselect: $scope.onDeselectFn,
@@ -94,10 +99,13 @@ class RdsAdminController extends GatekeeperAdminController{
         delete vm.error.users;
         vm.usersTable.fetching = true;
         vm.usersTable.data.splice(0, vm.usersTable.data.length);
+        vm.usersTable.export.filename = `${row.name}-rds-users`;
         vm.usersTable.promise = vm[USERS].search(
             {
                 account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                 region: vm.forms.awsInstanceForm.selectedRegion.name,
+                sdlc: vm.forms.awsInstanceForm.selectedAccount.sdlc,
+                instanceId: row.instanceId,
                 instanceName: row.name,
             });
 
@@ -110,6 +118,12 @@ class RdsAdminController extends GatekeeperAdminController{
         });
     }
 
+
+    canRevokeUsers(){
+        let canRevoke = vm.global.userInfo.isApprover;
+        return canRevoke;
+    }
+
     revokeUsersFromDb(){
         let title = "Revoke User Access";
         let message = "This will delete the users you have selected, are you sure?";
@@ -119,6 +133,8 @@ class RdsAdminController extends GatekeeperAdminController{
                 vm.blocking = true;
                 vm.usersTable.promise = vm[REVOKE].delete(vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
                     vm.forms.awsInstanceForm.selectedRegion.name,
+                    vm.forms.awsInstanceForm.selectedAccount.sdlc,
+                    vm.selectedItems[0].instanceId,
                     vm.selectedItems[0].name,
                     vm.usersTable.selected);
 

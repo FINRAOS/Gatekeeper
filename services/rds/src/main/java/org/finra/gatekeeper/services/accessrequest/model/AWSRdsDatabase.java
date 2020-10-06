@@ -17,7 +17,9 @@
 
 package org.finra.gatekeeper.services.accessrequest.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.google.common.base.MoreObjects;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -32,12 +34,16 @@ public class AWSRdsDatabase {
     private Long id;
     private String name;
     private String application;
+    @JsonAlias("instance_id")
     private String instanceId;
+    @JsonAlias("db_name")
     private String dbName;
     private String engine;
     private String endpoint;
     private String arn;
     private String status;
+    @JsonAlias("database_type")
+    private DatabaseType databaseType;
 
     @ManyToOne
     private AccessRequest accessRequest;
@@ -161,12 +167,23 @@ public class AWSRdsDatabase {
         this.status = status;
         return this;
     }
+
+    @Enumerated(EnumType.STRING)
+    public DatabaseType getDatabaseType() {
+        return databaseType;
+    }
+
+    public AWSRdsDatabase setDatabaseType(DatabaseType global) {
+        this.databaseType = global;
+        return this;
+    }
+
     /**
      * Constructors
      */
     public AWSRdsDatabase() {}
 
-    public AWSRdsDatabase(String name, String dbName, String application, String instanceId, String engine, String endpoint, String arn, String status) {
+    public AWSRdsDatabase(String name, String dbName, String application, String instanceId, String engine, String endpoint, String arn, String status, DatabaseType databaseType) {
         this.name = name;
         this.dbName = dbName;
         this.application = application;
@@ -175,6 +192,7 @@ public class AWSRdsDatabase {
         this.endpoint = endpoint;
         this.arn = arn;
         this.status = status;
+        this.databaseType = databaseType;
     }
 
     @Override
@@ -196,12 +214,13 @@ public class AWSRdsDatabase {
                 && Objects.equals(instanceId, that.instanceId)
                 && Objects.equals(endpoint, that.endpoint)
                 && Objects.equals(status, that.status)
-                && Objects.equals(endpoint, that.endpoint);
+                && Objects.equals(endpoint, that.endpoint)
+                && Objects.equals(databaseType, that.databaseType);
     }
 
     @Override
     public int hashCode(){
-        return Objects.hash(id, application, name, dbName, instanceId, engine, endpoint, status);
+        return Objects.hash(id, application, name, dbName, instanceId, engine, endpoint, status, databaseType);
     }
 
     @Override
@@ -216,6 +235,7 @@ public class AWSRdsDatabase {
                 .add("RDS Database Endpoint", endpoint)
                 .add("RDS Database ARN", arn)
                 .add("Status", status)
+                .add("Database Type", databaseType)
                 .toString();
     }
 }

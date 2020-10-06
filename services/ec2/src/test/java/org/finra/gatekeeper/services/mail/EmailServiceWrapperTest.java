@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -81,23 +81,19 @@ public class EmailServiceWrapperTest {
     @Before
     public void initMocks() throws Exception {
         //Mocking out the method calls
-        when(emailService.sendEmailWithAttachment(anyString(),anyString(),anyString(),anyString(),anyString(),anyMap(),anyString(),anyString(),anyMap(),anyString())).thenReturn(null);
         when(emailService.sendEmail(anyString(),anyString(),anyString(),anyString(),anyString(),anyMap())).thenReturn(null);
 
         //A mock user
         when(testUser.getEmail()).thenReturn(testUserEmail);
-        when(testUser.getUserId()).thenReturn(testUserId);
 
         //The mock request
         List<User> users = new ArrayList<User>();
         users.add(testUser);
         when(request.getUsers()).thenReturn(users);
         when(request.getId()).thenReturn(125L);
-        when(request.getAccount()).thenReturn("TEP");
         when(request.getRequestorEmail()).thenReturn(requestEmail);
         List<AWSInstance> instances = new ArrayList<AWSInstance>();
 
-        when(instance.getIp()).thenReturn("127.0.0.1");
         instances.add(instance);
         when(request.getInstances()).thenReturn(instances);
 

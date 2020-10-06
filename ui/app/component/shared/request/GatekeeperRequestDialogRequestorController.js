@@ -28,14 +28,20 @@ class GatekeeperRequestDialogRequestorController extends GatekeeperRequestDialog
     constructor($rootScope, $mdDialog, $mdToast, gkRequestService, row){
         super($rootScope, $mdDialog, $mdToast, gkRequestService, row);
         VM = this;
-        
-        this.actions.unshift(this.cancel);
+
         this.row = row;
         this.readonly = true;
         dialog = $mdDialog;
         this[REQUEST] = gkRequestService;
         this[TOAST] =  $mdToast;
         this[ROOTSCOPE] = $rootScope;
+        this.canCancelRequest($rootScope.userInfo.userId, row.requestorId);
+    }
+
+    canCancelRequest(userId, requestorId){
+        if (userId === requestorId) {
+            this.actions.unshift(this.cancel);
+        }
     }
 }
 

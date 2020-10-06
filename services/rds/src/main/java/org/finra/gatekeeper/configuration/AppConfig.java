@@ -17,13 +17,19 @@
 
 package org.finra.gatekeeper.configuration;
 
+import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
+import org.finra.gatekeeper.services.db.EnvVarDBCredentialsService;
 import org.finra.gatekeeper.services.email.EmailService;
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import java.util.Locale;
 
@@ -31,18 +37,37 @@ import java.util.Locale;
  * Configuration file used to set up beans like ClientConfiguration
  * or any other AWS clients such as S3, SQS, etc.
  */
-@Configuration
-@ComponentScan("org.finra")
-@EnableAutoConfiguration
-public class AppConfig {
+@Component
+public class AppConfig implements ApplicationContextAware {
+    private final Logger logger = LoggerFactory.getLogger(AppConfig.class);
+    private ApplicationContext context;
+
     @Bean
     public freemarker.template.Configuration freemarkerConfig() {
-        freemarker.template.Configuration configuration = new freemarker.template.Configuration();
+        Configuration configuration = new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_29);
         configuration.setClassForTemplateLoading(EmailService.class, "/emails");
         configuration.setDefaultEncoding("UTF-8");
         configuration.setLocale(Locale.US);
         configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
         return configuration;
+    }
+
+    @Bean(name="credentialsProvider")
+    public GKUserCredentialsProvider credentialsProviderConfig(GatekeeperProperties gatekeeperProperties){
+        logger.info("************** CREDENTIALS PROVIDER SETUP **************");
+        String credentialProvider = gatekeeperProperties.getDb().getGkCredentialProvider();
+        if(credentialProvider == null){
+            logger.info("No credentials provider was provided, using default environmental credentials provider.");
+            return new EnvVarDBCredentialsService(gatekeeperProperties);
+        }
+        logger.info("Using provided credential provider: " + credentialProvider);
+        return (GKUserCredentialsProvider) context.getBean(credentialProvider);
+
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
     }
 }

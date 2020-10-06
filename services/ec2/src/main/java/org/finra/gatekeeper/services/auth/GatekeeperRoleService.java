@@ -88,6 +88,8 @@ public class GatekeeperRoleService {
     private GatekeeperRole checkGatekeeperRole() {
         if(gatekeeperAuthorizationService.getMemberships().contains(authenticationProperties.getApproverGroup())) {
             return GatekeeperRole.APPROVER;
+        }else if(gatekeeperAuthorizationService.getMemberships().contains(authenticationProperties.getAuditorGroup())) {
+            return GatekeeperRole.AUDITOR;
         }else if(gatekeeperAuthorizationService.getMemberships().contains(authenticationProperties.getSupportGroup())){
             return GatekeeperRole.SUPPORT;
         }else{

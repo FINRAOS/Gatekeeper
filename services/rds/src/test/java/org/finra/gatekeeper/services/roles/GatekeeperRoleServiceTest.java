@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.ldap.core.LdapTemplate;
 
 import java.util.*;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for GatekeeperRoleService
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class GatekeeperRoleServiceTest {
 
     @Mock
@@ -300,6 +300,24 @@ public class GatekeeperRoleServiceTest {
 
         boolean isApprover = gatekeeperRoleService.isApprover();
         Assert.assertTrue(isApprover);
+    }
+
+    @Test
+    public void testIsAudit() {
+        when(gatekeeperAuthProperties.getAuditorGroup()).thenReturn("GATEKEEPER_AUDIT_TEST_GROUP");
+
+        memberships = new HashSet<>();
+        memberships.add("GATEKEEPER_AUDIT_TEST_GROUP");
+        memberships.add("SOME_OTHER_GROUP");
+        memberships.add("COMPANY_PRJCT_DEV_DEV");
+        memberships.add("COMPANY_PRJCT_DEV_PROD");
+        memberships.add("COMPANY_PRJCT_DEV_QA");
+        memberships.add("COMPANY_TEST_DEV_QC");
+        memberships.add("COMPANY_TEST_OPS");
+        Mockito.when(gatekeeperAuthorizationService.getMemberships()).thenReturn(memberships);
+
+        boolean isAuditor = gatekeeperRoleService.isAuditor();
+        Assert.assertTrue(isAuditor);
     }
 
     @Test

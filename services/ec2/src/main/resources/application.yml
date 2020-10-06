@@ -14,8 +14,7 @@
 #  limitations under the License.
 #
 #Global stuff, Most of this stuff should be set with container profile
-server.context-path: /api/gatekeeper-ec2
-
+server.servlet.context-path: /api/gatekeeper-ec2
 gatekeeper:
   aws:
     proxyHost: unset
@@ -35,10 +34,11 @@ gatekeeper:
     userIdHeader: default
     approverGroup: DEFAULT_APPROVER
     supportGroup: DEFAULT_SUPPORT
+    auditorGroup: DEFAULT_AUDITOR
   db:
     sslParams: ssl=true&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
 
-  approvalThreshold:
+  approval-threshold:
     dev:
       dev: 48
       qa: 48
@@ -100,9 +100,6 @@ cloud:
 log:
   filename: application.log
 
-logging:
-  level: info
-
 ---
 
 spring:
@@ -143,8 +140,10 @@ spring:
   datasource:
     platform: postgres
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://${gatekeeper.db.url}:${gatekeeper.db.port}/${gatekeeper.db.database}?currentSchema=${gatekeeper.db.schema}&${gatekeeper.db.sslParams}
+    url: jdbc:postgresql://${gatekeeper.db.url}:${gatekeeper.db.port}/${gatekeeper.db.database}?ApplicationName=GatekeeperEC2&currentSchema=${gatekeeper.db.schema}&${gatekeeper.db.sslParams}
     username: ${gatekeeper.db.user}
     password: ${gatekeeper.db.password}
-    max-idle: 2
-    min-idle: 2
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 2
+

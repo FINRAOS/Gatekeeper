@@ -18,8 +18,7 @@
 package org.finra.gatekeeper.rds.interfaces;
 
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
-import org.finra.gatekeeper.rds.model.DbUser;
-import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.rds.model.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -32,49 +31,60 @@ public interface DBConnection {
     /**
      * Grants user access to a database
      *
-     * @param user
-     * @param password
-     * @param role
-     * @param address
-     * @param time
-     * @return
-     * @throws Exception
+     * @param rdsGrantAccessQuery - the details of the database to grant access to
+     * @return true if success, false if failure
+     * @throws Exception - if connection or query fails on any level
      */
-    boolean grantAccess(String user, String password, RoleType role, String address, Integer time) throws Exception;
+    boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception;
 
     /**
      * Removes user from a database
      *
-     * @param user
-     * @param role
-     * @param address
-     * @return
-     * @throws Exception
+     * @param rdsRevokeAccessQuery - the details of the database to revoke access to
+     * @return true if success, false if failure
+     * @throws Exception - if connection or query fails on any level
      */
-    boolean revokeAccess(String user, RoleType role, String address) throws Exception;
+    boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws Exception;
 
 
-    Map<RoleType, List<String>> getAvailableTables(String address) throws Exception;
+    /**
+     * Gets all of the available tables for the user.
+     *
+     * @param rdsQuery - the details of the database to make the call
+     * @return a Map of RoleType to List of String where the role type corresponds to the tables that they have access to
+     * @throws Exception - if connection or query fails on any level
+     */
+    Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws Exception;
 
     /**
      * Connects to a DB and checks for any required setups
-     * @param address
+     *
+     * @param rdsQuery - the details of the database to make the call
      * @return String - empty if no issues, otherwise will be the issues
      */
-    List<String> checkDb(String address) throws GKUnsupportedDBException;
-
-    List<String> checkIfUsersHasTables(String address, List<String> users) throws SQLException;
+    List<String> checkDb(RdsQuery rdsQuery) throws GKUnsupportedDBException;
 
     /**
-     * Connects to the DB and gets all of the Users currently on the RDS instance
-     * @param address
-     * @return List of all of the users on the instance
+     * Check if the users have any dependent objects
+     *
+     * @param rdsCheckUsersTableQuery - The details of the query for the list of users to check
+     * @return List of the users who have tables
+     * @throws SQLException - if connection or query fails on any level
      */
-    List<DbUser> getUsers(String address) throws SQLException;
+    List<String> checkIfUsersHasTables(RdsCheckUsersTableQuery rdsCheckUsersTableQuery) throws SQLException;
 
     /**
-     * Connects to the DB and gets all of the available gk roles currently on the RDS instance
+     * Connects to the DB and gets all of the Users currently on the RDS database
+     * @param rdsQuery - the details of the database to make the call
+     * @return List of all of the users on the database
      */
-    List<String> getAvailableRoles(String address) throws SQLException;
+    List<DbUser> getUsers(RdsQuery rdsQuery) throws SQLException;
+
+    /**
+     * Connects to the DB and gets all of the available gk roles currently on the RDS database
+     * @param rdsQuery - the details of the database to make the call
+     * @return List of all available roles to that database
+     */
+    List<String> getAvailableRoles(RdsQuery rdsQuery) throws SQLException;
 
 }

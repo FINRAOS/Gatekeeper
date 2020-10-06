@@ -64,6 +64,7 @@ describe('GateKeeper RDS admin component', function () {
 
             $rootScope.userInfo = {
                 role: 'APPROVER',
+                isApprover: true,
                 userId:'testId',
                 user:'test',
                 email:'test@email.com'
@@ -77,7 +78,7 @@ describe('GateKeeper RDS admin component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new RdsAdminController($mdDialog, $mdToast, gkRdsUserService, gkRdsRevokeUsersService, gkAccountService);
+            controller = new RdsAdminController($mdDialog, $mdToast, $rootScope, gkRdsUserService, gkRdsRevokeUsersService, gkAccountService);
 
             let expected = {
                 fetching: false,
@@ -92,6 +93,10 @@ describe('GateKeeper RDS admin component', function () {
                             filterFn: controller.filterGk
                         }
                     ]
+                },
+                export: {
+                    filename: 'rds-users',
+                    fields: ['username'],
                 },
                 headers: [
                     {dataType: 'string', display: 'User Name', value: 'username'},
@@ -145,19 +150,22 @@ describe('GateKeeper RDS admin component', function () {
                let resp = {data:[{username:'testuser'},{username:'another'}]};
                testInit(true);
                controller.forms.awsInstanceForm = {
-                   selectedAccount: { alias:'ut'},
+                   selectedAccount: { alias:'ut', sdlc:'unittest'},
                    selectedRegion: { name:'us-east-1'}
                };
-               let row = {name:'testid'};
+               let row = {name:'testid', instanceId: 'testInstanceId'};
                controller.getUsers(row);
                usersDeferred.resolve(resp);
                scope.$apply();
                expect(gkRdsUserService.search).toHaveBeenCalledWith({
                    account:controller.forms.awsInstanceForm.selectedAccount.alias,
                    region:controller.forms.awsInstanceForm.selectedRegion.name,
+                   sdlc:controller.forms.awsInstanceForm.selectedAccount.sdlc,
+                   instanceId: row.instanceId,
                    instanceName:row.name
                });
                expect(controller.usersTable.data).toEqual(resp.data);
+               expect(controller.usersTable.export.filename).toBe('testid-rds-users');
            });
         });
 

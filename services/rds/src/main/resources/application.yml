@@ -15,7 +15,7 @@
 #
 #Global stuff
 #This stuff is usually replaced by the container profile, feel free to set them to what you need should you find yourself doing local development
-server.context-path: /api/gatekeeper-rds
+server.servlet.context-path: /api/gatekeeper-rds
 
 gatekeeper:
   aws:
@@ -83,6 +83,7 @@ gatekeeper:
   auth:
     userIdHeader: useraccount
     approverGroup: GATEKEEPER_RDS_APPROVER
+    auditorGroup: GATEKEEPER_AUDITOR
     dbaGroupsPattern: COMPANY_([a-zA-Z]+)_ADBA
     opsGroupsPattern: COMPANY_([a-zA-Z]+)_OPS
     devGroupsPattern: COMPANY_([a-zA-Z]+)_(DEV|QC|QA|PROD)_INSTALL_ENGINEER
@@ -97,6 +98,8 @@ gatekeeper:
     supportedDbs:
       mysql: mySQLDBConnection
       postgres: postgresDBConnection
+      aurora-mysql: mySQLDBConnection
+      aurora-postgresql: postgresDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
     sslParams: ssl=${gatekeeper.db.ssl}&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
     postgres:
@@ -179,11 +182,12 @@ spring:
   datasource:
     platform: postgres
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://${gatekeeper.db.url}:${gatekeeper.db.port}/${gatekeeper.db.database}?currentSchema=${gatekeeper.db.schema}&${gatekeeper.db.sslParams}
+    url: jdbc:postgresql://${gatekeeper.db.url}:${gatekeeper.db.port}/${gatekeeper.db.database}?ApplicationName=GatekeeperRDS&currentSchema=${gatekeeper.db.schema}&${gatekeeper.db.sslParams}
     username: ${gatekeeper.db.user}
     password: ${gatekeeper.db.password}
-    max-idle: 2
-    min-idle: 2
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 2
 
 gatekeeper:
   db:
@@ -197,4 +201,5 @@ gatekeeper:
       ssl: connectTimeout=${gatekeeper.rds.connectTimeout}&useSSL=${gatekeeper.rds.ssl}&requireSSL=${gatekeeper.rds.ssl}&serverSslCert=${gatekeeper.rds.sslCert}
     gkUser: ${gatekeeper.rds.user}
     gkPass: ${gatekeeper.rds.password}
+    gkCredentialProvider: ${gatekeeper.rds.gkCredentialProvider}
 

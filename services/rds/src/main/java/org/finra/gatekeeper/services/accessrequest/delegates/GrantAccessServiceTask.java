@@ -73,14 +73,15 @@ public class GrantAccessServiceTask implements JavaDelegate {
         try {
 
             // Prepare parameters
-            AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion());
+            AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc());
             logger.info("Environment for this access request is " + env.getAccount() + " ( " + env.getRegion() + " )");
 
             //bundle up the role -> db -> schema/table offerings
             Map<String, Map<RoleType, List<String>>> schemasForRequest = new HashMap<>();
-            for(AWSRdsDatabase db : accessRequest.getAwsRdsInstances()){
-                schemasForRequest.put(db.getName(), databaseConnectionService.getAvailableSchemasForDb(db));
-            }
+
+            AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
+            schemasForRequest.put(database.getName(), databaseConnectionService.getAvailableSchemasForDb(database, env));
+
 
             // Do all of this for each user in the request
             for (User u : accessRequest.getUsers()) {
@@ -93,8 +94,9 @@ public class GrantAccessServiceTask implements JavaDelegate {
                     }
 
                     RoleType roleType = RoleType.valueOf(role.getRole().toUpperCase());
-                    Map<String, Boolean> createStatus = databaseConnectionService.grantAccess(accessRequest.getAwsRdsInstances(),  u.getUserId(), roleType, password, accessRequest.getDays());
-                    if (createStatus.values().stream().allMatch(item -> item == Boolean.FALSE)) {
+
+                    Boolean createStatus = databaseConnectionService.grantAccess(database, env, u.getUserId(), roleType, password, accessRequest.getDays());
+                    if (!createStatus) {
                         throw new GatekeeperException("Could not create user account on any DB instances");
                     }
 

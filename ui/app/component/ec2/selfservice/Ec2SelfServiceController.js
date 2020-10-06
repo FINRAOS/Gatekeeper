@@ -18,6 +18,7 @@
 import GatekeeperJustificationConfig from "../../shared/selfservice/model/GatekeeperJustificationConfig";
 
 const TOAST = Symbol();
+const DIALOG = Symbol();
 const CONFIG = Symbol();
 const AWS = Symbol();
 const GRANT = Symbol();
@@ -37,6 +38,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
         this[AWS] = gkAWSService;
         this[GRANT] = gkGrantService;
         this[TOAST] = $mdToast;
+        this[DIALOG] = $mdDialog;
         this[CONFIG] = gkEc2ConfigService;
 
         this.awsInstanceFilter = {
@@ -190,21 +192,26 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
     }
 
     checkIfApprovalNeeded(){
-        vm.approvalRequired = false;
-        if(vm.global.userInfo.role !== 'APPROVER') {
+        vm.approvalRequired = true;
+
+        //approvers don't need approval
+        if(vm.global.userInfo.role === 'APPROVER') {
+            vm.approvalRequired = false;
+        } else {
             //first check hours
             if (vm.forms.awsInstanceForm.selectedAccount) {
-                vm.approvalRequired = vm.forms.grantForm.grantValue > vm.global.userInfo.approvalThreshold[vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()]
+                vm.approvalRequired = vm.forms.grantForm.grantValue > vm.global.userInfo.approvalThreshold[vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase()];
             }
             //if the hours didn't cross the threshold then check application on selected instances
-            if (!vm.approvalRequired && (vm.global.userInfo.role === 'DEV' || vm.global.userInfo.role === 'OPS')) {
+            if (!vm.approvalRequired) {
                 vm.awsTable.selected.forEach((item) => {
                     if (!vm.approvalRequired) {
                         vm.approvalRequired = vm.global.userInfo.memberships.indexOf(item.application) === -1;
                     }
-                })
+                });
             }
         }
+
     }
 
     grantAccess(){
@@ -214,14 +221,21 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
             let title = 'Confirm Access Request';
             let message = 'This will request access for ' + vm.forms.grantForm.grantValue + ' hour(s) for the selected users and instances. ';
             if(vm.approvalRequired){
-                message += 'This request will require approval.'
+                message += 'This request will require approval.';
             }
 
             let config = {title:title, message:message, requiresExplanation:vm.approvalRequired, justificationConfig:new GatekeeperJustificationConfig(vm.ticketIdFieldMessage, vm.ticketIdFieldRequired, vm.explanationFieldRequired)};
             vm.spawnTemplatedDialog(config)
                 .then((justification) => {
                     this.fetching.grant = true;
-                    vm[GRANT].post(vm.forms.grantForm.grantValue, vm.usersTable.selected, vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), vm.forms.awsInstanceForm.selectedRegion.name, vm.awsTable.selected, justification.ticketId, justification.explanation, vm.forms.awsInstanceForm.selectedPlatform)
+                    vm[GRANT].post(vm.forms.grantForm.grantValue,
+                        vm.usersTable.selected,
+                        vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
+                        vm.forms.awsInstanceForm.selectedRegion.name,
+                        vm.awsTable.selected,
+                        justification.ticketId,
+                        justification.explanation,
+                        vm.forms.awsInstanceForm.selectedPlatform)
                         .then((response) => {
                             this.fetching.grant = false;
                             let msg = 'Access was requested for ' + vm.forms.grantForm.grantValue + ' hours. If your request required approval,'
@@ -245,12 +259,23 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                         this.fetching.grant = false;
                         let msg = 'There was an error while trying to request access. Please make sure the requested instances are in a running state and are able to access AWS APIs.';
                         vm.error.request = error;
-                        vm[TOAST].show(
-                            vm[TOAST].simple()
-                                .textContent(msg)
-                                .position('bottom right')
-                                .hideDelay(10000)
-                        );
+                        let config = {
+                            clickOutsideToClose: true,
+                            title: 'ERROR',
+                            template: require("../../shared/request/template/error.tpl.html"),
+                            parent: angular.element(document.body),
+                            locals: {
+                                message: msg
+                            },
+                            controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                                $scope.message = message;
+                                $scope.cancel = function () {
+                                    $mdDialog.cancel();
+                                };
+                            }
+                            ]
+                        };
+                        vm[DIALOG].show(config);
                     });
                 });
         }

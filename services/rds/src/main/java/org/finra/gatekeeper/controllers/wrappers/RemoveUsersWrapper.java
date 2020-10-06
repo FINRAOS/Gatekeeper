@@ -25,7 +25,9 @@ public class RemoveUsersWrapper {
 
     private String account;
     private String region;
-    private String db;
+    private String sdlc;
+    private String instanceId;
+    private String instanceName;
     private List<DbUser> users;
 
     public String getAccount() {
@@ -46,12 +48,21 @@ public class RemoveUsersWrapper {
         return this;
     }
 
-    public String getDb() {
-        return db;
+    public String getInstanceId() {
+        return instanceId;
     }
 
-    public RemoveUsersWrapper setDb(String db) {
-        this.db = db;
+    public RemoveUsersWrapper setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+        return this;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public RemoveUsersWrapper setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
         return this;
     }
 
@@ -65,10 +76,19 @@ public class RemoveUsersWrapper {
         return this;
     }
 
+    public String getSdlc() {
+        return sdlc;
+    }
+
+    public RemoveUsersWrapper setSdlc(String sdlc) {
+        this.sdlc = sdlc;
+        return this;
+    }
+
     public RemoveUsersWrapper() {}
 
-    public RemoveUsersWrapper(String db, List<DbUser> users) {
-        this.db = db;
+    public RemoveUsersWrapper(String instanceName, List<DbUser> users) {
+        this.instanceName = instanceName;
         this.users = users;
     }
 }

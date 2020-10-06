@@ -32,6 +32,10 @@ public class GatekeeperAuthProperties {
      */
     private String approverGroup;
     /**
+     * The Group name for the Auditors
+     */
+    private String auditorGroup;
+    /**
      * The Group name for the Support team
      */
     private String supportGroup;
@@ -77,6 +81,15 @@ public class GatekeeperAuthProperties {
 
     public GatekeeperAuthProperties setApproverGroup(String approverGroup) {
         this.approverGroup = approverGroup;
+        return this;
+    }
+
+    public String getAuditorGroup() {
+        return auditorGroup;
+    }
+
+    public GatekeeperAuthProperties setAuditorGroup(String auditorGroup) {
+        this.auditorGroup = auditorGroup;
         return this;
     }
 

@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.controllers.wrappers;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.RequestStatus;
 
@@ -72,10 +73,22 @@ public class CompletedAccessRequestWrapper extends ActiveAccessRequestWrapper {
         return this;
     }
 
+    public Date getExpirationDate() {
+        return expirationDate;
+    }
+
+    public CompletedAccessRequestWrapper setExpirationDate(Date expirationDate) {
+        this.expirationDate = expirationDate;
+        return this;
+    }
+
     private Date updated;
+    private Date expirationDate;
     private Integer attempts;
     private RequestStatus status;
+    @JsonAlias("actioned_by_user_id")
     private String actionedByUserId;
+    @JsonAlias("actioned_by_user_name")
     private String actionedByUserName;
 
     public CompletedAccessRequestWrapper(AccessRequest accessRequest){
@@ -84,6 +97,7 @@ public class CompletedAccessRequestWrapper extends ActiveAccessRequestWrapper {
                 .setUserCount(accessRequest.getUsers().size());
     }
 
-
-
+    public CompletedAccessRequestWrapper() {
+        super();
+    }
 }

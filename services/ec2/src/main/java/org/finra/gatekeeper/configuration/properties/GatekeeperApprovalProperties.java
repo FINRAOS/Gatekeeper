@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@ConfigurationProperties(prefix="gatekeeper.approvalThreshold")
+@ConfigurationProperties(prefix="gatekeeper.approval-threshold")
 public class GatekeeperApprovalProperties {
     /**
      * Thresholds for DEV Role
@@ -57,6 +57,7 @@ public class GatekeeperApprovalProperties {
 
     public Map<String, Integer> getApprovalPolicy(GatekeeperRole role) {
         switch(role){
+            case AUDITOR:
             case DEV:
                 return dev;
             case SUPPORT:

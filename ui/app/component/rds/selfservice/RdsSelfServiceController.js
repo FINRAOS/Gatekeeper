@@ -180,7 +180,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
         return selectedRoles;
     }
-
+    
     grantAccess(){
         let vm = this;
         if(vm.forms.grantForm.$valid) {
@@ -205,15 +205,33 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                 msg = 'Access was requested for ' + vm.forms.grantForm.grantValue + ' days. If your request required approval,'
                                     + ' access will not be granted until your request is reviewed and actioned by an approver. Once granted, users will' +
                                     ' be sent an email with further instructions';
+                                vm[TOAST].show(
+                                    vm[TOAST].simple()
+                                        .textContent(msg)
+                                        .position('bottom right')
+                                        .hideDelay(10000)
+                                );
                             }else{
                                 msg = 'Access was NOT requested due to old/expired users having temporary tables on the databases that were selected, please work with the Ops team to get these users cleaned up.';
+                                let config = {
+                                    clickOutsideToClose: true,
+                                    title: 'ERROR',
+                                    template: require("../../shared/request/template/error.tpl.html"),
+                                    parent: angular.element(document.body),
+                                    locals: {
+                                        message: msg
+                                    },
+                                    controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                                        $scope.message = message;
+                                        $scope.cancel = function () {
+                                            $mdDialog.cancel();
+                                        };
+                                    }
+                                    ]
+                                };
+                                vm[DIALOG].show(config);
                             }
-                            vm[TOAST].show(
-                                vm[TOAST].simple()
-                                    .textContent(msg)
-                                    .position('bottom right')
-                                    .hideDelay(10000)
-                            );
+
                             if(response.data.outcome === 'CREATED') {
                                 //deselect all users and instances
                                 vm.selectedItems.splice(0, vm.selectedItems.length);
@@ -230,12 +248,24 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                             this.fetching.grant = false;
                             let msg = 'There was an error while trying to request access. Please make sure the requested instances are in a running state and are able to access AWS APIs.';
                             vm.error.request = error;
-                            vm[TOAST].show(
-                                vm[TOAST].simple()
-                                    .textContent(msg)
-                                    .position('bottom right')
-                                    .hideDelay(10000));
-                    })
+                            let config = {
+                                clickOutsideToClose: true,
+                                title: 'ERROR',
+                                template: require("../../shared/request/template/error.tpl.html"),
+                                parent: angular.element(document.body),
+                                locals: {
+                                    message: msg
+                                },
+                                controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                                    $scope.message = message;
+                                    $scope.cancel = function () {
+                                        $mdDialog.cancel();
+                                    };
+                                }
+                                ]
+                            };
+                            vm[DIALOG].show(config);
+                    });
             });
         }
     }

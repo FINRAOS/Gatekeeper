@@ -32,12 +32,11 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.*;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -210,7 +209,7 @@ public class LiveAccessRequestServiceTest {
                 .list())
                 .thenReturn(Arrays.asList(activitiRequest1, activitiRequest2, activitiRequest3));
 
-        when(accessRequestRepository.findAll(Mockito.anyList()))
+        when(accessRequestRepository.getAccessRequestsByIdIn(Mockito.anyCollection()))
                 .thenReturn(Arrays.asList(request1, request2, request3));
     }
 }

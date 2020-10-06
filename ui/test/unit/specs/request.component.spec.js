@@ -235,6 +235,7 @@ describe('GateKeeper UI Request Component', function () {
             deferred.reject(resp);
         }
 
+
         let expectedTable = {
             selection:'dialog',
             template:require('../../../app/component/ec2/request/template/request.tpl.html'),
@@ -242,7 +243,15 @@ describe('GateKeeper UI Request Component', function () {
             templateControllerAs: 'dialogCtrl',
             toolbar:{
                 header: "Recently Handled Requests",
-                inlineFilter:true
+                inlineFilter:true,
+                selectFilters: [
+                    {
+                        label: 'Environment',
+                        options: [],
+                        filterFn: gkRequestController.filterEnvironment,
+                        width: '118px'
+                    }
+                ]
             },
             headers:[
                 {dataType: 'date', config: {dateFormat:'short'}, display:'Created', value:"created"},
@@ -398,44 +407,44 @@ describe('GateKeeper UI Request Component', function () {
         it('Should call $mdDialog hide when approved', function(){
             spyOn($mdDialog, "hide");
             spyOn($state, "reload").and.returnValue("");
-            spyOn($mdToast, "simple").and.callThrough();;
+            spyOn($mdToast, "show").and.callThrough();;
             gkRequestController.approveRequest();
             deferred.resolve({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdToast.show).toHaveBeenCalled();
 
         });
         
         it('Should call $mdDialog hide when rejected', function(){
             spyOn($mdDialog, "hide");
             spyOn($state, "reload").and.returnValue("");
-            spyOn($mdToast, "simple").and.callThrough();
+            spyOn($mdToast, "show").and.callThrough();
             gkRequestController.rejectRequest();
             deferred.resolve({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdToast.show).toHaveBeenCalled();
         });
 
         it('Should call $mdDialog hide when approved - negative', function(){
             spyOn($mdDialog, "hide");
-            spyOn($mdToast, "simple").and.callThrough();
+            spyOn($mdDialog, "show").and.callThrough();
             gkRequestController.approveRequest();
             deferred.reject({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdDialog.show).toHaveBeenCalled();
         });
 
         it('Should call $mdDialog hide when rejected - negative', function(){
             spyOn($mdDialog, "hide");
-            spyOn($mdToast, "simple").and.callThrough();
+            spyOn($mdDialog, "show").and.callThrough();
             gkRequestController.rejectRequest();
             deferred.reject({});
             scope.$apply();
             expect($mdDialog.hide).toHaveBeenCalled();
-            expect($mdToast.simple).toHaveBeenCalled();
+            expect($mdDialog.show).toHaveBeenCalled();
         });
     });
 });

@@ -17,14 +17,20 @@
 
 package org.finra.gatekeeper.services.accessrequest.delegates;
 
+import com.amazonaws.services.rds.model.DBCluster;
 import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
 import org.finra.gatekeeper.rds.model.RoleType;
+import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
+import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.RdsLookupService;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.slf4j.Logger;
@@ -42,15 +48,21 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
     private final EmailServiceWrapper emailServiceWrapper;
     private final DatabaseConnectionService databaseConnectionService;
+    private final RdsLookupService rdsLookupService;
     private final ManagementService managementService;
+    private final AccessRequestService accessRequestService;
 
     @Autowired
     public RevokeAccessServiceTask(EmailServiceWrapper emailServiceWrapper,
                                    DatabaseConnectionService databaseConnectionService,
-                                   ManagementService managementService) {
+                                   ManagementService managementService,
+                                   RdsLookupService rdsLookupService,
+                                   AccessRequestService accessRequestService) {
         this.emailServiceWrapper = emailServiceWrapper;
         this.databaseConnectionService = databaseConnectionService;
         this.managementService = managementService;
+        this.rdsLookupService = rdsLookupService;
+        this.accessRequestService = accessRequestService;
     }
 
     /***
@@ -61,10 +73,23 @@ public class RevokeAccessServiceTask implements JavaDelegate {
         Job job = managementService.createJobQuery().processInstanceId(execution.getProcessInstanceId()).singleResult();
         AccessRequest accessRequest = (AccessRequest)execution.getVariable("accessRequest");
         try {
+            AWSEnvironment awsEnvironment = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion(), accessRequest.getAccountSdlc());
             logger.info("Revoking access for Users, Attempts remaining: " + job.getRetries());
-            for(User user : accessRequest.getUsers()){
-                for(UserRole role : accessRequest.getRoles()) {
-                    databaseConnectionService.revokeAccess(accessRequest.getAwsRdsInstances(), RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
+            for(User user : accessRequest.getUsers()) {
+                AWSRdsDatabase database = accessRequest.getAwsRdsInstances().get(0);
+                for (UserRole role : accessRequest.getRoles()) {
+                    if (accessRequestService.getLiveRequestsForUserOnDatabase(user.getUserId(), accessRequest.getAccount(), database.getName(), role).isEmpty()) {
+                        // if the db was actually an aurora global cluster then we should re-fetch the primary cluster
+                        // as that could have changed
+                        if (database.getDatabaseType() != null && database.getDatabaseType() == DatabaseType.AURORA_GLOBAL) {
+                            logger.info("Re-fetching the Primary Cluster for this global cluster since it could have changed over time.");
+                            DBCluster primaryCluster = rdsLookupService.getPrimaryClusterForGlobalCluster(awsEnvironment, database.getName()).get();
+                            database.setEndpoint(String.format("%s:%s", primaryCluster.getEndpoint(), primaryCluster.getPort()));
+                        }
+                        databaseConnectionService.revokeAccess(database, awsEnvironment, RoleType.valueOf(role.getRole().toUpperCase()), user.getUserId());
+                    } else {
+                        logger.info("Skipping revocation of user " + user.getUserId() + " with role " + role.toString() + " as they have another active access request for this instance.");
+                    }
                 }
             }
 

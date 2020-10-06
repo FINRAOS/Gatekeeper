@@ -61,10 +61,10 @@ class GatekeeperRequestController {
 
             }
         };
-
         $rootScope.$on("requestsUpdated", function(){
             VM.getActive();
-        })
+        });
+
 
     }
 

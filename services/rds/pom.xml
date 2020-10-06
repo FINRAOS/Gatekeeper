@@ -28,15 +28,14 @@
 		<version>1.0.0</version>
 	</parent>
 
-
 	<name>Gatekeeper RDS Service</name>
 
 	<properties>
 		<activiti.version>5.20.0</activiti.version>
-        <aws.sdk.version>1.11.333</aws.sdk.version>
+        <aws.sdk.version>1.11.800</aws.sdk.version>
 		<compiler.version>3.3</compiler.version>
 		<failsafe.version>2.19.1</failsafe.version>
-		<freemarker.version>2.3.20</freemarker.version>
+		<freemarker.version>2.3.29</freemarker.version>
 		<h2.version>1.4.185</h2.version>
 		<java.version>1.8</java.version>
 		<mysql.version>6.0.5</mysql.version>
@@ -119,6 +118,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-core</artifactId>
+			<version>${aws.sdk.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-rds</artifactId>
 			<version>${aws.sdk.version}</version>
 		</dependency>
@@ -150,11 +154,33 @@
 			<groupId>org.finra.gatekeeper</groupId>
 			<artifactId>gatekeeper-db-connection</artifactId>
 			<version>1.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-annotations</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ldap</groupId>
+			<artifactId>spring-ldap-core</artifactId>
 		</dependency>
 	</dependencies>
 

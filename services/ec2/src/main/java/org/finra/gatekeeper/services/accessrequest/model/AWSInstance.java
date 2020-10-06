@@ -16,6 +16,7 @@
 
 package org.finra.gatekeeper.services.accessrequest.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.google.common.base.MoreObjects;
 
 import javax.persistence.*;
@@ -31,6 +32,7 @@ public class AWSInstance {
     private Long id;
     private String name;
     private String application;
+    @JsonAlias("instances_id")
     private String instanceId;
     private String ip;
     private String status;
