@@ -654,7 +654,7 @@ public class AccessRequestServiceTest {
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
-        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        awsRdsDatabase.setApplication(OWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(1)).pushToSNSTopic((AccessRequest)result.getResponse());
@@ -672,7 +672,7 @@ public class AccessRequestServiceTest {
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
-        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        awsRdsDatabase.setApplication(OWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(0)).pushToSNSTopic((AccessRequest)result.getResponse());
@@ -690,7 +690,7 @@ public class AccessRequestServiceTest {
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(OWNER_APPLICATION);
-        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(OWNER_APPLICATION);
+        awsRdsDatabase.setApplication(OWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(0)).pushToSNSTopic((AccessRequest)result.getResponse());
@@ -710,7 +710,7 @@ public class AccessRequestServiceTest {
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
-        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        awsRdsDatabase.setApplication(OWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(1)).pushToSNSTopic((AccessRequest)result.getResponse());
