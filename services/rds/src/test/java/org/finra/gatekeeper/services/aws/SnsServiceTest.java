@@ -95,7 +95,7 @@ public class SnsServiceTest {
 
     @Test(expected=GatekeeperException.class)
     public void testSNSSessionBuildException() throws Exception {
-        Mockito.when(awsSessionService.getSNSSession()).thenThrow(Exception.class);
+        Mockito.when(awsSessionService.getSNSSession()).thenThrow(AmazonSNSException.class);
         boolean result = snsService.pushToSNSTopic(accessRequest);
     }
 }

@@ -650,11 +650,11 @@ public class AccessRequestServiceTest {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(true);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
-        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
-        when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(1)).pushToSNSTopic((AccessRequest)result.getResponse());
@@ -668,11 +668,11 @@ public class AccessRequestServiceTest {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(false);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
-        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
-        when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(0)).pushToSNSTopic((AccessRequest)result.getResponse());
@@ -686,11 +686,11 @@ public class AccessRequestServiceTest {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(false);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
-        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(OWNER_APPLICATION);
-        when(awsRdsDatabase.getApplication()).thenReturn(OWNER_APPLICATION);
+        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(OWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(0)).pushToSNSTopic((AccessRequest)result.getResponse());
@@ -706,11 +706,11 @@ public class AccessRequestServiceTest {
         Mockito.when(snsService.isTopicSet()).thenReturn(true);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
         Mockito.when(snsService.pushToSNSTopic(Mockito.any())).thenThrow(GatekeeperException.class);
-        when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
-        when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
+        Mockito.when(awsRdsDatabase.getApplication()).thenReturn(NONOWNER_APPLICATION);
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         verify(snsService, times(1)).pushToSNSTopic((AccessRequest)result.getResponse());
