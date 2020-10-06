@@ -36,6 +36,7 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
+import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
@@ -83,6 +84,9 @@ public class AccessRequestServiceTest {
 
     @Mock
     private AccessRequestRepository accessRequestRepository;
+
+    @Mock
+    private GKUserCredentialsProvider gkUserCredentialsProvider;
 
     @Mock
     private GatekeeperRoleService gatekeeperRoleService;
