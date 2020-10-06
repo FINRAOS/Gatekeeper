@@ -101,7 +101,7 @@ public class SnsServiceTest {
 
     @Test(expected=GatekeeperException.class)
     public void testSNSSessionBuildException() throws Exception {
-        Mockito.when(awsSessionService.getSnsSession()).thenThrow(Exception.class);
+        Mockito.when(awsSessionService.getSnsSession()).thenThrow(AmazonSNSException.class);
         snsService.pushToSNSTopic(mockRequestEventDTO);
     }
 
@@ -129,7 +129,7 @@ public class SnsServiceTest {
 
     @Test(expected=GatekeeperException.class)
     public void testEmailSNSSessionBuildException() throws Exception {
-        Mockito.when(awsSessionService.getSnsSession()).thenThrow(Exception.class);
+        Mockito.when(awsSessionService.getSnsSession()).thenThrow(AmazonSNSException.class);
         boolean result = snsService.pushToEmailSNSTopic(accessRequest);
     }
 }

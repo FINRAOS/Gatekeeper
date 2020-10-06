@@ -634,7 +634,7 @@ public class AccessRequestServiceTest {
     @Test(expected=GatekeeperException.class)
     public void testStoreAccessRequestDatabaseConnectionServiceException() throws Exception {
 
-        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(Exception.class);
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenThrow(Exception.class);
 
         AccessRequestCreationResponse result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
@@ -649,7 +649,7 @@ public class AccessRequestServiceTest {
     public void testStoreAccessRequestPushToTopic() throws Exception {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(true);
-        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
         when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
@@ -667,7 +667,7 @@ public class AccessRequestServiceTest {
     public void testStoreAccessRequestApprovalRequiredSNSTopicARNNotProvided() throws Exception {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(false);
-        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
         when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
@@ -685,7 +685,7 @@ public class AccessRequestServiceTest {
     public void testStoreAccessRequestApprovalNotRequired() throws Exception {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(false);
-        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
         when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
@@ -704,7 +704,7 @@ public class AccessRequestServiceTest {
     public void testStoreAccessRequestExceptionPublishingToTopic() throws Exception {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(true);
-        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new HashMap<>());
+        Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
         Mockito.when(snsService.pushToSNSTopic(Mockito.any())).thenThrow(GatekeeperException.class);
         when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
