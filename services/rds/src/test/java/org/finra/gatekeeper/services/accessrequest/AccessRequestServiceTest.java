@@ -650,7 +650,7 @@ public class AccessRequestServiceTest {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(true);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
-        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        ownerRequestWrapper.setDays(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
@@ -668,7 +668,7 @@ public class AccessRequestServiceTest {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(false);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
-        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        ownerRequestWrapper.setDays(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
@@ -686,7 +686,7 @@ public class AccessRequestServiceTest {
 
         Mockito.when(snsService.isTopicSet()).thenReturn(false);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
-        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        ownerRequestWrapper.setDays(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(OWNER_APPLICATION);
@@ -706,7 +706,7 @@ public class AccessRequestServiceTest {
         Mockito.when(snsService.isTopicSet()).thenReturn(true);
         Mockito.when(databaseConnectionService.checkUsersAndDbs(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any())).thenReturn(new ArrayList<>());
         Mockito.when(snsService.pushToSNSTopic(Mockito.any())).thenThrow(GatekeeperException.class);
-        Mockito.when(ownerRequestWrapper.getDays()).thenReturn(MOCK_MAXIMUM-1);
+        ownerRequestWrapper.setDays(MOCK_MAXIMUM-1);
         initRoleMemberships(OWNER_APPLICATION, true, false, false);
         initApprovalThresholds(OWNER_APPLICATION, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2, MOCK_MAXIMUM-2);
         ownerRequestWrapper.getInstances().get(0).setApplication(NONOWNER_APPLICATION);
