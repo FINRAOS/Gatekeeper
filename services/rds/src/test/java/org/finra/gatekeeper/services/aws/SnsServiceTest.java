@@ -3,12 +3,11 @@ package org.finra.gatekeeper.services.aws;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.AmazonSNSException;
 import com.amazonaws.services.sns.model.PublishResult;
-import org.finra.gatekeeper.configuration.GatekeeperRdsProperties;
+import org.finra.gatekeeper.configuration.GatekeeperSnsProperties;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,7 +33,7 @@ public class SnsServiceTest {
     private AwsSessionService awsSessionService;
 
     @Mock
-    private GatekeeperRdsProperties gatekeeperRdsProperties;
+    private GatekeeperSnsProperties gatekeeperSnsProperties;
 
     @Mock
     private AmazonSNS mockSnsClient;
@@ -64,10 +63,10 @@ public class SnsServiceTest {
                 "00001",
                 "Test Approver"
         );
-        Mockito.when(gatekeeperRdsProperties.getSnsApprovalTopic()).thenReturn(MOCK_SNS_TOPIC_ARN);
-        Mockito.when(gatekeeperRdsProperties.getRetryCount()).thenReturn(RETRY_COUNT);
-        Mockito.when(gatekeeperRdsProperties.getRetryIntervalMillis()).thenReturn(RETRY_INTERVAL_IN_MILLIS);
-        Mockito.when(gatekeeperRdsProperties.getRetryIntervalMultiplier()).thenReturn(RETRY_INTERVAL_MULTIPLIER);
+        Mockito.when(gatekeeperSnsProperties.getApprovalTopicARN()).thenReturn(MOCK_SNS_TOPIC_ARN);
+        Mockito.when(gatekeeperSnsProperties.getRetryCount()).thenReturn(RETRY_COUNT);
+        Mockito.when(gatekeeperSnsProperties.getRetryIntervalMillis()).thenReturn(RETRY_INTERVAL_IN_MILLIS);
+        Mockito.when(gatekeeperSnsProperties.getRetryIntervalMultiplier()).thenReturn(RETRY_INTERVAL_MULTIPLIER);
         Mockito.when(awsSessionService.getSNSSession()).thenReturn(mockSnsClient);
     }
 
@@ -81,7 +80,7 @@ public class SnsServiceTest {
 
     @Test
     public void testSNSTopicNotSet() throws Exception {
-        Mockito.when(gatekeeperRdsProperties.getSnsApprovalTopic()).thenReturn(null);
+        Mockito.when(gatekeeperSnsProperties.getApprovalTopicARN()).thenReturn(null);
         boolean result = snsService.pushToSNSTopic(accessRequest);
         Assert.assertFalse(result);
         verify(mockSnsClient, times(0)).publish(Mockito.any());

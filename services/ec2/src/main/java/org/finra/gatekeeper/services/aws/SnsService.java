@@ -44,14 +44,11 @@ public class SnsService {
 
     private final AwsSessionService awsSessionService;
     private final GatekeeperSnsProperties gatekeeperSnsProperties;
-    private final GatekeeperEC2Properties gatekeeperEC2Properties;
 
     @Autowired
     public SnsService(AwsSessionService awsSessionService,
-                      GatekeeperEC2Properties gatekeeperEC2Properties,
                       GatekeeperSnsProperties gatekeeperSnsProperties){
 
-        this.gatekeeperEC2Properties = gatekeeperEC2Properties;
         this.awsSessionService = awsSessionService;
         this.gatekeeperSnsProperties = gatekeeperSnsProperties;
     }
@@ -60,7 +57,7 @@ public class SnsService {
         return gatekeeperSnsProperties.getTopicARN() != null;
     }
 
-    public boolean isEmailTopicSet() { return gatekeeperEC2Properties.getEc2().getSnsApprovalTopic() != null; }
+    public boolean isEmailTopicSet() { return gatekeeperSnsProperties.getApprovalTopicARN() != null; }
 
     public void pushToSNSTopic(RequestEventDTO message) throws Exception {
         if(gatekeeperSnsProperties.getTopicARN() != null){
@@ -72,7 +69,7 @@ public class SnsService {
 
     public boolean pushToEmailSNSTopic(AccessRequest accessRequest) throws Exception {
         if(isEmailTopicSet()){
-            pushToSNSTopic(accessRequest, gatekeeperEC2Properties.getEc2().getSnsApprovalTopic());
+            pushToSNSTopic(accessRequest, gatekeeperSnsProperties.getApprovalTopicARN());
             return true;
         }
         logger.info("SNS Topic was not provided, skipping");

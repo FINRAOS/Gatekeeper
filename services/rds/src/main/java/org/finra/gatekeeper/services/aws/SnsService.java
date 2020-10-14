@@ -4,7 +4,7 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import org.finra.gatekeeper.configuration.GatekeeperRdsProperties;
+import org.finra.gatekeeper.configuration.GatekeeperSnsProperties;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.slf4j.Logger;
@@ -18,32 +18,32 @@ public class SnsService {
     private final Logger logger = LoggerFactory.getLogger(SnsService.class);
 
     private final AwsSessionService awsSessionService;
-    private final GatekeeperRdsProperties gatekeeperRdsProperties;
+    private final GatekeeperSnsProperties gatekeeperSnsProperties;
 
     @Autowired
     public SnsService(AwsSessionService awsSessionService,
-                      GatekeeperRdsProperties gatekeeperRdsProperties){
+                      GatekeeperSnsProperties gatekeeperSnsProperties){
 
         this.awsSessionService = awsSessionService;
-        this.gatekeeperRdsProperties = gatekeeperRdsProperties;
+        this.gatekeeperSnsProperties = gatekeeperSnsProperties;
     }
 
     public boolean isTopicSet() {
-        return gatekeeperRdsProperties.getSnsApprovalTopic() != null;
+        return gatekeeperSnsProperties.getApprovalTopicARN() != null;
     }
 
     public boolean pushToSNSTopic(AccessRequest accessRequest) throws Exception {
         if(isTopicSet()) {
-            pushToSNSTopic(accessRequest, gatekeeperRdsProperties.getSnsApprovalTopic());
+            pushToSNSTopic(accessRequest, gatekeeperSnsProperties.getApprovalTopicARN());
             return true;
         }
         return false;
     }
 
     private void pushToSNSTopic(Object accessRequest, String topicARN) throws Exception {
-        int attempts = gatekeeperRdsProperties.getRetryCount() == -1 ? 5 : gatekeeperRdsProperties.getRetryCount();
-        int retryInterval = gatekeeperRdsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperRdsProperties.getRetryIntervalMillis();
-        int retryMultiplier = gatekeeperRdsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperRdsProperties.getRetryIntervalMultiplier();
+        int attempts = gatekeeperSnsProperties.getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getRetryCount();
+        int retryInterval = gatekeeperSnsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getRetryIntervalMillis();
+        int retryMultiplier = gatekeeperSnsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getRetryIntervalMultiplier();
 
         ObjectWriter jsonWriter = new ObjectMapper().writer();
         logger.info("Pushing " + jsonWriter.withDefaultPrettyPrinter().writeValueAsString(accessRequest) + " to " + topicARN);
