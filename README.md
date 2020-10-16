@@ -243,11 +243,6 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 ### EC2
 These configurations are specific to Gatekeeper EC2
 
-#### SNS
-| Property | Description | Type |
-|----------|-------------|------|
-| gatekeeper.ec2.snsApprovalTopic | The SNS topic to send Gatekeeper EC2 access requests to when approval is required | string
-
 #### DATABASE
 | Property | Description | Type |
 |----------|-------------|------|
