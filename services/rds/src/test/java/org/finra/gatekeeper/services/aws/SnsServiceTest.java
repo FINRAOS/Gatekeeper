@@ -63,10 +63,10 @@ public class SnsServiceTest {
                 "00001",
                 "Test Approver"
         );
-        Mockito.when(gatekeeperSnsProperties.getApprovalTopicARN()).thenReturn(MOCK_SNS_TOPIC_ARN);
-        Mockito.when(gatekeeperSnsProperties.getRetryCount()).thenReturn(RETRY_COUNT);
-        Mockito.when(gatekeeperSnsProperties.getRetryIntervalMillis()).thenReturn(RETRY_INTERVAL_IN_MILLIS);
-        Mockito.when(gatekeeperSnsProperties.getRetryIntervalMultiplier()).thenReturn(RETRY_INTERVAL_MULTIPLIER);
+        Mockito.when(gatekeeperSnsProperties.getSns().getApprovalTopicARN()).thenReturn(MOCK_SNS_TOPIC_ARN);
+        Mockito.when(gatekeeperSnsProperties.getSns().getRetryCount()).thenReturn(RETRY_COUNT);
+        Mockito.when(gatekeeperSnsProperties.getSns().getRetryIntervalMillis()).thenReturn(RETRY_INTERVAL_IN_MILLIS);
+        Mockito.when(gatekeeperSnsProperties.getSns().getRetryIntervalMultiplier()).thenReturn(RETRY_INTERVAL_MULTIPLIER);
         Mockito.when(awsSessionService.getSNSSession()).thenReturn(mockSnsClient);
     }
 
@@ -80,7 +80,7 @@ public class SnsServiceTest {
 
     @Test
     public void testSNSTopicNotSet() throws Exception {
-        Mockito.when(gatekeeperSnsProperties.getApprovalTopicARN()).thenReturn(null);
+        Mockito.when(gatekeeperSnsProperties.getSns().getApprovalTopicARN()).thenReturn(null);
         boolean result = snsService.pushToSNSTopic(accessRequest);
         Assert.assertFalse(result);
         verify(mockSnsClient, times(0)).publish(Mockito.any());

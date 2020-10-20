@@ -57,7 +57,7 @@ public class SnsService {
         return gatekeeperSnsProperties.getTopicARN() != null;
     }
 
-    public boolean isEmailTopicSet() { return gatekeeperSnsProperties.getApprovalTopicARN() != null; }
+    public boolean isEmailTopicSet() { return gatekeeperSnsProperties.getSns().getApprovalTopicARN() != null; }
 
     public void pushToSNSTopic(RequestEventDTO message) throws Exception {
         if(gatekeeperSnsProperties.getTopicARN() != null){
@@ -69,7 +69,7 @@ public class SnsService {
 
     public boolean pushToEmailSNSTopic(AccessRequest accessRequest) throws Exception {
         if(isEmailTopicSet()){
-            pushToSNSTopic(accessRequest, gatekeeperSnsProperties.getApprovalTopicARN());
+            pushToSNSTopic(accessRequest, gatekeeperSnsProperties.getSns().getApprovalTopicARN());
             return true;
         }
         logger.info("SNS Topic was not provided, skipping");
@@ -77,9 +77,9 @@ public class SnsService {
     }
 
     private void pushToSNSTopic(Object message, String topicARN) throws Exception {
-        int attempts = gatekeeperSnsProperties.getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getRetryCount();
-        int retryInterval = gatekeeperSnsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getRetryIntervalMillis();
-        int retryMultiplier = gatekeeperSnsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getRetryIntervalMultiplier();
+        int attempts = gatekeeperSnsProperties.getSns().getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getSns().getRetryCount();
+        int retryInterval = gatekeeperSnsProperties.getSns().getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getSns().getRetryIntervalMillis();
+        int retryMultiplier = gatekeeperSnsProperties.getSns().getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getSns().getRetryIntervalMultiplier();
 
         ObjectWriter jsonWriter = new ObjectMapper().writer();
         logger.info("Pushing " + jsonWriter.withDefaultPrettyPrinter().writeValueAsString(message) + " to " + topicARN);
