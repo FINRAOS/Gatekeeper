@@ -53,7 +53,7 @@ public class GatekeeperSnsProperties {
 
         public String getApprovalTopicARN() { return approvalTopicARN; }
 
-        public SnsProperties setApprovalTopicARN() {
+        public SnsProperties setApprovalTopicARN(String approvalTopicARN) {
             this.approvalTopicARN = approvalTopicARN;
             return this;
         }
