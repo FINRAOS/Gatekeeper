@@ -33,12 +33,14 @@ import org.finra.gatekeeper.common.services.account.model.Region;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.CompletedAccessRequestWrapper;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.accessrequest.model.*;
+import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.hibernate.query.internal.NativeQueryImpl;
 import org.junit.Assert;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
@@ -153,6 +155,12 @@ public class AccessRequestServiceTest {
 
     @Mock
     private SsmService ssmService;
+
+    @Mock
+    private SnsService snsService;
+
+    @Mock
+    private EmailServiceWrapper emailServiceWrapper;
 
     @Mock
     private EntityManager entityManager;
@@ -484,6 +492,8 @@ public class AccessRequestServiceTest {
         List<AWSInstance> instances = new ArrayList<>();
         instances.add(awsInstance);
 
+        when(snsService.isEmailTopicSet()).thenReturn(false);
+
         AccessRequest result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
 
         Assert.assertEquals(result.getRequestorEmail(), "testEmail@finra.org");
@@ -500,6 +510,99 @@ public class AccessRequestServiceTest {
 
 
     }
+
+
+    /**
+     * Test for making sure the storeAccessRequest method throws an exception if a prod request for datafix . Makes sure the accessRequestRepository
+     * is called and called with the correct object.
+     */
+    @Test
+    public void testStoreAccessRequestDaysBeyondMax() throws Exception {
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        List<AWSInstance> instances = new ArrayList<>();
+        instances.add(awsInstance);
+
+        when(snsService.isEmailTopicSet()).thenReturn(false);
+        when(ownerRequestWrapper.getHours()).thenReturn(181);
+        AccessRequest result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        Assert.assertEquals(result.getRequestorEmail(), "testEmail@finra.org");
+        Assert.assertEquals(result.getRequestorId(), "testUserId");
+        Assert.assertEquals(result.getRequestorName(), "testName");
+        Assert.assertEquals(result.getRegion(), "testRegion");
+        Assert.assertEquals(result.getAccount(), "TESTACCOUNT");
+        Assert.assertEquals((long) result.getHours(), 181L);
+
+        Assert.assertEquals(result.getUsers(), users);
+        Assert.assertEquals(result.getInstances(), instances);
+
+        verify(accessRequestRepository, times(1)).save(result);
+        verify(snsService, times(0)).pushToEmailSNSTopic(any());
+    }
+
+
+    /**
+     * Test for making sure the storeAccessRequest method throws an exception if a prod request for datafix . Makes sure the accessRequestRepository
+     * is called and called with the correct object.
+     */
+    @Test
+    public void testStoreAccessRequestPushToEmailSnsTopic() throws Exception {
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        List<AWSInstance> instances = new ArrayList<>();
+        instances.add(awsInstance);
+
+        when(snsService.isEmailTopicSet()).thenReturn(true);
+        when(ownerRequestWrapper.getHours()).thenReturn(181);
+        AccessRequest result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        Assert.assertEquals(result.getRequestorEmail(), "testEmail@finra.org");
+        Assert.assertEquals(result.getRequestorId(), "testUserId");
+        Assert.assertEquals(result.getRequestorName(), "testName");
+        Assert.assertEquals(result.getRegion(), "testRegion");
+        Assert.assertEquals(result.getAccount(), "TESTACCOUNT");
+        Assert.assertEquals((long) result.getHours(), 181L);
+
+        Assert.assertEquals(result.getUsers(), users);
+        Assert.assertEquals(result.getInstances(), instances);
+
+        verify(accessRequestRepository, times(1)).save(result);
+        verify(snsService, times(1)).pushToEmailSNSTopic(any());
+    }
+
+
+    /**
+     * Test for making sure the storeAccessRequest method throws an exception if a prod request for datafix . Makes sure the accessRequestRepository
+     * is called and called with the correct object.
+     */
+    @Test
+    public void testStoreAccessRequestSNSThrowsException() throws Exception {
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        List<AWSInstance> instances = new ArrayList<>();
+        instances.add(awsInstance);
+
+        when(snsService.isEmailTopicSet()).thenReturn(true);
+        when(snsService.pushToEmailSNSTopic(any())).thenThrow(GatekeeperException.class);
+        when(ownerRequestWrapper.getHours()).thenReturn(181);
+        AccessRequest result = accessRequestService.storeAccessRequest(ownerRequestWrapper);
+
+        Assert.assertEquals(result.getRequestorEmail(), "testEmail@finra.org");
+        Assert.assertEquals(result.getRequestorId(), "testUserId");
+        Assert.assertEquals(result.getRequestorName(), "testName");
+        Assert.assertEquals(result.getRegion(), "testRegion");
+        Assert.assertEquals(result.getAccount(), "TESTACCOUNT");
+        Assert.assertEquals((long) result.getHours(), 181L);
+
+        Assert.assertEquals(result.getUsers(), users);
+        Assert.assertEquals(result.getInstances(), instances);
+
+        verify(accessRequestRepository, times(1)).save(result);
+        verify(snsService, times(1)).pushToEmailSNSTopic(any());
+        verify(emailServiceWrapper, times(1)).notifyAdminsOfFailure(any(), any());;
+    }
+
 
     /**
      * Test for checking that, when the user is APPROVER, they should be able to see

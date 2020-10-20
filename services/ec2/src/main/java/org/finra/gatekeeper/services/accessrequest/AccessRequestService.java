@@ -40,8 +40,10 @@ import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.UserInsta
 import org.finra.gatekeeper.services.accessrequest.model.messaging.dto.ActiveRequestUserDTO;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
+import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.internal.NativeQueryImpl;
 import org.hibernate.transform.AliasToEntityMapResultTransformer;
@@ -72,7 +74,9 @@ public class AccessRequestService {
     private final HistoryService historyService;
     private final GatekeeperApprovalProperties approvalPolicy;
     private final AccountInformationService accountInformationService;
+    private final EmailServiceWrapper emailServiceWrapper;
     private final SsmService ssmService;
+    private final SnsService snsService;
     private final EntityManager entityManager;
     private final String REJECTED = "REJECTED";
     private final String APPROVED = "APPROVED";
@@ -142,7 +146,9 @@ public class AccessRequestService {
                                 RuntimeService runtimeService,
                                 HistoryService historyService,
                                 AccountInformationService accountInformationService,
+                                EmailServiceWrapper emailServiceWrapper,
                                 SsmService ssmService,
+                                SnsService snsService,
                                 GatekeeperApprovalProperties gatekeeperApprovalProperties,
                                 EntityManager entityManager){
 
@@ -152,7 +158,9 @@ public class AccessRequestService {
         this.runtimeService = runtimeService;
         this.historyService = historyService;
         this.accountInformationService = accountInformationService;
+        this.emailServiceWrapper = emailServiceWrapper;
         this.ssmService = ssmService;
+        this.snsService = snsService;
         this.approvalPolicy = gatekeeperApprovalProperties;
         this.entityManager = entityManager;
     }
@@ -197,6 +205,22 @@ public class AccessRequestService {
 
         // Verify that we started a new process instance
         logger.info("Number of process instances: " + runtimeService.createProcessInstanceQuery().count());
+
+        try {
+            boolean approvalNeeded = isApprovalNeeded(accessRequest);
+            boolean topicSet = snsService.isEmailTopicSet();
+            if (approvalNeeded && topicSet) {
+                snsService.pushToEmailSNSTopic(accessRequest);
+            } else if (!approvalNeeded){
+                logger.info("Approval is not required for this request (" + accessRequest.getId() + "). Skipping publishing of access request to SNS topic.");
+            } else {
+                logger.info("SNS topic ARN not provided. Skipping publishing of access request to SNS topic.");
+            }
+        } catch (Exception e) {
+            Long accessRequestId = accessRequest.getId();
+            emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
+            logger.error("Unable to push access request (" + accessRequestId + ") to SNS topic.");
+        }
         return accessRequest;
     }
 

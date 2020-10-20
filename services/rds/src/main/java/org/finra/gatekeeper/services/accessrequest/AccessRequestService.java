@@ -36,12 +36,14 @@ import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestC
 import org.finra.gatekeeper.services.accessrequest.model.response.AccessRequestCreationResponse;
 import org.finra.gatekeeper.services.auth.model.AppApprovalThreshold;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
+import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -78,6 +80,8 @@ public class AccessRequestService {
     private final AccountInformationService accountInformationService;
     private final GatekeeperOverrideProperties overridePolicy;
     private final DatabaseConnectionService databaseConnectionService;
+    private final EmailServiceWrapper emailServiceWrapper;
+    private final SnsService snsService;
     private final EntityManager entityManager;
     private final String REJECTED = "REJECTED";
     private final String APPROVED = "APPROVED";
@@ -156,6 +160,8 @@ public class AccessRequestService {
                                 AccountInformationService accountInformationService,
                                 GatekeeperOverrideProperties overridePolicy,
                                 DatabaseConnectionService databaseConnectionService,
+                                EmailServiceWrapper emailServiceWrapper,
+                                SnsService snsService,
                                 EntityManager entityManager){
         this.taskService = taskService;
         this.accessRequestRepository = accessRequestRepository;
@@ -166,6 +172,8 @@ public class AccessRequestService {
         this.accountInformationService = accountInformationService;
         this.overridePolicy = overridePolicy;
         this.databaseConnectionService = databaseConnectionService;
+        this.emailServiceWrapper = emailServiceWrapper;
+        this.snsService = snsService;
         this.entityManager = entityManager;
     }
 
@@ -232,6 +240,23 @@ public class AccessRequestService {
 
         // Verify that we started a new process instance
         logger.info("Number of process instances: " + runtimeService.createProcessInstanceQuery().count());
+
+        try {
+            boolean approvalNeeded = isApprovalNeeded(accessRequest);
+            boolean topicSet = snsService.isTopicSet();
+            if (approvalNeeded && topicSet) {
+                snsService.pushToSNSTopic(accessRequest);
+            } else if (!approvalNeeded){
+                logger.info("Approval is not required for this request (" + accessRequest.getId() + "). Skipping publishing of access request to SNS topic.");
+            } else {
+                logger.info("SNS topic ARN not provided. Skipping publishing of access request to SNS topic.");
+            }
+        } catch (Exception e) {
+            Long accessRequestId = accessRequest.getId();
+            emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
+            logger.error("Unable to push access request (" + accessRequestId + ") to SNS topic.");
+        }
+
         return new AccessRequestCreationResponse(AccessRequestCreationOutcome.CREATED, accessRequest);
     }
 

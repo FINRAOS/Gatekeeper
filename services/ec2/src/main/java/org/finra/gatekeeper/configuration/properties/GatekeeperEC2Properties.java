@@ -35,4 +35,32 @@ public class GatekeeperEC2Properties {
         this.appIdentityTag = appIdentityTag;
         return this;
     }
+
+    private EC2Properties ec2;
+
+    public EC2Properties getEc2() {
+        return ec2;
+    }
+
+    public void setEc2(EC2Properties ec2) {
+        this.ec2 = ec2;
+    }
+
+    public static class EC2Properties {
+        /**
+         * SNS Topic ARN to send EC2 request emails to when approval is required
+         */
+        private String snsApprovalTopic;
+
+        public String getSnsApprovalTopic() {
+            return snsApprovalTopic;
+        }
+
+        public EC2Properties setSnsApprovalTopic(String snsApprovalTopic) {
+            this.snsApprovalTopic = snsApprovalTopic;
+            return this;
+        }
+    }
+
+
 }

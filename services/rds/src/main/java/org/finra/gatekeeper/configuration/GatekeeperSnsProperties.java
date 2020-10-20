@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.finra.gatekeeper.configuration.properties;
+package org.finra.gatekeeper.configuration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -29,14 +29,14 @@ public class GatekeeperSnsProperties {
     private int retryCount = -1;
     private int retryIntervalMillis = -1;
     private int retryIntervalMultiplier = -1;
-    private String topicARN;
     private String approvalTopicARN;
 
-    public String getTopicARN() {
-        return topicARN;
-    }
-
     public String getApprovalTopicARN() { return approvalTopicARN; }
+
+    public GatekeeperSnsProperties setApprovalTopicARN() {
+        this.approvalTopicARN = approvalTopicARN;
+        return this;
+    }
 
     public int getRetryCount() {
         return retryCount;
@@ -62,16 +62,6 @@ public class GatekeeperSnsProperties {
 
     public GatekeeperSnsProperties setRetryCount(int retryCount) {
         this.retryCount = retryCount;
-        return this;
-    }
-
-    public GatekeeperSnsProperties setTopicARN(String topicARN) {
-        this.topicARN = topicARN;
-        return this;
-    }
-
-    public GatekeeperSnsProperties setApprovalTopicARN(String approvalTopicARN) {
-        this.approvalTopicARN = approvalTopicARN;
         return this;
     }
 }
