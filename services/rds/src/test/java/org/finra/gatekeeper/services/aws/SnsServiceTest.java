@@ -85,6 +85,7 @@ public class SnsServiceTest {
 
     @Test(expected=GatekeeperException.class)
     public void testSNSTopicPublishException() throws Exception {
+        Mockito.when(gatekeeperSnsProperties.getSns()).thenReturn(new GatekeeperSnsProperties.SnsProperties().setApprovalTopicARN(MOCK_SNS_TOPIC_ARN).setRetryCount(RETRY_COUNT).setRetryIntervalMillis(RETRY_INTERVAL_IN_MILLIS).setRetryIntervalMultiplier(RETRY_INTERVAL_MULTIPLIER));
         Mockito.when(mockSnsClient.publish(Mockito.any())).thenThrow(AmazonSNSException.class);
         boolean result = snsService.pushToSNSTopic(accessRequest);
     }
