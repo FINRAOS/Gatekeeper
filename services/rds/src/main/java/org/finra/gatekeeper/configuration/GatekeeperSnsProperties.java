@@ -23,45 +23,57 @@ import org.springframework.stereotype.Component;
  * Configuration properties relating to the sns service for gatekeeper
  */
 @Component
-@ConfigurationProperties(prefix="gatekeeper.sns")
+@ConfigurationProperties(prefix="gatekeeper")
 public class GatekeeperSnsProperties {
 
-    private int retryCount = -1;
-    private int retryIntervalMillis = -1;
-    private int retryIntervalMultiplier = -1;
-    private String approvalTopicARN;
+    private SnsProperties sns;
 
-    public String getApprovalTopicARN() { return approvalTopicARN; }
-
-    public GatekeeperSnsProperties setApprovalTopicARN() {
-        this.approvalTopicARN = approvalTopicARN;
-        return this;
+    public SnsProperties getSns() {
+        return sns;
     }
 
-    public int getRetryCount() {
-        return retryCount;
+    public void setSns(SnsProperties sns) {
+        this.sns = sns;
     }
 
-    public int getRetryIntervalMillis() {
-        return retryIntervalMillis;
-    }
+    public static class SnsProperties {
+        private int retryCount = -1;
+        private int retryIntervalMillis = -1;
+        private int retryIntervalMultiplier = -1;
+        private String approvalTopicARN;
 
-    public GatekeeperSnsProperties setRetryIntervalMillis(int retryIntervalMillis) {
-        this.retryIntervalMillis = retryIntervalMillis;
-        return this;
-    }
+        public String getApprovalTopicARN() { return approvalTopicARN; }
 
-    public int getRetryIntervalMultiplier() {
-        return retryIntervalMultiplier;
-    }
+        public SnsProperties setApprovalTopicARN(String approvalTopicARN) {
+            this.approvalTopicARN = approvalTopicARN;
+            return this;
+        }
 
-    public GatekeeperSnsProperties setRetryIntervalMultiplier(int retryIntervalMultiplier) {
-        this.retryIntervalMultiplier = retryIntervalMultiplier;
-        return this;
-    }
+        public int getRetryCount() {
+            return retryCount;
+        }
 
-    public GatekeeperSnsProperties setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-        return this;
+        public int getRetryIntervalMillis() {
+            return retryIntervalMillis;
+        }
+
+        public SnsProperties setRetryIntervalMillis(int retryIntervalMillis) {
+            this.retryIntervalMillis = retryIntervalMillis;
+            return this;
+        }
+
+        public int getRetryIntervalMultiplier() {
+            return retryIntervalMultiplier;
+        }
+
+        public SnsProperties setRetryIntervalMultiplier(int retryIntervalMultiplier) {
+            this.retryIntervalMultiplier = retryIntervalMultiplier;
+            return this;
+        }
+
+        public SnsProperties setRetryCount(int retryCount) {
+            this.retryCount = retryCount;
+            return this;
+        }
     }
 }

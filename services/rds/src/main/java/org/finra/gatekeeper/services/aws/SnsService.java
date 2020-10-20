@@ -29,21 +29,21 @@ public class SnsService {
     }
 
     public boolean isTopicSet() {
-        return gatekeeperSnsProperties.getApprovalTopicARN() != null;
+        return gatekeeperSnsProperties.getSns().getApprovalTopicARN() != null;
     }
 
     public boolean pushToSNSTopic(AccessRequest accessRequest) throws Exception {
         if(isTopicSet()) {
-            pushToSNSTopic(accessRequest, gatekeeperSnsProperties.getApprovalTopicARN());
+            pushToSNSTopic(accessRequest, gatekeeperSnsProperties.getSns().getApprovalTopicARN());
             return true;
         }
         return false;
     }
 
     private void pushToSNSTopic(Object accessRequest, String topicARN) throws Exception {
-        int attempts = gatekeeperSnsProperties.getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getRetryCount();
-        int retryInterval = gatekeeperSnsProperties.getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getRetryIntervalMillis();
-        int retryMultiplier = gatekeeperSnsProperties.getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getRetryIntervalMultiplier();
+        int attempts = gatekeeperSnsProperties.getSns().getRetryCount() == -1 ? 5 : gatekeeperSnsProperties.getSns().getRetryCount();
+        int retryInterval = gatekeeperSnsProperties.getSns().getRetryIntervalMillis() == -1 ? 1000 : gatekeeperSnsProperties.getSns().getRetryIntervalMillis();
+        int retryMultiplier = gatekeeperSnsProperties.getSns().getRetryIntervalMultiplier() == -1 ? 1 : gatekeeperSnsProperties.getSns().getRetryIntervalMultiplier();
 
         ObjectWriter jsonWriter = new ObjectMapper().writer();
         logger.info("Pushing " + jsonWriter.withDefaultPrettyPrinter().writeValueAsString(accessRequest) + " to " + topicARN);

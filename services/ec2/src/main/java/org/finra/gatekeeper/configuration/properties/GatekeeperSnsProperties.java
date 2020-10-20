@@ -23,46 +23,14 @@ import org.springframework.stereotype.Component;
  * Configuration properties relating to the sns service for gatekeeper
  */
 @Component
-@ConfigurationProperties(prefix="gatekeeper.sns")
+@ConfigurationProperties(prefix="gatekeeper")
 public class GatekeeperSnsProperties {
 
-    private int retryCount = -1;
-    private int retryIntervalMillis = -1;
-    private int retryIntervalMultiplier = -1;
     private String topicARN;
-    private String approvalTopicARN;
+    private SnsProperties sns;
 
     public String getTopicARN() {
         return topicARN;
-    }
-
-    public String getApprovalTopicARN() { return approvalTopicARN; }
-
-    public int getRetryCount() {
-        return retryCount;
-    }
-
-    public int getRetryIntervalMillis() {
-        return retryIntervalMillis;
-    }
-
-    public GatekeeperSnsProperties setRetryIntervalMillis(int retryIntervalMillis) {
-        this.retryIntervalMillis = retryIntervalMillis;
-        return this;
-    }
-
-    public int getRetryIntervalMultiplier() {
-        return retryIntervalMultiplier;
-    }
-
-    public GatekeeperSnsProperties setRetryIntervalMultiplier(int retryIntervalMultiplier) {
-        this.retryIntervalMultiplier = retryIntervalMultiplier;
-        return this;
-    }
-
-    public GatekeeperSnsProperties setRetryCount(int retryCount) {
-        this.retryCount = retryCount;
-        return this;
     }
 
     public GatekeeperSnsProperties setTopicARN(String topicARN) {
@@ -70,8 +38,51 @@ public class GatekeeperSnsProperties {
         return this;
     }
 
-    public GatekeeperSnsProperties setApprovalTopicARN(String approvalTopicARN) {
-        this.approvalTopicARN = approvalTopicARN;
+    public SnsProperties getSns() { return sns; }
+
+    public GatekeeperSnsProperties setSns(SnsProperties sns) {
+        this.sns = sns;
         return this;
+    }
+
+    public static class SnsProperties {
+        private int retryCount = -1;
+        private int retryIntervalMillis = -1;
+        private int retryIntervalMultiplier = -1;
+        private String approvalTopicARN;
+
+        public String getApprovalTopicARN() { return approvalTopicARN; }
+
+        public SnsProperties setApprovalTopicARN(String approvalTopicARN) {
+            this.approvalTopicARN = approvalTopicARN;
+            return this;
+        }
+
+        public int getRetryCount() {
+            return retryCount;
+        }
+
+        public int getRetryIntervalMillis() {
+            return retryIntervalMillis;
+        }
+
+        public SnsProperties setRetryIntervalMillis(int retryIntervalMillis) {
+            this.retryIntervalMillis = retryIntervalMillis;
+            return this;
+        }
+
+        public int getRetryIntervalMultiplier() {
+            return retryIntervalMultiplier;
+        }
+
+        public SnsProperties setRetryIntervalMultiplier(int retryIntervalMultiplier) {
+            this.retryIntervalMultiplier = retryIntervalMultiplier;
+            return this;
+        }
+
+        public SnsProperties setRetryCount(int retryCount) {
+            this.retryCount = retryCount;
+            return this;
+        }
     }
 }
