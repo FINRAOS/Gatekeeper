@@ -71,7 +71,7 @@ public class SnsServiceTest {
                 "Linux"
         );
         mockRequestEventDTO = new RequestEventDTO();
-        Mockito.when(gatekeeperSnsProperties.getTopicARN()).thenReturn(MOCK_SNS_TOPIC_ARN);
+        Mockito.when(gatekeeperSnsProperties.getSns().getTopicARN()).thenReturn(MOCK_SNS_TOPIC_ARN);
         Mockito.when(gatekeeperSnsProperties.getSns()).thenReturn(new GatekeeperSnsProperties.SnsProperties().setApprovalTopicARN(MOCK_EMAIL_SNS_TOPIC_ARN).setRetryCount(RETRY_COUNT).setRetryIntervalMillis(RETRY_INTERVAL_IN_MILLIS).setRetryIntervalMultiplier(RETRY_INTERVAL_MULTIPLIER));
         Mockito.when(awsSessionService.getSnsSession()).thenReturn(mockSnsClient);
     }
@@ -85,7 +85,7 @@ public class SnsServiceTest {
 
     @Test
     public void testSNSTopicNotSet() throws Exception {
-        Mockito.when(gatekeeperSnsProperties.getTopicARN()).thenReturn(null);
+        Mockito.when(gatekeeperSnsProperties.getSns().getTopicARN()).thenReturn(null);
         snsService.pushToSNSTopic(mockRequestEventDTO);
         verify(mockSnsClient, times(0)).publish(Mockito.any());
     }

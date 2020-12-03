@@ -54,14 +54,14 @@ public class SnsService {
     }
 
     public boolean isTopicSet(){
-        return gatekeeperSnsProperties.getTopicARN() != null;
+        return gatekeeperSnsProperties.getSns().getTopicARN() != null;
     }
 
     public boolean isEmailTopicSet() { return gatekeeperSnsProperties.getSns().getApprovalTopicARN() != null; }
 
     public void pushToSNSTopic(RequestEventDTO message) throws Exception {
-        if(gatekeeperSnsProperties.getTopicARN() != null){
-            pushToSNSTopic(message, gatekeeperSnsProperties.getTopicARN());
+        if(gatekeeperSnsProperties.getSns().getTopicARN() != null){
+            pushToSNSTopic(message, gatekeeperSnsProperties.getSns().getTopicARN());
         } else {
             logger.info("SNS Topic was not provided, skipping");
         }
