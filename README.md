@@ -220,7 +220,7 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 | gatekeeper.email.team | The team that will be maintaining gatekeeper on your environment. | string 
 | gatekeeper.email.approverEmails | The email address for the group who will be handling approvals | string
 | gatekeeper.email.opsEmails | The email address for gatekeeper to reach out to the Ops team | string
-
+| gatekeeper.email.sendAccessRequestedEmail | Whether to send Access Requested emails | boolean
 #### DATABASE
 | Property | Description | Type|
 |----------|-------------|------|

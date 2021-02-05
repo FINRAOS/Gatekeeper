@@ -42,6 +42,16 @@ public class GatekeeperEmailProperties {
      */
     private String team;
 
+
+    /**
+     * Whether or not to send Access Requested emails
+     */
+    private boolean sendAccessRequestedEmail;
+
+    public GatekeeperEmailProperties() {
+    }
+
+
     public String getApproverEmails() {
         return approverEmails;
     }
@@ -75,6 +85,15 @@ public class GatekeeperEmailProperties {
 
     public GatekeeperEmailProperties setTeam(String team) {
         this.team = team;
+        return this;
+    }
+
+    public boolean isSendAccessRequestedEmail() {
+        return sendAccessRequestedEmail;
+    }
+
+    public GatekeeperEmailProperties setSendAccessRequestedEmail(boolean sendAccessRequestedEmail) {
+        this.sendAccessRequestedEmail = sendAccessRequestedEmail;
         return this;
     }
 }
