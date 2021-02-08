@@ -221,6 +221,8 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 | gatekeeper.email.approverEmails | The email address for the group who will be handling approvals | string
 | gatekeeper.email.opsEmails | The email address for gatekeeper to reach out to the Ops team | string
 | gatekeeper.email.sendAccessRequestedEmail | Whether to send Access Requested emails | boolean
+| gatekeeper.email.changeDisclaimer | The disclaimer displayed in any access confirmation emails  | string
+
 #### DATABASE
 | Property | Description | Type|
 |----------|-------------|------|

@@ -52,6 +52,13 @@ public class GatekeeperEmailProperties {
     }
 
 
+    /**
+    * The Disclaimer for making a change to a request displayed at the bottom of the email.
+    */
+    private String changeDisclaimer;
+
+
+
     public String getApproverEmails() {
         return approverEmails;
     }
@@ -94,6 +101,15 @@ public class GatekeeperEmailProperties {
 
     public GatekeeperEmailProperties setSendAccessRequestedEmail(boolean sendAccessRequestedEmail) {
         this.sendAccessRequestedEmail = sendAccessRequestedEmail;
+        return this;
+    }
+
+    public String getChangeDisclaimer() {
+        return changeDisclaimer;
+    }
+
+    public GatekeeperEmailProperties setChangeDisclaimer(String changeDisclaimer) {
+        this.changeDisclaimer = changeDisclaimer;
         return this;
     }
 }
