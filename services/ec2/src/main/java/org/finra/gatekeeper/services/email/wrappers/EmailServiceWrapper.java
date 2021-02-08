@@ -88,12 +88,18 @@ public class EmailServiceWrapper {
 
     /**
      * Notifies the gatekeeper admins (the approvers) that there's a new access request in their bucket.
-     *
+     * Will only send email if gatekeeper.email.sendAccessRequestedEmail is set to true
      * @param request - The request the email is for
      */
     public void notifyAdmins(AccessRequest request){
-        logger.info("Notify the admins of: " + request);
-        emailHelper(emailProperties.getApproverEmails(), null, String.format("GATEKEEPER: Access Requested (%s)", request.getId()), "accessRequested", request);
+        if(emailProperties.isSendAccessRequestedEmail()) {
+            logger.info("Notify the admins of: " + request);
+            emailHelper(emailProperties.getApproverEmails(), null, String.format("GATEKEEPER: Access Requested (%s)", request.getId()), "accessRequested", request);
+        }
+        else{
+            logger.info("No email was sent to notify admins of " + request + ". Set gatekeeper.email.sendAccessRequestedEmail to true to send emails.");
+        }
+
     }
 
     public void notifyExpired(AccessRequest request){
