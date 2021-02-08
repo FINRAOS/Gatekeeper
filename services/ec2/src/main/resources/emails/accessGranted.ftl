@@ -34,6 +34,14 @@
         </#if>
     </div>
 
+    <#if changeDisclaimer??>
+        <#if changeDisclaimer != "">
+            <p style="color: darkred">
+                    ${changeDisclaimer}
+            </p>
+        </#if>
+    </#if>
+
     <div>
         <p style="color: darkred">If you have any questions or concerns please reach out to the Gatekeeper approvers at: ${approverDL}</p>
     </div>

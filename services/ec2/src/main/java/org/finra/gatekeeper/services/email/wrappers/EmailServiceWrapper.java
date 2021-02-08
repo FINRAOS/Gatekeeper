@@ -74,6 +74,7 @@ public class EmailServiceWrapper {
             params.put("request", request);
             params.put("user", user);
             params.put("approverDL", emailProperties.getApproverEmails());
+            params.put("changeDisclaimer", emailProperties.getChangeDisclaimer());
             if(other != null){
                 other.forEach((k, v) -> params.put(k.toString(), v));
             }
@@ -149,6 +150,7 @@ public class EmailServiceWrapper {
             contentMap.put("request", request);
             contentMap.put("user", notification.getUser());
             contentMap.put("instanceStatus", notification.getCreateStatus());
+            contentMap.put("changeDisclaimer", emailProperties.getChangeDisclaimer());
 
             //Send out just the username
             emailHelper(notification.getUser().getEmail(), null, "Access Request " + request.getId() + " - Your temporary username", "username", request, contentMap);
