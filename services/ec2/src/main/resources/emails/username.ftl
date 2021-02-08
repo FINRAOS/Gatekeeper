@@ -21,6 +21,15 @@
     <div>
         <p>The accompanying credential will be sent in a separate email. This temporary user will expire in ${request.getHours()} hours time from retrieval of this message</p>
     </div>
+
+    <#if changeDisclaimer??>
+        <#if changeDisclaimer != "">
+            <p style="color: darkred">
+                    ${changeDisclaimer}
+            </p>
+        </#if>
+    </#if>
+
     <div><p>Thanks!</p></div>
     <div><p>The Gatekeeper Admins</p></div>
 </html>
