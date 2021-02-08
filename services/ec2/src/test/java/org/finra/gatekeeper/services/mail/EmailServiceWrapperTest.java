@@ -102,6 +102,8 @@ public class EmailServiceWrapperTest {
         when(emailProperties.getFrom()).thenReturn(fromEmail);
         when(emailProperties.getTeam()).thenReturn(teamEmail);
         when(emailProperties.getOpsEmails()).thenReturn(opsEmail);
+        when(emailProperties.isSendAccessRequestedEmail()).thenReturn(true);
+        when(emailProperties.getChangeDisclaimer()).thenReturn("test");
     }
 
 
@@ -143,6 +145,7 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("user", testUser);
         contentMap.put("instanceStatus", createStatus);
+        contentMap.put("changeDisclaimer", "test");
 
         KeypairService keypairService = new KeypairService();
         KeyPair keypair = keypairService.createKeypair();
@@ -172,6 +175,8 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("user", null);
         contentMap.put("approverDL", approverEmail);
+        contentMap.put("changeDisclaimer", "test");
+
         mailServiceWrapper.notifyAdmins(request);
         verify(emailService, times(1)).sendEmail(approverEmail, fromEmail, null, "GATEKEEPER: Access Requested ("+request.getId()+")", "accessRequested", contentMap);
     }
@@ -186,6 +191,8 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("user", null);
         contentMap.put("approverDL", approverEmail);
+        contentMap.put("changeDisclaimer", "test");
+
         mailServiceWrapper.notifyExpired(request);
         verify(emailService, times(1)).sendEmail(testUser.getEmail(), fromEmail, null, "Your Access has expired", "accessExpired", contentMap);
     }
@@ -201,6 +208,8 @@ public class EmailServiceWrapperTest {
         contentMap.put("offlineInstances", Arrays.asList(new AWSInstance[]{instance}));
         contentMap.put("user", null);
         contentMap.put("approverDL", approverEmail);
+        contentMap.put("changeDisclaimer", "test");
+
         mailServiceWrapper.notifyOps(request);
         verify(emailService, times(1)).sendEmail(opsEmail, fromEmail,  teamEmail, "GATEKEEPER: Manual revoke access for expired request", "manualRemoval", contentMap);
     }
@@ -215,6 +224,8 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("user", null);
         contentMap.put("approverDL", approverEmail);
+        contentMap.put("changeDisclaimer", "test");
+
         mailServiceWrapper.notifyApproved(request);
         verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Access Request 125 was granted", "accessGranted", contentMap);
     }
@@ -229,6 +240,8 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("user", null);
         contentMap.put("approverDL", approverEmail);
+        contentMap.put("changeDisclaimer", "test");
+
         mailServiceWrapper.notifyCanceled(request);
         verify(emailService, times(1)).sendEmail(approverEmail, fromEmail, requestEmail, "Access Request 125 was canceled", "requestCanceled", contentMap);
     }
@@ -244,6 +257,8 @@ public class EmailServiceWrapperTest {
         contentMap.put("request", request);
         contentMap.put("user", null);
         contentMap.put("approverDL", approverEmail);
+        contentMap.put("changeDisclaimer", "test");
+
         mailServiceWrapper.notifyRejected(request);
         verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Access Request 125 was denied", "accessDenied", contentMap);
     }
