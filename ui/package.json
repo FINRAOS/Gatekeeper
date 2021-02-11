@@ -6,6 +6,7 @@
   "scripts": {
     "prestart": "npm install",
     "start": "export NODE_ENV=dev && node node_modules/webpack-dev-server/bin/webpack-dev-server.js --hot --color --content-base app/ --port 9000",
+    "win-start": "set NODE_ENV=dev && node node_modules/webpack-dev-server/bin/webpack-dev-server.js --hot --color --content-base app/ --port 9000",
     "build": "export NODE_ENV=production && node node_modules/.bin/webpack && cp -r app/assets dist",
     "win-build": "set NODE_ENV=production && node_modules\\.bin\\webpack && mkdir dist\\assets && copy app\\assets dist\\assets",
     "pretest": "npm install",

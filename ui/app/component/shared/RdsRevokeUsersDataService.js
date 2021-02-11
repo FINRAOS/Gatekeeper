@@ -29,7 +29,7 @@ class RdsRevokeUsersDataService extends DataService{
         this.resource = 'db/removeUsers';
     }
 
-    delete(account, region, sdlc, instanceId, instanceName, users){
+    delete(account, region, sdlc, instanceId, instanceName, users, instanceType){
         let bundle = {
             account: account,
             region: region,
@@ -37,6 +37,8 @@ class RdsRevokeUsersDataService extends DataService{
             instanceId: instanceId,
             instanceName: instanceName,
             users: users,
+            instanceType: instanceType
+
         };
 
         let reqHeaders = {'Content-Type': 'application/json'};

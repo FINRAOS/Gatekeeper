@@ -99,22 +99,40 @@ public class RdsLookupService {
                 .getDBClusters().get(0));
     }
 
-    public Optional<GatekeeperRDSInstance> getOneInstance(AWSEnvironment environment, String dbInstanceIdentifier, String instanceName) {
+    public Optional<GatekeeperRDSInstance> getOneInstance(AWSEnvironment environment, String dbInstanceIdentifier, String instanceName, String instanceType) {
         logger.info(dbInstanceIdentifier);
         Long startTime = System.currentTimeMillis();
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances;
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = null;
 
-        //if it's an aurora cluster, the resrouce will start with "cluster"
-        if(dbInstanceIdentifier.startsWith("cluster")){
-            DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(
-                    new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName));
-            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_REGIONAL);
-        }else {
-            DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
-            gatekeeperRDSInstances = loadToGatekeeperRDSInstance(environment, amazonRDSClient, result.getDBInstances(), securityGroupIds);
+
+        switch (instanceType){
+            case "AURORA_GLOBAL": {
+                DBCluster primary = getPrimaryClusterForGlobalCluster(environment, instanceName).get();
+                DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(primary.getDBClusterIdentifier());
+                DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
+                System.out.println("Finished");
+                result.getDBClusters().get(0).setDBClusterIdentifier(instanceName);
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_GLOBAL);
+
+            }
+                break;
+            case "AURORA_REGIONAL": {
+                DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName);
+                DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_REGIONAL);
+                }
+                break;
+            case "RDS": {
+                DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstance(environment, amazonRDSClient, result.getDBInstances(), securityGroupIds);
+                }
+                break;
+            default:
+                logger.error("Something went wrong when selecting instance type of the RDS");
         }
+        
 
         logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
@@ -122,9 +140,9 @@ public class RdsLookupService {
         return gatekeeperRDSInstance;
     }
 
-    public Map<RoleType, List<String>> getSchemasForInstance(AWSEnvironment environment, String instanceId, String instanceName) throws Exception{
+    public Map<RoleType, List<String>> getSchemasForInstance(AWSEnvironment environment, String instanceId, String instanceName, String instanceType) throws Exception{
         logger.info("Getting Schema info for " +instanceName + "(" + instanceId + ") On Account " + environment.getAccount() + " and Region " + environment.getRegion());
-        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
+        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName, instanceType);
         if(instance.isPresent()){
             return databaseConnectionService.getAvailableSchemasForDb(instance.get(), environment);
         }else{
@@ -133,8 +151,8 @@ public class RdsLookupService {
     }
 
     @PreAuthorize("@gatekeeperRoleService.isApprover() || @gatekeeperRoleService.isAuditor()")
-    public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceId, String instanceName) throws Exception {
-        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName);
+    public List<DbUser> getUsersForInstance(AWSEnvironment environment, String instanceId, String instanceName, String instanceType) throws Exception {
+        Optional<GatekeeperRDSInstance> instance = getOneInstance(environment, instanceId, instanceName, instanceType);
 
         if(instance.isPresent()){
             return databaseConnectionService.getUsersForDb(instance.get(), environment);

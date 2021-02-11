@@ -28,6 +28,7 @@ public class RemoveUsersWrapper {
     private String sdlc;
     private String instanceId;
     private String instanceName;
+    private String instanceType;
     private List<DbUser> users;
 
     public String getAccount() {
@@ -79,6 +80,12 @@ public class RemoveUsersWrapper {
     public String getSdlc() {
         return sdlc;
     }
+
+    public String getInstanceType() {
+        return instanceType;
+    }
+
+
 
     public RemoveUsersWrapper setSdlc(String sdlc) {
         this.sdlc = sdlc;

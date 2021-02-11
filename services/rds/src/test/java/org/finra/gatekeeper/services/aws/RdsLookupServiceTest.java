@@ -379,7 +379,7 @@ public class RdsLookupServiceTest {
         Mockito.when(amazonRDSClient.describeDBInstances(Mockito.any())).thenReturn(
                 new DescribeDBInstancesResult().withDBInstances(
                         initializeInstance("instance1", RDS_ENGINE_PG, "gk-A-instance", "db-gk1", STATUS_AVAILABLE, SG_ONE, null)));
-        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "gk-A-instance", "gk-A-instance");
+        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "gk-A-instance", "gk-A-instance", "RDS");
         Assert.assertTrue(instance.isPresent());
         Assert.assertEquals("TEST", instance.get().getApplication());
         Assert.assertEquals("available", instance.get().getStatus());
@@ -392,7 +392,7 @@ public class RdsLookupServiceTest {
                 new DescribeDBClustersResult().withDBClusters(
                         initializeCluster("dbendpoint1", "gk-A-cluster", "cluster-gk1", STATUS_AVAILABLE, SG_ONE, null, 2, true))
         );
-        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "cluster-gk1", "gk-A-cluster");
+        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "cluster-gk1", "gk-A-cluster", "AURORA_REGIONAL");
         Assert.assertTrue(instance.isPresent());
         Assert.assertEquals("TEST", instance.get().getApplication());
         Assert.assertEquals("available", instance.get().getStatus());

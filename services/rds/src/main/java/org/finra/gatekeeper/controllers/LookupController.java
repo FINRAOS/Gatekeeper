@@ -65,8 +65,9 @@ class LookupController {
                                                            @RequestParam("region") String region,
                                                            @RequestParam("sdlc") String sdlc,
                                                            @RequestParam("instanceId") String instanceId,
-                                                           @RequestParam("instanceName") String instanceName) throws Exception{
-        return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region, sdlc), instanceId, instanceName);
+                                                           @RequestParam("instanceName") String instanceName,
+                                                           @RequestParam("instanceType") String instanceType) throws Exception{
+        return rdsLookupService.getSchemasForInstance(new AWSEnvironment(account.toUpperCase(), region, sdlc), instanceId, instanceName, instanceType);
     }
 
     @RequestMapping(value="/getUsers", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -74,8 +75,11 @@ class LookupController {
                                             @RequestParam("region") String region,
                                             @RequestParam("sdlc") String sdlc,
                                             @RequestParam("instanceId") String instanceId,
-                                            @RequestParam("instanceName") String instanceName) throws Exception{
-        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region, sdlc), instanceId, instanceName);
+                                            @RequestParam("instanceName") String instanceName,
+                                            @RequestParam("instanceType") String instanceType)
+
+            throws Exception{
+        return rdsLookupService.getUsersForInstance(new AWSEnvironment(account.toUpperCase(), region, sdlc), instanceId, instanceName, instanceType);
 
     }
 }
