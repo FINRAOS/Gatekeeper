@@ -151,7 +151,8 @@ describe('GateKeeper RDS admin component', function () {
                testInit(true);
                controller.forms.awsInstanceForm = {
                    selectedAccount: { alias:'ut', sdlc:'unittest'},
-                   selectedRegion: { name:'us-east-1'}
+                   selectedRegion: { name:'us-east-1'},
+                   selectedType: {key: 'RDS'}
                };
                let row = {name:'testid', instanceId: 'testInstanceId'};
                controller.getUsers(row);
@@ -162,7 +163,8 @@ describe('GateKeeper RDS admin component', function () {
                    region:controller.forms.awsInstanceForm.selectedRegion.name,
                    sdlc:controller.forms.awsInstanceForm.selectedAccount.sdlc,
                    instanceId: row.instanceId,
-                   instanceName:row.name
+                   instanceName:row.name,
+                   instanceType: controller.forms.awsInstanceForm.selectedType.key
                });
                expect(controller.usersTable.data).toEqual(resp.data);
                expect(controller.usersTable.export.filename).toBe('testid-rds-users');
@@ -206,7 +208,9 @@ describe('GateKeeper RDS admin component', function () {
 
                 controller.forms.awsInstanceForm = {
                     selectedAccount: { alias:'ut'},
-                    selectedRegion: { name:'us-east-1'}
+                    selectedRegion: { name:'us-east-1'},
+                    selectedType: {key: 'RDS'}
+
                 };
 
                 let selectedDb = {name:'mytest'};
@@ -248,7 +252,8 @@ describe('GateKeeper RDS admin component', function () {
 
                 controller.forms.awsInstanceForm = {
                     selectedAccount: { alias:'ut'},
-                    selectedRegion: { name:'us-east-1'}
+                    selectedRegion: { name:'us-east-1'},
+                    selectedType: {key: 'RDS'}
                 };
 
                 let selectedDb = {name:'mytest'};
