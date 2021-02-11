@@ -11,6 +11,7 @@
     "win-build": "set NODE_ENV=production && node_modules\\.bin\\webpack && mkdir dist\\assets && copy app\\assets dist\\assets",
     "pretest": "npm install",
     "test": "export NODE_ENV=dev && karma start",
+    "win-test": "set NODE_ENV=dev && karma start",
     "ci-test": "export NODE_ENV=dev && karma start --single-run=true --browsers=PhantomJS",
     "coverage": "karma start karma.conf.js --coverage",
     "ci-coverage": "karma start --single-run=true --browsers=PhantomJS --coverage",

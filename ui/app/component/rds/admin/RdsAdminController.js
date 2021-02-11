@@ -100,7 +100,6 @@ class RdsAdminController extends GatekeeperAdminController{
         vm.usersTable.fetching = true;
         vm.usersTable.data.splice(0, vm.usersTable.data.length);
         vm.usersTable.export.filename = `${row.name}-rds-users`;
-        console.log(vm.forms.awsInstanceForm.selectedType);
         vm.usersTable.promise = vm[USERS].search(
             {
                 account: vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
