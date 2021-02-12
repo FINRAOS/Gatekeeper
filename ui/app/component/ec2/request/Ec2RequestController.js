@@ -35,11 +35,10 @@ class Ec2RequestController extends GatekeeperRequestController{
         super(gkRequestService, $rootScope);
         VM = this;
         let role = $rootScope.userInfo.role;
-
+        this.requestTable.role = role;
         this.requestTable.template = require('./template/request.tpl.html');
         this.requestTable.templateController = role === ROLES.approver ? Ec2RequestDialogAdminController : GatekeeperRequestDialogRequestorController;
         this.requestTable.templateControllerAs = 'dialogCtrl';
-
         this.requestTable.responseHandler = function(data){
             data.forEach(function(row){
                 row.instances.forEach(function(instance){

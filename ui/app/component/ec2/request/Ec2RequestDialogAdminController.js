@@ -22,6 +22,8 @@ class Ec2RequestDialogAdminController extends GatekeeperRequestDialogAdminContro
     constructor($rootScope, $mdDialog, $mdToast, gkRequestService, row){
         super($rootScope, $mdDialog, $mdToast, gkRequestService, row);
 
+        this.isAdmin = true;
+
         let approve = {
             label:'Approve',
             action:this.approveRequest,

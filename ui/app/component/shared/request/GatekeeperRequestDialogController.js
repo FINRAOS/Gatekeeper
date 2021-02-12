@@ -36,7 +36,7 @@ class GatekeeperRequestDialogController{
             action: this.cancelRequest,
             style: 'md-raised md-primary'
         };
-
+        this.isAdmin = false;
         this.actions = [close];
         this.row = row;
         this.readonly = true;

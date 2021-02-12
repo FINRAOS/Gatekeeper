@@ -812,7 +812,7 @@ public class AccessRequestServiceTest {
     @Test
     public void testApproval(){
         Mockito.when(accessRequestRepository.getAccessRequestById(1L)).thenReturn(ownerRequest);
-        accessRequestService.approveRequest("taskOne", 1L, "A reason");
+        accessRequestService.approveRequest("taskOne", 1L, "A reason", 1);
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_GRANTED);
         verify(accessRequestRepository, times(3)).save(Mockito.any(AccessRequest.class));
