@@ -421,15 +421,36 @@ public class AccessRequestService {
     }
 
     /**
+     * Helper function to update the request comments / actionedBy fields for the access request
+     *
+     * @param requestId - the access request ID
+     * @param approverComments - the comments from the approver
+     * @param action - the action taken on the request
+     * @param hours - the amount of hours of access in the request
+     */
+    private void updateRequestDetails(Long requestId, String approverComments, String action, int hours){
+        AccessRequest accessRequest = accessRequestRepository.getAccessRequestById(requestId);
+        accessRequest.setApproverComments(approverComments);
+        accessRequest.setHours(hours);
+        GatekeeperUserEntry user = gatekeeperRoleService.getUserProfile();
+        accessRequest.setActionedByUserId(user.getUserId());
+        accessRequest.setActionedByUserName(user.getName());
+        accessRequestRepository.save(accessRequest);
+        logger.info("Access Request " + accessRequest.getId() + " was " + action +" by " + user.getName() + " (" + user.getUserId() +"). ");
+
+    }
+
+    /**
      * Approves the Request
      * @param taskId - the activiti task id
      * @param requestId - the AccessRequest object id
      * @param approverComments - The comments from the approver
+     * @param hours - the amount of hours of access in the request
      * @return - The updated list of Active Access Requests
      */
     @PreAuthorize("@gatekeeperRoleService.isApprover()")
-    public List<ActiveAccessRequestWrapper> approveRequest(String taskId, Long requestId, String approverComments ) {
-        updateRequestDetails(requestId, approverComments, APPROVED);
+    public List<ActiveAccessRequestWrapper> approveRequest(String taskId, Long requestId, String approverComments, int hours ) {
+        updateRequestDetails(requestId, approverComments, APPROVED, hours);
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.APPROVAL_GRANTED);
         return getActiveRequests();
     }
