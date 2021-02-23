@@ -29,6 +29,13 @@ public class GatekeeperRdsAuthProperties {
      */
     private String devGroupsPattern;
 
+    /**
+     * What SDLC's should have the restrictive filter disabled
+     *
+     *  Should Enter D, Q, or P delimited by a comma  (example: D, Q, P)
+     */
+    private String unrestrictedSDLC;
+
     public String getDbaGroupsPattern() {
         return dbaGroupsPattern;
     }
@@ -54,5 +61,19 @@ public class GatekeeperRdsAuthProperties {
     public GatekeeperRdsAuthProperties setDevGroupsPattern(String devGroupsPattern) {
         this.devGroupsPattern = devGroupsPattern;
         return this;
+    }
+
+
+    public char[] getUnrestrictedSDLC() {
+        String trimmed = unrestrictedSDLC.toUpperCase().replaceAll("[^DQP] ", "");
+        if(trimmed.length() > 3){
+            trimmed.substring(0, 2);
+        }
+        char[] sdlcs = trimmed.toCharArray();
+        return sdlcs;
+    }
+
+    public void setUnrestrictedSDLC(String unrestrictedSDLC) {
+        this.unrestrictedSDLC = unrestrictedSDLC;
     }
 }
