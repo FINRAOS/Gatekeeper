@@ -88,6 +88,9 @@ public class GatekeeperLdapGroupLookupServiceTest {
                         .setUsersBase("OU=Locations")
                         .setUsersNameAttribute("name"));
 
+        when(gatekeeperAuthProperties.getLdap()).thenReturn(
+                new GatekeeperAuthProperties.GatekeeperLdapProperties());
+
         when(gatekeeperAuthorizationService.getUser()).thenReturn(
                 new GatekeeperUserEntry("test", "dn", "userEntry@gk.org", "userName"));
         users = new ArrayList<>();
@@ -99,7 +102,7 @@ public class GatekeeperLdapGroupLookupServiceTest {
         allSdlcs.add("prod");
         when(gatekeeperApprovalProperties.getAllSdlcs()).thenReturn(allSdlcs);
 
-        gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperAuthProperties);
+        gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties);
 
     }
     @Test

@@ -91,7 +91,7 @@ public class GatekeeperRoleService {
                     return Optional.ofNullable(loadLdapUserDevMemberships());
                 }
             });
-    
+
 
     @Autowired
     public GatekeeperRoleService(GatekeeperAuthorizationService gatekeeperAuthorizationService,
@@ -113,6 +113,7 @@ public class GatekeeperRoleService {
     private Set<String> loadLdapUserDbaMemberships(){
         return loadLdapUserMemberships(dbaPattern);
     }
+
 
     private Set<String> loadLdapUserOpsMemberships(){
         return loadLdapUserMemberships(opsPattern);
@@ -252,4 +253,7 @@ public class GatekeeperRoleService {
             return GatekeeperRdsRole.UNAUTHORIZED;
         }
     }
+
+
+
 }

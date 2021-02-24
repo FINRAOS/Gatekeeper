@@ -65,6 +65,9 @@ public class GatekeeperRdsAuthProperties {
 
 
     public char[] getUnrestrictedSDLC() {
+        if(unrestrictedSDLC == null){
+            return new char[1];
+        }
         String trimmed = unrestrictedSDLC.toUpperCase().replaceAll("[^DQP] ", "");
         if(trimmed.length() > 3){
             trimmed.substring(0, 2);
