@@ -98,6 +98,7 @@ gatekeeper:
     supportedDbs:
       mysql: mySQLDBConnection
       postgres: postgresDBConnection
+      aurora: mySQLDBConnection
       aurora-mysql: mySQLDBConnection
       aurora-postgresql: postgresDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
