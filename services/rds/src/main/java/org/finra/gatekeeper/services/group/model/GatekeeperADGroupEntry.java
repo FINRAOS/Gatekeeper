@@ -3,6 +3,9 @@ package org.finra.gatekeeper.services.group.model;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class GatekeeperADGroupEntry {
     private String AGS;
     private String GK_ROLE;
@@ -55,4 +58,6 @@ public class GatekeeperADGroupEntry {
                 .add("NAME", NAME)
                 .toString();
     }
+
+
 }

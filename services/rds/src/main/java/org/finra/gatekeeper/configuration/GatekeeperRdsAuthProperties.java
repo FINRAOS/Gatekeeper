@@ -29,6 +29,15 @@ public class GatekeeperRdsAuthProperties {
      */
     private String devGroupsPattern;
 
+
+    /**
+     * A regular expression to capture the gatekeeper groups from ldap
+     *
+     * You need to proide an area to capture (example: "APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)")
+     *
+     * */
+
+    private String adGroupsPattern;
     /**
      * What SDLC's should have the restrictive filter disabled
      *
@@ -62,11 +71,19 @@ public class GatekeeperRdsAuthProperties {
         this.devGroupsPattern = devGroupsPattern;
         return this;
     }
+    public String getAdGroupsPattern() {
+        return adGroupsPattern;
+    }
 
+    public void setAdGroupsPattern(String adGroupsPattern) {
+        this.adGroupsPattern = adGroupsPattern;
+    }
 
     public char[] getUnrestrictedSDLC() {
         if(unrestrictedSDLC == null){
-            return new char[1];
+            char[] empty = new char[1];
+            empty[0] = ' ';
+            return empty;
         }
         String trimmed = unrestrictedSDLC.toUpperCase().replaceAll("[^DQP] ", "");
         if(trimmed.length() > 3){

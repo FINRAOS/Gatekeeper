@@ -21,5 +21,5 @@ package org.finra.gatekeeper.services.accessrequest.model.response;
  * An Enum representing the Outcome for the creation of a user
  */
 public enum AccessRequestCreationOutcome {
-    CREATED,NOT_CREATED_USER_ISSUE
+    CREATED,NOT_CREATED_USER_ISSUE,USER_NOT_AUTHORIZED
 }

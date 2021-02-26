@@ -211,7 +211,27 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                         .position('bottom right')
                                         .hideDelay(10000)
                                 );
-                            }else{
+                            }else if(response.data.outcome === 'USER_NOT_AUTHORIZED'){
+                                msg = 'User is not authorized to make this request. \n' + response.data.response;
+                                let config = {
+                                    clickOutsideToClose: true,
+                                    title: 'ERROR',
+                                    template: require("../../shared/request/template/error.tpl.html"),
+                                    parent: angular.element(document.body),
+                                    locals: {
+                                        message: msg
+                                    },
+                                    controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                                        $scope.message = message;
+                                        $scope.cancel = function () {
+                                            $mdDialog.cancel();
+                                        };
+                                    }
+                                    ]
+                                };
+                                vm[DIALOG].show(config);
+                            }
+                        else{
                                 msg = 'Access was NOT requested due to old/expired users having temporary tables on the databases that were selected, please work with the Ops team to get these users cleaned up.';
                                 let config = {
                                     clickOutsideToClose: true,
@@ -241,7 +261,10 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
                                 //needed since forms are still dirty
                                 vm.confirm = false;
-                            }else{
+                            }else if(response.data.outcome === 'USER_NOT_AUTHORIZED'){
+                                vm.error.roles = response.data.response;
+                            }
+                            else{
                                 vm.error.databases = response.data.response;
                             }
                         }).catch((error) => {

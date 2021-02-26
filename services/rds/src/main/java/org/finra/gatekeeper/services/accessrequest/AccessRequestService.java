@@ -196,9 +196,10 @@ public class AccessRequestService {
         //Approvers override elevated requirements
         if(!gatekeeperRoleService.isApprover()){
             //Fails if they do not have authorization for an elevated request
-            if(!gatekeeperGroupAuthService.hasGroupAuth(request, requestor)){
+            String response = gatekeeperGroupAuthService.hasGroupAuth(request, requestor);
+            if(!response.equals("Allowed")){
                 logger.error("User is not authorized for this request.");
-                return null;
+                return new AccessRequestCreationResponse(AccessRequestCreationOutcome.USER_NOT_AUTHORIZED,response);
             }
         }
 

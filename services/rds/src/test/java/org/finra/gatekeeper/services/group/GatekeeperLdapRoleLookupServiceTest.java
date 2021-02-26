@@ -21,8 +21,8 @@ import com.google.common.collect.Maps;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
-import org.finra.gatekeeper.services.group.service.GatekeeperLdapGroupLookupService;
 import org.finra.gatekeeper.services.group.service.GatekeeperLdapParseService;
+import org.finra.gatekeeper.services.group.service.GatekeeperLdapRoleLookupService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,9 +42,9 @@ import static org.mockito.Mockito.when;
  * Unit tests for GatekeeperRoleService
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class GatekeeperLdapGroupLookupServiceTest {
+public class GatekeeperLdapRoleLookupServiceTest {
 
-    private GatekeeperLdapGroupLookupService gatekeeperLdapGroupLookupService;
+    private GatekeeperLdapRoleLookupService gatekeeperLdapRoleLookupService;
     private GatekeeperLdapParseService gatekeeperLdapParseService;
     @Mock
     private LdapTemplate ldapTemplate;
@@ -56,7 +56,7 @@ public class GatekeeperLdapGroupLookupServiceTest {
     @Mock
     private GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties;
 
-    
+
     @Before
     public void initMocks(){
 
@@ -75,14 +75,15 @@ public class GatekeeperLdapGroupLookupServiceTest {
         when(gatekeeperRdsAuthProperties.getAdGroupsPattern()).thenReturn("APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)");
         gatekeeperLdapParseService = new GatekeeperLdapParseService(gatekeeperRdsAuthProperties);
 
-        gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);
+        gatekeeperLdapRoleLookupService = new GatekeeperLdapRoleLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);
 
-        List<GatekeeperADGroupEntry> fakeSet = new ArrayList<>();
+        Set<GatekeeperADGroupEntry> fakeSet = new HashSet<>();
         fakeSet.add(new GatekeeperADGroupEntry("PET", "RO", "D", "APP_GK_PET_RO_D"));
         fakeSet.add(new GatekeeperADGroupEntry("ESC", "RO", "D", "APP_GK_ESC_RO_D"));
         fakeSet.add(new GatekeeperADGroupEntry("PET", "DBA", "Q", "APP_GK_PET_DBA_Q"));
-
-        when(ldapTemplate.search(Mockito.any(LdapQuery.class), Mockito.any(AttributesMapper.class))).thenReturn(fakeSet);
+        List<Set<GatekeeperADGroupEntry>> fakeList = new ArrayList<>();
+        fakeList.add(fakeSet);
+        when(ldapTemplate.search(Mockito.any(LdapQuery.class), Mockito.any(AttributesMapper.class))).thenReturn(fakeList);
 
     }
     @Test
@@ -103,7 +104,7 @@ public class GatekeeperLdapGroupLookupServiceTest {
         when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
 
 
-        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapGroupLookupService.loadGroups()).areEqual());
+        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapRoleLookupService.loadRoles("testUser")).areEqual());
     }
 
     @Test
@@ -123,7 +124,7 @@ public class GatekeeperLdapGroupLookupServiceTest {
         when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
 
 
-        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapGroupLookupService.loadGroups()).areEqual());
+        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapRoleLookupService.loadRoles("testUser")).areEqual());
     }
 
 

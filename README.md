@@ -372,6 +372,7 @@ These configurations are specific to Gatekeeper RDS
 | gatekeeper.auth.dbaGroupsPattern | A regular expression to extract group(s) of DBAS from ldap groups, requires one capture | string
 | gatekeeper.auth.opsGroupsPattern | A regular expression to extract group(s) of Ops Members from ldap groups. requires one capture | string
 | gatekeeper.auth.devGroupsPattern | A regular expression to extract group(s) of Dev Members from ldap groups. requires one capture | string
+| gatekeeper.auth.adGroupsPattern | A regular expression to extract AD group(s) from ldap groups. requires three captures | string
 | gatekeeper.auth.restrictedSDLC | What SDLC's should have the restrictive filter disabled | string
 ### SNS
 Gatekeeper supports the publishing of Approval/Expiration events to an SNS topic, this can be useful if you have other applications that need to react to an event from the gatekeeper service. 

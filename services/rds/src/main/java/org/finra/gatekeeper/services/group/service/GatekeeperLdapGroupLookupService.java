@@ -21,8 +21,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 @Component
 public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupService {
@@ -41,13 +40,15 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
     private  final LdapTemplate ldapTemplate;
     private final GatekeeperAuthProperties.GatekeeperLdapProperties ldapProperties;
     private final GatekeeperRdsAuthProperties rdsAuthProperties;
+    private final  GatekeeperLdapParseService gatekeeperLdapParseService;
     private final Logger logger = LoggerFactory.getLogger(GatekeeperLdapLookupService.class);
 
     @Autowired
-    public GatekeeperLdapGroupLookupService(LdapTemplate ldapTemplate, GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties) {
+    public GatekeeperLdapGroupLookupService(LdapTemplate ldapTemplate, GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties, GatekeeperLdapParseService gatekeeperLdapParseService) {
         this.ldapTemplate = ldapTemplate;
         this.ldapProperties = gatekeeperAuthProperties.getLdap();
         this.rdsAuthProperties = gatekeeperRdsAuthProperties;
+        this.gatekeeperLdapParseService = gatekeeperLdapParseService;
     }
 
     @Override
@@ -106,30 +107,13 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
      * @Param takes in the name of an AD group of the following form: APP_GK_<AGS>_<GK_ROLE>_<SDLC>
      * @return returns an array of 3 strings, the AGS, the GK Role, and the SDLC
      */
-    public String[] parseADGroups(String ADgroup){
-        if(ADgroup == null){
-            return null;
-        }
-        String regex = "APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(ADgroup);
-
-        if(!matcher.find()){
-            return null;
-        }
-
-        return new String[] {matcher.group(1),matcher.group(2),matcher.group(3)};
-    }
 
     private class GroupAttributeMapper implements AttributesMapper<GatekeeperADGroupEntry> {
         @Override
         public GatekeeperADGroupEntry mapFromAttributes(Attributes attributes) throws NamingException {
-            //TODO: make this an env variable
             Attribute nameAttr = attributes.get("name");
-
             String name = nameAttr != null ? ((String) nameAttr.get()).toUpperCase() : null;
-
-            String[] parsedAttributes = parseADGroups(name);
+            String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups(name);
 
             return new GatekeeperADGroupEntry(parsedAttributes[0], parsedAttributes[1], parsedAttributes[2], name);
         }

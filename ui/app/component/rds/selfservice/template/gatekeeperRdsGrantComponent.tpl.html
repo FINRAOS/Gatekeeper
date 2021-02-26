@@ -75,6 +75,10 @@
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.request">
             <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
         </div>
+        <div class="gk-error" ng-if="gkSelfServiceCtrl.error.roles">
+            <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+            <span>{{gkSelfServiceCtrl.error.roles}}</span>
+        </div>
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.databases">
             <span class="gk-error-text" layout="row">For the following Databases, these users need to be cleaned up before you can use gatekeeper to access them</span>
             <div ng-repeat="(db, users) in gkSelfServiceCtrl.error.databases">

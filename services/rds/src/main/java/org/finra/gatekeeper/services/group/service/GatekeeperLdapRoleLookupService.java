@@ -4,11 +4,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
-import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
-import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.common.services.user.search.GatekeeperLdapLookupService;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
-import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.group.interfaces.IGatekeeperRoleLookupService;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.slf4j.Logger;
@@ -16,9 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.query.LdapQuery;
 import org.springframework.ldap.query.LdapQueryBuilder;
-import org.springframework.ldap.query.SearchScope;
 import org.springframework.stereotype.Component;
 
 import javax.naming.NamingException;
@@ -26,14 +21,10 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 @Component
 public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupService {
-    //active directory specific filter for finding nested group membership
-    private static final String LDAP_MATCHING_RULE_IN_CHAIN = "1.2.840.113556.1.4.1941";
-
 
     private LoadingCache<String,Optional<Map<String, Set<GatekeeperADGroupEntry>>>> ldapRoleApplicationCache = CacheBuilder.newBuilder()
             .maximumSize(1000L)
@@ -49,24 +40,20 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
     private  final LdapTemplate ldapTemplate;
     private final GatekeeperAuthProperties.GatekeeperLdapProperties ldapProperties;
     private final GatekeeperRdsAuthProperties rdsAuthProperties;
-    private final String ldapUserName;
+    private final GatekeeperLdapParseService gatekeeperLdapParseService;
     private final String ldapUserId;
-    private final String ldapObjectClass;
 
-    private final GatekeeperAuthorizationService gatekeeperAuthorizationService;
 
 
     private final Logger logger = LoggerFactory.getLogger(GatekeeperLdapLookupService.class);
 
     @Autowired
-    public GatekeeperLdapRoleLookupService(LdapTemplate ldapTemplate, GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties, GatekeeperAuthorizationService gatekeeperAuthorizationService) {
+    public GatekeeperLdapRoleLookupService(LdapTemplate ldapTemplate, GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties, GatekeeperLdapParseService gatekeeperLdapParseService) {
         this.ldapTemplate = ldapTemplate;
         this.ldapProperties = gatekeeperAuthProperties.getLdap();
         this.rdsAuthProperties = gatekeeperRdsAuthProperties;
-        this.gatekeeperAuthorizationService = gatekeeperAuthorizationService;
+        this.gatekeeperLdapParseService = gatekeeperLdapParseService;
         this.ldapUserId = ldapProperties.getUsersIdAttribute();
-        this.ldapUserName = ldapProperties.getUsersNameAttribute();
-        this.ldapObjectClass = ldapProperties.getObjectClass();
     }
 
     @Override
@@ -124,38 +111,18 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
     protected AttributesMapper<Set<GatekeeperADGroupEntry>> getAttributesMapper(){
         return new GroupAttributeMapper();
     }
-    /**
-     * @Param takes in the name of an AD group of the following form: APP_GK_<AGS>_<GK_ROLE>_<SDLC>
-     * @return returns an array of 3 strings, the AGS, the GK Role, and the SDLC
-     */
-    public String[] parseADGroups(String ADgroup){
-        if(ADgroup == null){
-            return null;
-        }
-        //TODO: Make ENV Variable
-        String regex = "APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(ADgroup);
-
-        if(!matcher.find()){
-            return new String[] {"","",""};
-        }
-
-        return new String[] {matcher.group(1),matcher.group(2),matcher.group(3)};
-    }
 
     private class GroupAttributeMapper implements AttributesMapper<Set<GatekeeperADGroupEntry>> {
         @Override
         public Set<GatekeeperADGroupEntry> mapFromAttributes(Attributes attributes) throws NamingException {
-            //TODO: make this an env variable
             Attribute nameAttr = attributes.get("memberOf");
             Set<GatekeeperADGroupEntry> gkEntries = new HashSet<>();
             while(nameAttr.size() > 0){
                 String name = nameAttr != null ? ((String) nameAttr.get()).toUpperCase() : null;
-                String[] parsedAttributes = parseADGroups(name);
+                String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups(name);
                 nameAttr.remove(0);
                 if(!parsedAttributes[0].equals("")){
-                    gkEntries.add(new GatekeeperADGroupEntry(parsedAttributes[0], parsedAttributes[1], parsedAttributes[2], name));
+                    gkEntries.add(new GatekeeperADGroupEntry(parsedAttributes[0], parsedAttributes[1], parsedAttributes[2], parsedAttributes[3]));
                 }
             }
 
