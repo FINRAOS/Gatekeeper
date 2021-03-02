@@ -24,6 +24,9 @@
         <p class=".md-body-2" ng-if="gkSelfServiceCtrl.usersTable.selected.length === 0">
             You have no selected grantees
         </p>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.restrictedRDSAGS">
+            You may only request access for yourself for the selected RDS.
+        </p>
         <md-chips class="gk-selected-item" ng-if="gkSelfServiceCtrl.usersTable.selected.length > 0" ng-model="gkSelfServiceCtrl.usersTable.selected" md-on-remove="gkSelfServiceCtrl.isSelectedUserCurrentUser($chip)" readonly="false">
             <md-chip-template>
                 <strong>{{$chip.name}}</strong>

@@ -27,7 +27,7 @@ import GatekeeperSelfServiceController from '../../shared/selfservice/Gatekeeper
 import GatekeeperJustificationConfig from '../../shared/selfservice/model/GatekeeperJustificationConfig';
 
 class RdsSelfServiceController extends GatekeeperSelfServiceController {
-    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService, gkRdsConfigService,$scope,$state,$rootScope){
+    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService, gkUserRoleService, gkRdsConfigService,$scope,$state,$rootScope){
         super($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
 
         vm = this;
@@ -54,25 +54,111 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         }).catch((error)=>{
             console.log('Error retrieving justification config: ' + error);
         });
+
+
     }
+    convertRoleText(role){
+        switch (role){
+            case 'gk_datafix':
+                return 'DF';
+            case 'gk_dba_confidential':
+                return 'DBAC';
+            case 'gk_readonly':
+                return 'RO';
+            case 'gk_dba':
+                return 'DBA';
+            case 'gk_readonly_confidential':
+                return 'ROC';
+            default:
+                return role;
 
-
+        }
+    }
+    shallowEqual(userGroup, rdsGroup){
+        if(userGroup.gk_ROLE !== rdsGroup.gk_ROLE){
+            return false;
+        }
+        if(userGroup.ags !== rdsGroup.ags){
+            return false;
+        }
+        if(userGroup.sdlc !== rdsGroup.sdlc){
+            return false;
+        }
+        if(userGroup.name !== rdsGroup.name){
+            return false;
+        }
+        return true;
+    }
     disableRoleCheckbox(roleStr){
         let role = roleStr;
+        let map;
+
+        if(vm.global.userInfo.rdsAgsRoles !== undefined) {
+            map = new Map(Object.entries(vm.global.userInfo.rdsAgsRoles));
+        }
         return () => {
             let dbsThatDontSupportRole = vm.selectedItems.length;
+            let application = null;
+            let agsRoles = null;
+
             vm.selectedItems.forEach((item) => {
                 if (item.availableRoles.indexOf(role) !== -1) {
                     dbsThatDontSupportRole--;
                 }
-            });
+                application = item.application;
+                agsRoles = item.agsRoles;
 
+            });
+            if(map !== undefined) {
+
+                if (map.get(application) !== undefined) {
+                    let roleName = this.convertRoleText(role);
+                    let roleObject;
+                    agsRoles.forEach((roleItem) => {
+                        if (roleItem.gk_ROLE === roleName) {
+                            roleObject = roleItem;
+                        }
+                    });
+
+                    if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
+                        return true;
+                    }
+                }
+                else if(agsRoles !== null){
+                    if(agsRoles.length > 0) {
+                        return true;
+                    }
+                }
+            }
             return vm.selectedItems.length === 0 || dbsThatDontSupportRole > 0;
         };
     }
 
+    disableAddOtherUser() {
+        let items = vm.selectedItems[0];
+        if(items !== undefined) {
+            let agsRoles = items.agsRoles;
+            if (agsRoles.length > 0) {
+                vm.restrictedRDSAGS = true;
+                while (this.usersTable.selected.length > 0) {
+                    this.usersTable.selected.pop();
+                }
+                this.usersTable.selected.push(this.selfServiceUser);
+                vm.selfService = true;
+            }
+            else{
+                vm.restrictedRDSAGS = false;
+
+            }
+        }
+        else{
+            vm.restrictedRDSAGS = false;
+        }
+    }
+
     isFormValid(){
         let valueChecked = false;
+        this.disableAddOtherUser();
 
         if(vm.forms.grantForm && vm.forms.grantForm.selectedRoles) {
             angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {

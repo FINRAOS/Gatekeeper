@@ -36,7 +36,7 @@ let LABELS = {
 let vm;
 const SCOPE = Symbol();
 class GatekeeperController{
-    constructor($state, gkRoleService, $scope, $rootScope, $stateParams){
+    constructor($state, gkRoleService, gkUserRoleService, $scope, $rootScope, $stateParams){
         require('../css/main.css');
         require('../../node_modules/hover.css/css/hover-min.css');
 
@@ -105,7 +105,7 @@ class GatekeeperController{
             vm.global.userInfo.email = data.email;
         }).catch((result) => {
             this.error = result;
-            this[STATE].go(STATES.error)
+            this[STATE].go(STATES.error);
         });
 
     }

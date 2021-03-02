@@ -51,8 +51,8 @@ let vm;
 const SCOPE = Symbol();
 
 class GatekeeperRdsController extends GatekeeperController{
-    constructor($state, gkRoleService, $scope, $rootScope, $stateParams){
-        super($state, gkRoleService, $scope, $rootScope);
+    constructor($state, gkRoleService, gkUserRoleService, $scope, $rootScope, $stateParams){
+        super($state, gkRoleService, gkUserRoleService, $scope, $rootScope);
 
         this[STATE] = $state;
         this[SCOPE] = $scope;
@@ -89,10 +89,15 @@ class GatekeeperRdsController extends GatekeeperController{
         if(vm.global.selectedIndex !== -1){
             Object.values(vm.global.tabData)[vm.global.selectedIndex].enabled = true;
         }
-
+        gkUserRoleService.fetch().then((result)=>{
+            let vm = this;
+            let data = result.data;
+            vm.global.userInfo.rdsAgsRoles = data;
+        });
         gkRoleService.fetch().then((result)=> {
             let vm = this;
             let data = result.data;
+
             vm.global.userInfo.approvalThreshold = data.approvalThreshold;
             vm.global.userInfo.roleMemberships = data.roleMemberships;
             vm.global.userInfo.userId = data.userId;

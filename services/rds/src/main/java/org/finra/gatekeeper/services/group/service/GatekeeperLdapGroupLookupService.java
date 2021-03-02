@@ -103,10 +103,6 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
     protected AttributesMapper<GatekeeperADGroupEntry> getAttributesMapper(){
         return new GroupAttributeMapper();
     }
-    /**
-     * @Param takes in the name of an AD group of the following form: APP_GK_<AGS>_<GK_ROLE>_<SDLC>
-     * @return returns an array of 3 strings, the AGS, the GK Role, and the SDLC
-     */
 
     private class GroupAttributeMapper implements AttributesMapper<GatekeeperADGroupEntry> {
         @Override
