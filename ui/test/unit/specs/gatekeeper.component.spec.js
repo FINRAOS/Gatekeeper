@@ -51,7 +51,6 @@ describe('GateKeeper UI gatekeeper component', function () {
                         userId: 'tguy'
                     }
             };
-            console.log(scope);
             deferred.resolve(mockResp);
             expect(controller.ready()).toBeFalsy();
             scope.$apply();

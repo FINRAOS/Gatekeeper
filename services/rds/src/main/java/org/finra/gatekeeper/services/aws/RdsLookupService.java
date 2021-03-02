@@ -115,7 +115,6 @@ public class RdsLookupService {
                 DBCluster primary = getPrimaryClusterForGlobalCluster(environment, instanceName).get();
                 DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(primary.getDBClusterIdentifier());
                 DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
-                System.out.println("Finished");
                 result.getDBClusters().get(0).setDBClusterIdentifier(instanceName);
                 gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_GLOBAL);
 

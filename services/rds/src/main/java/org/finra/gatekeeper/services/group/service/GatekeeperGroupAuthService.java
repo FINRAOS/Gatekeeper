@@ -85,8 +85,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
             return missingGroupsMessage(requestor, requestGroups);
         }
         boolean permission = true;
-        System.out.println(requestGroups);
-        System.out.println(userRoles);
+       
         Iterator<GatekeeperADGroupEntry> iter = requestGroups.iterator();
         while(iter.hasNext()){
            //If the role isn't in the users roles, they don't have permission
