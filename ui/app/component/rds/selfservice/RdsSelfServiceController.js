@@ -109,24 +109,25 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 agsRoles = item.agsRoles;
 
             });
-            if(map !== undefined) {
+            if(!vm.global.userInfo.isApprover) {
+                if (map !== undefined) {
 
-                if (map.get(application) !== undefined) {
-                    let roleName = this.convertRoleText(role);
-                    let roleObject;
-                    agsRoles.forEach((roleItem) => {
-                        if (roleItem.gk_ROLE === roleName) {
-                            roleObject = roleItem;
+                    if (map.get(application) !== undefined) {
+                        let roleName = this.convertRoleText(role);
+                        let roleObject;
+                        agsRoles.forEach((roleItem) => {
+                            if (roleItem.gk_ROLE === roleName) {
+                                roleObject = roleItem;
+                            }
+                        });
+
+                        if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
+                            return true;
                         }
-                    });
-
-                    if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
-                        return true;
-                    }
-                }
-                else if(agsRoles !== null){
-                    if(agsRoles.length > 0) {
-                        return true;
+                    } else if (agsRoles !== null) {
+                        if (agsRoles.length > 0) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -135,24 +136,29 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     }
 
     disableAddOtherUser() {
-        let items = vm.selectedItems[0];
-        if(items !== undefined) {
-            let agsRoles = items.agsRoles;
-            if (agsRoles.length > 0) {
-                vm.restrictedRDSAGS = true;
-                while (this.usersTable.selected.length > 0) {
-                    this.usersTable.selected.pop();
+        if(!vm.global.userInfo.isApprover){
+            let items = vm.selectedItems[0];
+            if(items !== undefined) {
+                let agsRoles = items.agsRoles;
+                if (agsRoles.length > 0) {
+                    vm.restrictedRDSAGS = true;
+                    while (this.usersTable.selected.length > 0) {
+                        this.usersTable.selected.pop();
+                    }
+                    this.usersTable.selected.push(this.selfServiceUser);
+                    vm.selfService = true;
                 }
-                this.usersTable.selected.push(this.selfServiceUser);
-                vm.selfService = true;
+                else{
+                    vm.restrictedRDSAGS = false;
+
+                }
             }
             else{
                 vm.restrictedRDSAGS = false;
-
             }
         }
-        else{
-            vm.restrictedRDSAGS = false;
+        else {
+            vm.restrictedRDSAGS= false;
         }
     }
 

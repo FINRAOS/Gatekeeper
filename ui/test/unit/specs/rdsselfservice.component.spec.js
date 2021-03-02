@@ -22,6 +22,7 @@ import RdsConfigService from '../../../app/component/shared/RdsConfigService';
 import md from 'angular-material';
 import router from 'angular-ui-router';
 import RdsSelfServiceController from '../../../app/component/rds/selfservice/RdsSelfServiceController';
+import UserRoleDataService from "../../../app/component/shared/UserRoleDataService";
 
 
 describe('GateKeeper RDS SelfService component', function () {
@@ -41,7 +42,7 @@ describe('GateKeeper RDS SelfService component', function () {
 
     //mock all this stuff out.
     let $q, $rootScope, $httpBackend;
-    let gkAccountService, gkRdsConfigService, gkRdsGrantService;
+    let gkAccountService, gkRdsConfigService, gkRdsGrantService,gkUserRoleService;
 
     describe('RdsSelfServiceController', function(){
         beforeEach(inject(function(_$q_, _$rootScope_, _$httpBackend_){
@@ -52,6 +53,7 @@ describe('GateKeeper RDS SelfService component', function () {
             gkRdsGrantService = new RdsGrantDataService($http, $state);
             gkRdsConfigService = new RdsConfigService($http, $state);
             gkAccountService = new AccountDataService($http, $state);
+            gkUserRoleService = new UserRoleDataService($http, $state);
 
         }));
 
@@ -136,7 +138,7 @@ describe('GateKeeper RDS SelfService component', function () {
                 deferred.reject(resp);
             }
 
-            controller = new RdsSelfServiceController($mdDialog, $mdToast, gkAccountService, gkRdsGrantService, gkRdsConfigService, scope, $state, $rootScope);
+            controller = new RdsSelfServiceController($mdDialog, $mdToast, gkAccountService, gkRdsGrantService,gkUserRoleService, gkRdsConfigService, scope, $state, $rootScope);
             controller.forms.awsInstanceForm = {
                 selectedAccount: {},
             };
