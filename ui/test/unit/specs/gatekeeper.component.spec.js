@@ -63,7 +63,7 @@ describe('GateKeeper UI gatekeeper component', function () {
                         name:'test guy',
                         role:"UNAUTHORIZED",
                         email:"test@place.com",
-                        agsRoles: [],
+                        applicationRoles: [],
                         memberships:['Application'],
                         userInfo: {
                             role: "SUPPORT"

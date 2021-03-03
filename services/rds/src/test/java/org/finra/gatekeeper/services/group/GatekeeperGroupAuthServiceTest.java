@@ -221,7 +221,7 @@ public class GatekeeperGroupAuthServiceTest {
 
 
 
-        Assert.assertEquals("User may only request access for themselves for this AGS", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
+        Assert.assertEquals("User may only request access for themselves for this Application", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
     }
 
@@ -251,7 +251,7 @@ public class GatekeeperGroupAuthServiceTest {
 
 
 
-        Assert.assertEquals("User may only request access for themselves for this AGS", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
+        Assert.assertEquals("User may only request access for themselves for this Application", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
     }
 
@@ -275,7 +275,7 @@ public class GatekeeperGroupAuthServiceTest {
     }
 
     @Test
-    public void unrestrictedAGS() {
+    public void unrestrictedApplication() {
         //Not unrestricted
         char[] sdlc = new char[1];
         sdlc[0] = ' ';

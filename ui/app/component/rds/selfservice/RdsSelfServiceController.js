@@ -78,7 +78,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         if(userGroup.gk_ROLE !== rdsGroup.gk_ROLE){
             return false;
         }
-        if(userGroup.ags !== rdsGroup.ags){
+        if(userGroup.application !== rdsGroup.application){
             return false;
         }
         if(userGroup.sdlc !== rdsGroup.sdlc){
@@ -93,20 +93,20 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         let role = roleStr;
         let map;
 
-        if(vm.global.userInfo.rdsAgsRoles !== undefined) {
-            map = new Map(Object.entries(vm.global.userInfo.rdsAgsRoles));
+        if(vm.global.userInfo.rdsApplicationRoles !== undefined) {
+            map = new Map(Object.entries(vm.global.userInfo.rdsApplicationRoles));
         }
         return () => {
             let dbsThatDontSupportRole = vm.selectedItems.length;
             let application = null;
-            let agsRoles = null;
+            let applicationRoles = null;
 
             vm.selectedItems.forEach((item) => {
                 if (item.availableRoles.indexOf(role) !== -1) {
                     dbsThatDontSupportRole--;
                 }
                 application = item.application;
-                agsRoles = item.agsRoles;
+                applicationRoles = item.applicationRoles;
 
             });
             if(!vm.global.userInfo.isApprover) {
@@ -115,7 +115,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                     if (map.get(application) !== undefined) {
                         let roleName = this.convertRoleText(role);
                         let roleObject;
-                        agsRoles.forEach((roleItem) => {
+                        applicationRoles.forEach((roleItem) => {
                             if (roleItem.gk_ROLE === roleName) {
                                 roleObject = roleItem;
                             }
@@ -124,8 +124,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                         if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
                             return true;
                         }
-                    } else if (agsRoles !== null) {
-                        if (agsRoles.length > 0) {
+                    } else if (applicationRoles !== null) {
+                        if (applicationRoles.length > 0) {
                             return true;
                         }
                     }
@@ -139,9 +139,9 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         if(!vm.global.userInfo.isApprover){
             let items = vm.selectedItems[0];
             if(items !== undefined) {
-                let agsRoles = items.agsRoles;
-                if (agsRoles.length > 0) {
-                    vm.restrictedRDSAGS = true;
+                let applicationRoles = items.applicationRoles;
+                if (applicationRoles.length > 0) {
+                    vm.restrictedRDSApplication = true;
                     while (this.usersTable.selected.length > 0) {
                         this.usersTable.selected.pop();
                     }
@@ -149,16 +149,16 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                     vm.selfService = true;
                 }
                 else{
-                    vm.restrictedRDSAGS = false;
+                    vm.restrictedRDSApplication = false;
 
                 }
             }
             else{
-                vm.restrictedRDSAGS = false;
+                vm.restrictedRDSApplication = false;
             }
         }
         else {
-            vm.restrictedRDSAGS= false;
+            vm.restrictedRDSApplication= false;
         }
     }
 

@@ -38,11 +38,11 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
         AWSRdsDatabase instance = request.getInstances().get(0);
         List <User> users = request.getUsers();
         Map<String, Set<GatekeeperADGroupEntry>> adGroups = ldapGroupLookupService.getLdapAdGroups();
-        String ags = instance.getApplication();
+        String application = instance.getApplication();
 
-        //If the AGS isn't in the more restrictive groups we can continue as normal
-        if(adGroups.get(ags)==null){
-            logger.info("AGS doesn't exist, allowing");
+        //If the Application isn't in the more restrictive groups we can continue as normal
+        if(adGroups.get(application)==null){
+            logger.info("Application doesn't exist, allowing");
             return "Allowed";
         }
 
@@ -55,20 +55,20 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
         }
         //User's should only be able to request access for themselves
         if(users.size() > 1 || !users.get(0).getUserId().equals(requestor.getUserId())){
-            logger.info(requestor.getUserId() + " attempted to request access for a person other than themselves in a restricted AGS");
-            return "User may only request access for themselves for this AGS";
+            logger.info(requestor.getUserId() + " attempted to request access for a person other than themselves in a restricted Application");
+            return "User may only request access for themselves for this Application";
         }
 
         List<UserRole> roles = request.getRoles();
-        Set<GatekeeperADGroupEntry> adGroupRoles = adGroups.get(ags);
+        Set<GatekeeperADGroupEntry> adGroupRoles = adGroups.get(application);
 
         //Assmeble all roles found in the request
         Set<GatekeeperADGroupEntry> requestGroups = new HashSet<>();
         for(UserRole role : roles){
             String stringRole = formatRole(role.getRole().toUpperCase());
             String sdlc = Character.toString(request.getAccountSdlc().toUpperCase().toCharArray()[0]);
-            String name  = new StringBuilder("APP_GK_").append(ags.toUpperCase()).append("_").append(stringRole).append("_").append(sdlc).toString();
-            GatekeeperADGroupEntry entry = new GatekeeperADGroupEntry(ags.toUpperCase(), stringRole, sdlc , name);
+            String name  = new StringBuilder("APP_GK_").append(application.toUpperCase()).append("_").append(stringRole).append("_").append(sdlc).toString();
+            GatekeeperADGroupEntry entry = new GatekeeperADGroupEntry(application.toUpperCase(), stringRole, sdlc , name);
             requestGroups.add(entry);
         }
 
@@ -79,7 +79,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
                 requestGroups.remove(entry);
             }
         }
-        Set<GatekeeperADGroupEntry> userRoles = gatekeeperLdapRoleLookupService.getLdapAdRoles(requestor.getUserId()).get(ags);
+        Set<GatekeeperADGroupEntry> userRoles = gatekeeperLdapRoleLookupService.getLdapAdRoles(requestor.getUserId()).get(application);
         //Check if the user has all the roles
         if(userRoles == null){
             return missingGroupsMessage(requestor, requestGroups);
@@ -107,7 +107,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
     private String missingGroupsMessage(GatekeeperUserEntry requestor, Set<GatekeeperADGroupEntry> requestGroups) {
         StringBuilder response = new StringBuilder("User does not have the following groups: ");
         for(GatekeeperADGroupEntry entry : requestGroups){
-            response.append(entry.getNAME()).append(" , ");
+            response.append(entry.getName()).append(" , ");
         }
         response.delete(response.length()-2, response.length() -1);
         logger.info(requestor.getUserId() + " " + response);

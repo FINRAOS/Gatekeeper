@@ -76,7 +76,7 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
         Set<GatekeeperADGroupEntry> groupSet = listofGroupSets.get(0);
 
         for(GatekeeperADGroupEntry g : groupSet){
-            char sdlc = g.getSDLC().toCharArray()[0];
+            char sdlc = g.getSdlc().toCharArray()[0];
 
             //If the SDLC tag is marked as unrestricted we don't need to store it
             boolean enabled = true;
@@ -86,13 +86,13 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
                 }
             }
             if(enabled) {
-                String ags = g.getAGS();
-                if (groupMap.get(ags) == null) {
+                String application = g.getApplication();
+                if (groupMap.get(application) == null) {
                     Set<GatekeeperADGroupEntry> input = new HashSet<GatekeeperADGroupEntry>();
                     input.add(g);
-                    groupMap.put(ags, input);
+                    groupMap.put(application, input);
                 } else {
-                    groupMap.get(ags).add(g);
+                    groupMap.get(application).add(g);
                 }
             }
         }

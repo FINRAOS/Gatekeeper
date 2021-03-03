@@ -46,7 +46,7 @@ class GatekeeperSelfServiceController {
         this.forms = {};
 
         vm.disableRow = () => {
-            return vm.restrictedRDSAGS;
+            return vm.restrictedRDSApplication;
         };
 
         this.selfServiceUser = {

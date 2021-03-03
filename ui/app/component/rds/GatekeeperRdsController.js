@@ -92,7 +92,7 @@ class GatekeeperRdsController extends GatekeeperController{
         gkUserRoleService.fetch().then((result)=>{
             let vm = this;
             let data = result.data;
-            vm.global.userInfo.rdsAgsRoles = data;
+            vm.global.userInfo.rdsApplicationRoles = data;
         });
         gkRoleService.fetch().then((result)=> {
             let vm = this;

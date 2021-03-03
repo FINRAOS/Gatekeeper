@@ -26,10 +26,10 @@
                 </md-input-container>
             </div>
             <div layout="column" layout-align="center center">
-                <button  ng-disabled="gkSelfServiceCtrl.forms.adForm.$invalid || gkSelfServiceCtrl.restrictedRDSAGS" md-button type="submit" class="md-raised md-primary" ng-click="gkSelfServiceCtrl.searchAD()"> Search </button>
+                <button  ng-disabled="gkSelfServiceCtrl.forms.adForm.$invalid || gkSelfServiceCtrl.restrictedRDSApplication" md-button type="submit" class="md-raised md-primary" ng-click="gkSelfServiceCtrl.searchAD()"> Search </button>
             </div>
             <div layout="column" layout-align="center center">
-                <button  md-button class="md-raised md-primary" ng-disabled="gkSelfServiceCtrl.restrictedRDSAGS" ng-click="gkSelfServiceCtrl.toggleSelfService()">{{ gkSelfServiceCtrl.selfService ? 'Remove Self' : 'Add Self' }} </button>
+                <button  md-button class="md-raised md-primary" ng-disabled="gkSelfServiceCtrl.restrictedRDSApplication" ng-click="gkSelfServiceCtrl.toggleSelfService()">{{ gkSelfServiceCtrl.selfService ? 'Remove Self' : 'Add Self' }} </button>
             </div>
         </form>
     </div>

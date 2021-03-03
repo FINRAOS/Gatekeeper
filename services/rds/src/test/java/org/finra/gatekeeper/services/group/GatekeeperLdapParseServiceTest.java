@@ -29,14 +29,14 @@ public class GatekeeperLdapParseServiceTest {
 
     @Test
     public void testParseADGroups1(){
-        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_PET_DBAC_P");
-        Assert.assertArrayEquals(new String[]{"PET", "DBAC", "P", "APP_GK_PET_DBAC_P"}, parsedAttributes);
+        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_CCC_DBAC_P");
+        Assert.assertArrayEquals(new String[]{"CCC", "DBAC", "P", "APP_GK_CCC_DBAC_P"}, parsedAttributes);
     }
 
     @Test
     public void testParseADGroups2(){
-        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_petaaa_DBAC_P");
-        Assert.assertArrayEquals(new String[]{"PETAAA", "DBAC", "P", "APP_GK_PETAAA_DBAC_P"}, parsedAttributes);
+        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_CCCaaa_DBAC_P");
+        Assert.assertArrayEquals(new String[]{"CCCAAA", "DBAC", "P", "APP_GK_CCCAAA_DBAC_P"}, parsedAttributes);
     }
 
     @Test
@@ -53,17 +53,17 @@ public class GatekeeperLdapParseServiceTest {
 
 
     @Test
-    public void testParseInvalidAGS1(){
+    public void testParseInvalidApplication1(){
         String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_a_DBC_P");
         Assert.assertArrayEquals(new String[]{"","",""}, parsedAttributes);
     }
     @Test
-    public void testParseInvalidAGS2(){
+    public void testParseInvalidApplication2(){
         String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_AAAAAAAAA_DBC_P");
         Assert.assertArrayEquals(new String[]{"","",""}, parsedAttributes);
     }
     @Test
-    public void testParseInvalidAGS3(){
+    public void testParseInvalidApplication3(){
         String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_12_DBC_P");
         Assert.assertArrayEquals(new String[]{"","",""}, parsedAttributes);
     }
@@ -71,13 +71,13 @@ public class GatekeeperLdapParseServiceTest {
 
     @Test
     public void testParseInvalidGKROLE(){
-        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_PET_DBBC_P");
+        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_CCC_DBBC_P");
         Assert.assertArrayEquals(new String[]{"","",""}, parsedAttributes);
     }
 
     @Test
     public void testParseInvalidSDLC(){
-        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_PET_DBAC_E");
+        String[] parsedAttributes = gatekeeperLdapParseService.parseADGroups("APP_GK_CCC_DBAC_E");
         Assert.assertArrayEquals(new String[]{"","",""}, parsedAttributes);
     }
 }

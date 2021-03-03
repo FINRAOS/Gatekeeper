@@ -20,7 +20,7 @@ public class GatekeeperLdapParseService {
 
     /**
      * Takes in a string that represents an AD group and returns an array with the removed values.
-     * This parses them into the AGS, GK Role, and SDLC and stores them in the array in that order
+     * This parses them into the Application, GK Role, and SDLC and stores them in the array in that order
      * If the String is invalid, it returns an empty String array of length 3
      *
      * @param a String representing an ad group
