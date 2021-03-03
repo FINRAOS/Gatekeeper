@@ -41,11 +41,11 @@ public class GatekeeperRDSInstance {
 
 
 
-    private Set<GatekeeperADGroupEntry> agsRoles;
+    private Set<GatekeeperADGroupEntry> applicationRoles;
     private boolean enabled;
 
     public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint,
-                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType, Set<GatekeeperADGroupEntry> agsRoles){
+                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType, Set<GatekeeperADGroupEntry> applicationRoles){
         this.instanceId = instanceId;
         this.name = name;
         this.dbName = dbName;
@@ -57,7 +57,7 @@ public class GatekeeperRDSInstance {
         this.availableRoles = availableRoles;
         this.enabled = enabled;
         this.databaseType = databaseType;
-        this.agsRoles = agsRoles;
+        this.applicationRoles = applicationRoles;
     }
 
     public String getInstanceId() {
@@ -158,12 +158,12 @@ public class GatekeeperRDSInstance {
         this.databaseType = globalCluster;
         return this;
     }
-    public Set<GatekeeperADGroupEntry> getAgsRoles() {
-        return agsRoles;
+    public Set<GatekeeperADGroupEntry> getApplicationRoles() {
+        return applicationRoles;
     }
 
-    public void setAgsRoles(Set<GatekeeperADGroupEntry> agsRoles) {
-        this.agsRoles = agsRoles;
+    public void setApplicationRoles(Set<GatekeeperADGroupEntry> applicationRoles) {
+        this.applicationRoles = applicationRoles;
     }
     @Override
     public boolean equals(Object o){
@@ -208,7 +208,7 @@ public class GatekeeperRDSInstance {
                 .add("Available Roles", availableRoles)
                 .add("Enabled?", enabled)
                 .add("Database Type", databaseType)
-                .add("AGS Groups", agsRoles)
+                .add("Application Groups", applicationRoles)
                 .toString();
     }
 }

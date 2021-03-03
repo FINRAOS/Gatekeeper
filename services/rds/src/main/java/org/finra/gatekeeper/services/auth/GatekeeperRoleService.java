@@ -176,7 +176,7 @@ public class GatekeeperRoleService {
     public Set<GatekeeperRdsRole> getUserRoles(Map<String, RoleMembership> roleMemberships) {
         Set<GatekeeperRdsRole> uniqueRoles = new HashSet<>();
 
-        roleMemberships.forEach((ags, memberships) -> {
+        roleMemberships.forEach((application, memberships) -> {
             memberships.getRoles().forEach((role, sdlcs) -> {
                 uniqueRoles.add(role);
             });
