@@ -91,7 +91,9 @@ public class RdsLookupServiceTest {
     public void setUp() throws Exception {
         gatekeeperProperties = new GatekeeperProperties()
                 .setAppIdentityTag(APP_IDENTITY);
-        Mockito.when(rdsGroupLookupService.getLdapAdGroups()).thenReturn(null);
+
+        Mockito.when(rdsGroupLookupService.getLdapAdGroups()).thenReturn(new HashMap<>());
+
         rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties, rdsGroupLookupService);
         test = new AWSEnvironment("test", "test", "test");
 

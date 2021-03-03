@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018. Gatekeeper Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 package org.finra.gatekeeper.services.group;
 
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
@@ -44,15 +60,15 @@ public class GatekeeperGroupAuthServiceTest {
     @Before
     public void initMocks(){
         Map<String, Set<GatekeeperADGroupEntry>> expectedReturn = new HashMap<String, Set<GatekeeperADGroupEntry>>();
-        Set<GatekeeperADGroupEntry> petSet = new HashSet<>();
-        Set<GatekeeperADGroupEntry> escSet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> CCCSet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> BBBSet = new HashSet<>();
 
-        petSet.add(new GatekeeperADGroupEntry("PET", "RO", "D", "APP_GK_PET_RO_D"));
-        petSet.add(new GatekeeperADGroupEntry("PET", "DBA", "D", "APP_GK_PET_DBA_D"));
-        escSet.add(new GatekeeperADGroupEntry("ESC", "RO", "D", "APP_GK_ESC_RO_D"));
+        CCCSet.add(new GatekeeperADGroupEntry("CCC", "RO", "D", "APP_GK_CCC_RO_D"));
+        CCCSet.add(new GatekeeperADGroupEntry("CCC", "DBA", "D", "APP_GK_CCC_DBA_D"));
+        BBBSet.add(new GatekeeperADGroupEntry("BBB", "RO", "D", "APP_GK_BBB_RO_D"));
 
-        expectedReturn.put("PET", petSet);
-        expectedReturn.put("ESC", escSet);
+        expectedReturn.put("CCC", CCCSet);
+        expectedReturn.put("BBB", BBBSet);
 
         when(gatekeeperLdapGroupLookupService.getLdapAdGroups()).thenReturn(expectedReturn);
 
@@ -68,7 +84,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock Instance
         AWSRdsDatabase database = new AWSRdsDatabase();
-        database.setApplication("PET");
+        database.setApplication("CCC");
         List<AWSRdsDatabase> databaseList = new ArrayList<>();
         databaseList.add(database);
         when(request.getInstances()).thenReturn(databaseList);
@@ -92,14 +108,14 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock userRoles
         Map<String, Set<GatekeeperADGroupEntry>> userRoles = new HashMap<String, Set<GatekeeperADGroupEntry>>();
-        Set<GatekeeperADGroupEntry> petSet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> CCCSet = new HashSet<>();
 
-        petSet.add(new GatekeeperADGroupEntry("PET", "RO", "D", "APP_GK_PET_RO_D"));
-        petSet.add(new GatekeeperADGroupEntry("PET", "RO", "Q", "APP_GK_PET_RO_Q"));
-        petSet.add(new GatekeeperADGroupEntry("PET", "DBA", "D", "APP_GK_PET_DBA_D"));
+        CCCSet.add(new GatekeeperADGroupEntry("CCC", "RO", "D", "APP_GK_CCC_RO_D"));
+        CCCSet.add(new GatekeeperADGroupEntry("CCC", "RO", "Q", "APP_GK_CCC_RO_Q"));
+        CCCSet.add(new GatekeeperADGroupEntry("CCC", "DBA", "D", "APP_GK_CCC_DBA_D"));
 
-        userRoles.put("PET", petSet);
-        when(gatekeeperLdapRoleLookupService.getLdapAdRoles("testUser")).thenReturn(userRoles);
+        userRoles.put("CCC", CCCSet);
+        when(gatekeeperLdapRoleLookupService.getLdapAdRoles()).thenReturn(userRoles);
 
         Assert.assertEquals("Allowed", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
@@ -115,7 +131,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock Instance
         AWSRdsDatabase database = new AWSRdsDatabase();
-        database.setApplication("PET");
+        database.setApplication("CCC");
         List<AWSRdsDatabase> databaseList = new ArrayList<>();
         databaseList.add(database);
         when(request.getInstances()).thenReturn(databaseList);
@@ -139,14 +155,14 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock userRoles
         Map<String, Set<GatekeeperADGroupEntry>> userRoles = new HashMap<String, Set<GatekeeperADGroupEntry>>();
-        Set<GatekeeperADGroupEntry> petSet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> CCCSet = new HashSet<>();
 
-        petSet.add(new GatekeeperADGroupEntry("PET", "RO", "D", "APP_GK_PET_RO_D"));
+        CCCSet.add(new GatekeeperADGroupEntry("CCC", "RO", "D", "APP_GK_CCC_RO_D"));
 
-        userRoles.put("PET", petSet);
-        when(gatekeeperLdapRoleLookupService.getLdapAdRoles("testUser")).thenReturn(userRoles);
+        userRoles.put("CCC", CCCSet);
+        when(gatekeeperLdapRoleLookupService.getLdapAdRoles()).thenReturn(userRoles);
 
-        Assert.assertEquals("User does not have the following groups: APP_GK_PET_DBA_D", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
+        Assert.assertEquals("User does not have the following groups: APP_GK_CCC_DBA_D", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
     }
     @Test
@@ -159,7 +175,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock Instance
         AWSRdsDatabase database = new AWSRdsDatabase();
-        database.setApplication("PET");
+        database.setApplication("CCC");
         List<AWSRdsDatabase> databaseList = new ArrayList<>();
         databaseList.add(database);
         when(request.getInstances()).thenReturn(databaseList);
@@ -183,12 +199,12 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock userRoles
         Map<String, Set<GatekeeperADGroupEntry>> userRoles = new HashMap<String, Set<GatekeeperADGroupEntry>>();
-        Set<GatekeeperADGroupEntry> petSet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> CCCSet = new HashSet<>();
 
-        userRoles.put("PET", petSet);
-        when(gatekeeperLdapRoleLookupService.getLdapAdRoles("testUser")).thenReturn(userRoles);
+        userRoles.put("CCC", CCCSet);
+        when(gatekeeperLdapRoleLookupService.getLdapAdRoles()).thenReturn(userRoles);
 
-        Assert.assertEquals("User does not have the following groups: APP_GK_PET_RO_D , APP_GK_PET_DBA_D", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
+        Assert.assertEquals("User does not have the following groups: APP_GK_CCC_RO_D , APP_GK_CCC_DBA_D", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
     }
 
@@ -201,7 +217,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock Instance
         AWSRdsDatabase database = new AWSRdsDatabase();
-        database.setApplication("PET");
+        database.setApplication("CCC");
         List<AWSRdsDatabase> databaseList = new ArrayList<>();
         databaseList.add(database);
         when(request.getInstances()).thenReturn(databaseList);
@@ -234,7 +250,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock Instance
         AWSRdsDatabase database = new AWSRdsDatabase();
-        database.setApplication("PET");
+        database.setApplication("CCC");
         List<AWSRdsDatabase> databaseList = new ArrayList<>();
         databaseList.add(database);
         when(request.getInstances()).thenReturn(databaseList);
@@ -264,7 +280,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         //Mock Instance
         AWSRdsDatabase database = new AWSRdsDatabase();
-        database.setApplication("PET");
+        database.setApplication("CCC");
         List<AWSRdsDatabase> databaseList = new ArrayList<>();
         databaseList.add(database);
         when(request.getInstances()).thenReturn(databaseList);

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018. Gatekeeper Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 package org.finra.gatekeeper.services.group.service;
 
 import com.google.common.cache.CacheBuilder;
@@ -61,10 +77,8 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
                 .base("OU=Application_Groups,OU=EmpowerID Managed Groups,OU=Groups")
                         .countLimit(1000)
                         .where("name")
-                        .like("APP_GK_*")
-                        , getAttributesMapper()
-        )
-        );
+                        .like("APP_GK_*"), getAttributesMapper()
+        ));
 
 
         for(GatekeeperADGroupEntry g : groupSet){

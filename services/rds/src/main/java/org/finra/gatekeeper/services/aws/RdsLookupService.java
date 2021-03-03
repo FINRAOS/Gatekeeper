@@ -66,7 +66,8 @@ public class RdsLookupService {
     public RdsLookupService(AwsSessionService awsSessionService,
                             DatabaseConnectionService databaseConnectionService,
                             SGLookupService sgLookupService,
-                            GatekeeperProperties gatekeeperProperties, GatekeeperLdapGroupLookupService rdsGroupLookupService) {
+                            GatekeeperProperties gatekeeperProperties,
+                            GatekeeperLdapGroupLookupService rdsGroupLookupService) {
         this.awsSessionService = awsSessionService;
         this.databaseConnectionService = databaseConnectionService;
         this.sgLookupService = sgLookupService;
@@ -296,7 +297,6 @@ public class RdsLookupService {
      */
     private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds, DatabaseType globalCluster){
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
-
         instances.forEach(item -> {
             // Only concerned with Aurora clusters apparently AWS lumps in docdb and neptune, etc clusters with the call on the RDS API
             // if the engine is not aurora then skip it.

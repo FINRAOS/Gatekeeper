@@ -1,3 +1,19 @@
+/*
+ * Copyright 2018. Gatekeeper Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 package org.finra.gatekeeper.services.group.service;
 
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
@@ -8,6 +24,7 @@ import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
 import org.finra.gatekeeper.services.group.interfaces.IGatekeeperGroupAuthService;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
+import org.finra.gatekeeper.rds.model.RoleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +72,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
         }
         //User's should only be able to request access for themselves
         if(users.size() > 1 || !users.get(0).getUserId().equals(requestor.getUserId())){
-            logger.info(requestor.getUserId() + " attempted to request access for a person other than themselves in a restricted Application");
+            logger.info(requestor.getUserId() + " attempted to request access for a person other than themselves in a restricted application in: " + application);
             return "User may only request access for themselves for this Application";
         }
 
@@ -65,7 +82,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
         //Assmeble all roles found in the request
         Set<GatekeeperADGroupEntry> requestGroups = new HashSet<>();
         for(UserRole role : roles){
-            String stringRole = formatRole(role.getRole().toUpperCase());
+            String stringRole = RoleType.valueOf(role.getRole().toUpperCase()).getShortSuffix().toUpperCase();
             String sdlc = Character.toString(request.getAccountSdlc().toUpperCase().toCharArray()[0]);
             String name  = new StringBuilder("APP_GK_").append(application.toUpperCase()).append("_").append(stringRole).append("_").append(sdlc).toString();
             GatekeeperADGroupEntry entry = new GatekeeperADGroupEntry(application.toUpperCase(), stringRole, sdlc , name);
@@ -79,10 +96,10 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
                 requestGroups.remove(entry);
             }
         }
-        Set<GatekeeperADGroupEntry> userRoles = gatekeeperLdapRoleLookupService.getLdapAdRoles(requestor.getUserId()).get(application);
+        Set<GatekeeperADGroupEntry> userRoles = gatekeeperLdapRoleLookupService.getLdapAdRoles().get(application);
         //Check if the user has all the roles
         if(userRoles == null){
-            return missingGroupsMessage(requestor, requestGroups);
+            return missingGroupsMessage(requestor, requestGroups, application);
         }
         boolean permission = true;
        
@@ -98,37 +115,20 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
             }
         }
         if(!permission){
-            return missingGroupsMessage(requestor, requestGroups);
+            return missingGroupsMessage(requestor, requestGroups, application);
         }
-        logger.info(requestor.getUserId() + " has all permissions for the request");
+        logger.info(requestor.getUserId() + " has all permissions for request in application: " + application);
         return "Allowed";
     }
 
-    private String missingGroupsMessage(GatekeeperUserEntry requestor, Set<GatekeeperADGroupEntry> requestGroups) {
+    private String missingGroupsMessage(GatekeeperUserEntry requestor, Set<GatekeeperADGroupEntry> requestGroups, String application) {
         StringBuilder response = new StringBuilder("User does not have the following groups: ");
         for(GatekeeperADGroupEntry entry : requestGroups){
             response.append(entry.getName()).append(" , ");
         }
         response.delete(response.length()-2, response.length() -1);
-        logger.info(requestor.getUserId() + " " + response);
+        logger.info(requestor.getUserId() + " " + response + "for request in application: " + application);
         return response.toString().trim();
     }
 
-    private String formatRole(String role){
-        switch (role){
-            case "DATAFIX":
-                return "DF";
-            case "DBA_CONFIDENTIAL":
-                return "DBAC";
-            case "READONLY":
-                return "RO";
-            case "DBA":
-                return "DBA";
-            case "READONLY_CONFIDENTIAL":
-                return "ROC";
-            default:
-                return role;
-
-        }
-    }
 }

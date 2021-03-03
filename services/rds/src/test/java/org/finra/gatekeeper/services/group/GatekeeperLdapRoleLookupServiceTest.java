@@ -19,6 +19,8 @@ package org.finra.gatekeeper.services.group;
 
 import com.google.common.collect.Maps;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
+import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
+import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.finra.gatekeeper.services.group.service.GatekeeperLdapParseService;
@@ -56,7 +58,8 @@ public class GatekeeperLdapRoleLookupServiceTest {
     @Mock
     private GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties;
 
-
+    @Mock
+    private GatekeeperAuthorizationService gatekeeperAuthorizationService;
     @Before
     public void initMocks(){
 
@@ -73,9 +76,10 @@ public class GatekeeperLdapRoleLookupServiceTest {
         when(gatekeeperAuthProperties.getLdap()).thenReturn(
                 new GatekeeperAuthProperties.GatekeeperLdapProperties());
         when(gatekeeperRdsAuthProperties.getAdGroupsPattern()).thenReturn("APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)");
+        when(gatekeeperAuthorizationService.getUser()).thenReturn(new GatekeeperUserEntry("testID", "testDN", "test@email", "testName"));
         gatekeeperLdapParseService = new GatekeeperLdapParseService(gatekeeperRdsAuthProperties);
 
-        gatekeeperLdapRoleLookupService = new GatekeeperLdapRoleLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);
+        gatekeeperLdapRoleLookupService = new GatekeeperLdapRoleLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService, gatekeeperAuthorizationService);
 
         Set<GatekeeperADGroupEntry> fakeSet = new HashSet<>();
         fakeSet.add(new GatekeeperADGroupEntry("PET", "RO", "D", "APP_GK_PET_RO_D"));
@@ -104,7 +108,7 @@ public class GatekeeperLdapRoleLookupServiceTest {
         when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
 
 
-        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapRoleLookupService.loadRoles("testUser")).areEqual());
+        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapRoleLookupService.loadRoles()).areEqual());
     }
 
     @Test
@@ -124,7 +128,7 @@ public class GatekeeperLdapRoleLookupServiceTest {
         when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
 
 
-        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapRoleLookupService.loadRoles("testUser")).areEqual());
+        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapRoleLookupService.loadRoles()).areEqual());
     }
 
 

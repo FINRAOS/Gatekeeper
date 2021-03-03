@@ -1,9 +1,27 @@
+/*
+ * Copyright 2018. Gatekeeper Contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
 package org.finra.gatekeeper.services.group.service;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
+import org.finra.gatekeeper.common.services.account.AccountInformationService;
+import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.search.GatekeeperLdapLookupService;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.group.interfaces.IGatekeeperRoleLookupService;
@@ -32,7 +50,7 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
             .expireAfterWrite(60L, TimeUnit.MINUTES)
             .build(new CacheLoader<String, Optional<Map<String, Set<GatekeeperADGroupEntry>>>>() {
                 public Optional<Map<String, Set<GatekeeperADGroupEntry>>> load(String userId) throws Exception {
-                    return Optional.ofNullable(loadRoles(userId));
+                    return Optional.ofNullable(loadRoles());
                 }
             });
 
@@ -41,6 +59,7 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
     private final GatekeeperAuthProperties.GatekeeperLdapProperties ldapProperties;
     private final GatekeeperRdsAuthProperties rdsAuthProperties;
     private final GatekeeperLdapParseService gatekeeperLdapParseService;
+    private  final  GatekeeperAuthorizationService gatekeeperAuthorizationService;
     private final String ldapUserId;
 
 
@@ -48,16 +67,22 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
     private final Logger logger = LoggerFactory.getLogger(GatekeeperLdapLookupService.class);
 
     @Autowired
-    public GatekeeperLdapRoleLookupService(LdapTemplate ldapTemplate, GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties, GatekeeperLdapParseService gatekeeperLdapParseService) {
+    public GatekeeperLdapRoleLookupService(LdapTemplate ldapTemplate,
+                                           GatekeeperAuthProperties gatekeeperAuthProperties,
+                                           GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties,
+                                           GatekeeperLdapParseService gatekeeperLdapParseService,
+                                           GatekeeperAuthorizationService gatekeeperAuthorizationService) {
         this.ldapTemplate = ldapTemplate;
         this.ldapProperties = gatekeeperAuthProperties.getLdap();
         this.rdsAuthProperties = gatekeeperRdsAuthProperties;
         this.gatekeeperLdapParseService = gatekeeperLdapParseService;
         this.ldapUserId = ldapProperties.getUsersIdAttribute();
+        this.gatekeeperAuthorizationService = gatekeeperAuthorizationService;
     }
 
     @Override
-    public Map<String, Set<GatekeeperADGroupEntry>> loadRoles(String userId) {
+    public Map<String, Set<GatekeeperADGroupEntry>> loadRoles() {
+        String userId = gatekeeperAuthorizationService.getUser().getUserId();
         logger.info("Loading AD User Roles for " + userId);
         Map<String, Set<GatekeeperADGroupEntry>> groupMap = new HashMap<String, Set<GatekeeperADGroupEntry>>();
         List<Set<GatekeeperADGroupEntry>> listofGroupSets =
@@ -66,8 +91,7 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
                     .base("OU=Users,OU=Locations")
                     .countLimit(1000)
                     .where(ldapUserId)
-                    .like(userId)
-                    , getAttributesMapper()
+                    .like(userId), getAttributesMapper()
             );
 
         if(listofGroupSets.size() > 1){
@@ -100,8 +124,8 @@ public class GatekeeperLdapRoleLookupService implements IGatekeeperRoleLookupSer
     }
 
 
-    public Map<String, Set<GatekeeperADGroupEntry>> getLdapAdRoles(String userId){
-        Optional<Map<String, Set<GatekeeperADGroupEntry>>> cache = ldapRoleApplicationCache.getUnchecked(userId);
+    public Map<String, Set<GatekeeperADGroupEntry>> getLdapAdRoles(){
+        Optional<Map<String, Set<GatekeeperADGroupEntry>>> cache = ldapRoleApplicationCache.getUnchecked(gatekeeperAuthorizationService.getUser().getUserId());
         if(cache.isPresent()){
             return cache.get();
         }
