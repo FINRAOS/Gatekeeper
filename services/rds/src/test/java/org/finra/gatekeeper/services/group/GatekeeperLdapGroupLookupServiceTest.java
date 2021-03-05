@@ -19,6 +19,7 @@ package org.finra.gatekeeper.services.group;
 
 import com.google.common.collect.Maps;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
+import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.finra.gatekeeper.services.group.service.GatekeeperLdapGroupLookupService;
@@ -50,7 +51,7 @@ public class GatekeeperLdapGroupLookupServiceTest {
     private LdapTemplate ldapTemplate;
 
     @Mock
-    private GatekeeperAuthProperties gatekeeperAuthProperties;
+    private GatekeeperProperties gatekeeperProperties;
 
 
     @Mock
@@ -60,23 +61,23 @@ public class GatekeeperLdapGroupLookupServiceTest {
     @Before
     public void initMocks(){
 
-        when(gatekeeperAuthProperties.getLdap()).thenReturn(
-                new GatekeeperAuthProperties.GatekeeperLdapProperties()
+        when(gatekeeperProperties.getAuth().getLdap()).thenReturn(
+                new GatekeeperProperties.AuthenticationProperties.GatekeeperLdapProperties()
                         .setUsersCnAttribute("cn")
                         .setUsersIdAttribute("sAMAccountName")
                         .setUsersEmailAttribute("mail")
-                        .setUsersDnAttribute("distinguishedName")
+                        .setDistinguishedName("distinguishedName")
                         .setGroupsBase("OU=GROUPS")
                         .setUsersBase("OU=Locations")
                         .setUsersNameAttribute("name"));
 
-        when(gatekeeperAuthProperties.getLdap()).thenReturn(
-                new GatekeeperAuthProperties.GatekeeperLdapProperties());
+        when(gatekeeperProperties.getAuth().getLdap()).thenReturn(
+                new GatekeeperProperties.AuthenticationProperties.GatekeeperLdapProperties());
         when(gatekeeperRdsAuthProperties.getAdGroupsPattern()).thenReturn("APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)");
         when(gatekeeperRdsAuthProperties.getRestrictedPrefix()).thenReturn("APP_GK_");
         gatekeeperLdapParseService = new GatekeeperLdapParseService(gatekeeperRdsAuthProperties);
 
-        gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);
+        gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);
 
         List<GatekeeperADGroupEntry> fakeSet = new ArrayList<>();
         fakeSet.add(new GatekeeperADGroupEntry("PET", "RO", "D", "APP_GK_PET_RO_D"));

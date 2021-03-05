@@ -31,7 +31,6 @@ import RequestDataService from './RequestDataService';
 import SchemaDataService from './SchemaDataService';
 import Ec2ConfigService from "./Ec2ConfigService";
 import RdsConfigService from "./RdsConfigService";
-import UserRoleDataService from "./UserRoleDataService";
 import GkNavBar from './GkNavBar';
 import DisallowSpaces from './DisallowSpaces';
 import util from './generic/DirectiveUtils';
@@ -52,7 +51,6 @@ var gkUtil = angular.module('gatekeeper-util', [md, table])
     .service('gkSchemaService', SchemaDataService)
     .service('gkEc2ConfigService', Ec2ConfigService)
     .service('gkRdsConfigService', RdsConfigService)
-    .service('gkUserRoleService', UserRoleDataService)
     .controller('gkSelfServiceController', gkSSCtrl)
     .directive('disallowSpaces', util.newDirective(new DisallowSpaces()))
     .directive('gatekeeperUserComponent',  util.newDirective(new Directive(require('./selfservice/template/gatekeeperADComponent.tpl.html'))))

@@ -27,7 +27,7 @@ import GatekeeperSelfServiceController from '../../shared/selfservice/Gatekeeper
 import GatekeeperJustificationConfig from '../../shared/selfservice/model/GatekeeperJustificationConfig';
 
 class RdsSelfServiceController extends GatekeeperSelfServiceController {
-    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService, gkUserRoleService, gkRdsConfigService,$scope,$state,$rootScope){
+    constructor($mdDialog, $mdToast, gkADService, gkRdsGrantService, gkRdsConfigService,$scope,$state,$rootScope){
         super($mdDialog, $mdToast, gkADService,$scope,$state,$rootScope);
 
         vm = this;
@@ -75,7 +75,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         }
     }
     shallowEqual(userGroup, rdsGroup){
-        if(userGroup.gk_ROLE !== rdsGroup.gk_ROLE){
+        if(userGroup.gkRole !== rdsGroup.gkRole){
             return false;
         }
         if(userGroup.application !== rdsGroup.application){
@@ -92,7 +92,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
     disableRoleCheckbox(roleStr){
         let role = roleStr;
         let map;
-
         if(vm.global.userInfo.rdsApplicationRoles !== undefined) {
             map = new Map(Object.entries(vm.global.userInfo.rdsApplicationRoles));
         }
@@ -116,7 +115,7 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                         let roleName = this.convertRoleText(role);
                         let roleObject;
                         applicationRoles.forEach((roleItem) => {
-                            if (roleItem.gk_ROLE === roleName) {
+                            if (roleItem.gkRole === roleName) {
                                 roleObject = roleItem;
                             }
                         });

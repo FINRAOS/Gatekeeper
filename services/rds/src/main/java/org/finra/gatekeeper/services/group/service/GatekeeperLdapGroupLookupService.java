@@ -78,7 +78,7 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
                 .base(ldapProperties.getRestrictedGroupsBase())
                         .countLimit(1000)
                         .where("name")
-                        .like(rdsAuthProperties.getRestrictedPrefix()), getAttributesMapper()
+                        .like(rdsAuthProperties.getRestrictedPrefix() + "*"), getAttributesMapper()
         ));
 
 

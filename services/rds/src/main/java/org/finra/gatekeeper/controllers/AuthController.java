@@ -57,6 +57,7 @@ public class AuthController {
         result.setOverridePolicy(gatekeeperOverrideProperties.getOverrides(result.getRoleMemberships()).getOverridePolicy());
         logger.info("User " + user.getUserId() + "'s override policy: " + result.getOverridePolicy());
         result.setApprover(gatekeeperRoleService.isApprover());
+        result.setRdsApplicationRoles(gatekeeperRoleService.getRestrictedRoleMemberships());
         if(result.getApprover()) {
             logger.info("User " + user.getUserId() + " is an approver.");
         } else {

@@ -36,7 +36,7 @@ let LABELS = {
 let vm;
 const SCOPE = Symbol();
 class GatekeeperController{
-    constructor($state, gkRoleService, gkUserRoleService, $scope, $rootScope, $stateParams){
+    constructor($state, gkRoleService, $scope, $rootScope, $stateParams){
         require('../css/main.css');
         require('../../node_modules/hover.css/css/hover-min.css');
 
