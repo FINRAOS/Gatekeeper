@@ -44,6 +44,12 @@ public class GatekeeperRdsAuthProperties {
      *  Should Enter D, Q, or P delimited by a comma  (example: D, Q, P)
      */
     private String unrestrictedSDLC;
+    /**
+     * The prefix for restricted AD Groups
+     * Defaults to APP_GK_
+     * Should be any string followed by an underscore ()
+     */
+    private String restrictedPrefix;
 
     public String getDbaGroupsPattern() {
         return dbaGroupsPattern;
@@ -93,7 +99,18 @@ public class GatekeeperRdsAuthProperties {
         return sdlcs;
     }
 
+
     public void setUnrestrictedSDLC(String unrestrictedSDLC) {
         this.unrestrictedSDLC = unrestrictedSDLC;
+    }
+
+    public String getRestrictedPrefix(){
+        if(restrictedPrefix == null){
+            return "APP_GK_";
+        }
+        return restrictedPrefix;
+    }
+    public void setRestrictedPrefix(String restrictedPrefix){
+        this.restrictedPrefix = restrictedPrefix;
     }
 }

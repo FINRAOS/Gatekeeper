@@ -73,6 +73,7 @@ public class GatekeeperLdapGroupLookupServiceTest {
         when(gatekeeperAuthProperties.getLdap()).thenReturn(
                 new GatekeeperAuthProperties.GatekeeperLdapProperties());
         when(gatekeeperRdsAuthProperties.getAdGroupsPattern()).thenReturn("APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)");
+        when(gatekeeperRdsAuthProperties.getRestrictedPrefix()).thenReturn("APP_GK_");
         gatekeeperLdapParseService = new GatekeeperLdapParseService(gatekeeperRdsAuthProperties);
 
         gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperAuthProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);

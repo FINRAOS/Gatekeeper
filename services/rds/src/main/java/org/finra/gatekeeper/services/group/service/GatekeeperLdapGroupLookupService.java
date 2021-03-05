@@ -21,6 +21,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.services.user.search.GatekeeperLdapLookupService;
+import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.group.interfaces.IGatekeeperGroupLookupService;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
@@ -54,15 +55,15 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
 
 
     private  final LdapTemplate ldapTemplate;
-    private final GatekeeperAuthProperties.GatekeeperLdapProperties ldapProperties;
+    private final GatekeeperProperties.AuthenticationProperties.GatekeeperLdapProperties ldapProperties;
     private final GatekeeperRdsAuthProperties rdsAuthProperties;
-    private final  GatekeeperLdapParseService gatekeeperLdapParseService;
+    private final GatekeeperLdapParseService gatekeeperLdapParseService;
     private final Logger logger = LoggerFactory.getLogger(GatekeeperLdapLookupService.class);
 
     @Autowired
-    public GatekeeperLdapGroupLookupService(LdapTemplate ldapTemplate, GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties, GatekeeperLdapParseService gatekeeperLdapParseService) {
+    public GatekeeperLdapGroupLookupService(LdapTemplate ldapTemplate, GatekeeperProperties gatekeeperProperties, GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties, GatekeeperLdapParseService gatekeeperLdapParseService) {
         this.ldapTemplate = ldapTemplate;
-        this.ldapProperties = gatekeeperAuthProperties.getLdap();
+        this.ldapProperties = gatekeeperProperties.getAuth().getLdap();
         this.rdsAuthProperties = gatekeeperRdsAuthProperties;
         this.gatekeeperLdapParseService = gatekeeperLdapParseService;
     }
@@ -74,10 +75,10 @@ public class GatekeeperLdapGroupLookupService implements IGatekeeperGroupLookupS
         Set<GatekeeperADGroupEntry> groupSet = new HashSet<GatekeeperADGroupEntry>(
         ldapTemplate.search(
                 LdapQueryBuilder.query()
-                .base("OU=Application_Groups,OU=EmpowerID Managed Groups,OU=Groups")
+                .base(ldapProperties.getRestrictedGroupsBase())
                         .countLimit(1000)
                         .where("name")
-                        .like("APP_GK_*"), getAttributesMapper()
+                        .like(rdsAuthProperties.getRestrictedPrefix()), getAttributesMapper()
         ));
 
 

@@ -262,6 +262,12 @@ public class GatekeeperProperties {
             private String distinguishedName;
 
 
+            /**
+             * The base to search for the restricted AD Groups
+             */
+            private String restrictedGroupsBase;
+
+
             public String getPattern() {
                 return pattern;
             }
@@ -349,6 +355,15 @@ public class GatekeeperProperties {
 
             public GatekeeperLdapProperties setDistinguishedName(String distinguishedName) {
                 this.distinguishedName = distinguishedName;
+                return this;
+            }
+
+            public String getRestrictedGroupsBase() {
+                return restrictedGroupsBase;
+            }
+
+            public GatekeeperLdapProperties setRestrictedGroupsBase(String restrictedGroupsBase) {
+                this.restrictedGroupsBase = restrictedGroupsBase;
                 return this;
             }
         }

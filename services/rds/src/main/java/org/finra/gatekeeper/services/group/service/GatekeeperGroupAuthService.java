@@ -85,7 +85,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
         for(UserRole role : roles){
             String stringRole = RoleType.valueOf(role.getRole().toUpperCase()).getShortSuffix().toUpperCase();
             String sdlc = Character.toString(request.getAccountSdlc().toUpperCase().toCharArray()[0]);
-            String name  = new StringBuilder("APP_GK_").append(application.toUpperCase()).append("_").append(stringRole).append("_").append(sdlc).toString();
+            String name  = new StringBuilder(rdsAuthProperties.getRestrictedPrefix()).append(application.toUpperCase()).append("_").append(stringRole).append("_").append(sdlc).toString();
             GatekeeperADGroupEntry entry = new GatekeeperADGroupEntry(application.toUpperCase(), stringRole, sdlc , name);
             requestGroups.add(entry);
         }

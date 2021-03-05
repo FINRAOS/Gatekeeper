@@ -139,7 +139,7 @@ public class GatekeeperRoleService {
     private Set<String> loadLdapUserMemberships(Pattern pattern){
         Set<String> memberships = new HashSet<>();
         gatekeeperAuthorizationService.getMemberships().forEach((membership) -> {
-            Matcher m = pattern.matcher(membership.toUpperCase());
+            Matcher m = pattern.matcher(membership);
             if(m.find()) {
                 memberships.add(m.group(1).toUpperCase());
             }

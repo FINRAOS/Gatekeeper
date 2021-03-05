@@ -71,7 +71,7 @@ public class GatekeeperGroupAuthServiceTest {
         expectedReturn.put("BBB", BBBSet);
 
         when(gatekeeperLdapGroupLookupService.getLdapAdGroups()).thenReturn(expectedReturn);
-
+        when(rdsAuthProperties.getRestrictedPrefix()).thenReturn("APP_GK_");
         gatekeeperGroupAuthService = new GatekeeperGroupAuthService(gatekeeperLdapGroupLookupService, rdsAuthProperties, gatekeeperRoleService);
     }
 
