@@ -22,6 +22,7 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.group.interfaces.IGatekeeperGroupAuthService;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.finra.gatekeeper.rds.model.RoleType;
@@ -37,15 +38,15 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
 
     private GatekeeperLdapGroupLookupService ldapGroupLookupService;
     private final GatekeeperRdsAuthProperties rdsAuthProperties;
-    private final GatekeeperLdapRoleLookupService gatekeeperLdapRoleLookupService;
+    private final GatekeeperRoleService gatekeeperRoleService;
 
     private final Logger logger = LoggerFactory.getLogger(GatekeeperGroupAuthService.class);
 
     @Autowired
-    public GatekeeperGroupAuthService(GatekeeperLdapGroupLookupService ldapGroupLookupService, GatekeeperRdsAuthProperties rdsAuthProperties, GatekeeperLdapRoleLookupService gatekeeperLdapRoleLookupService){
+    public GatekeeperGroupAuthService(GatekeeperLdapGroupLookupService ldapGroupLookupService, GatekeeperRdsAuthProperties rdsAuthProperties,  GatekeeperRoleService gatekeeperRoleService){
         this.ldapGroupLookupService = ldapGroupLookupService;
         this.rdsAuthProperties = rdsAuthProperties;
-        this.gatekeeperLdapRoleLookupService = gatekeeperLdapRoleLookupService;
+        this.gatekeeperRoleService = gatekeeperRoleService;
 
     }
 
@@ -96,7 +97,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
                 requestGroups.remove(entry);
             }
         }
-        Set<GatekeeperADGroupEntry> userRoles = gatekeeperLdapRoleLookupService.getLdapAdRoles().get(application);
+        Set<GatekeeperADGroupEntry> userRoles = gatekeeperRoleService.getRestrictedRoleMemberships().get(application);
         //Check if the user has all the roles
         if(userRoles == null){
             return missingGroupsMessage(requestor, requestGroups, application);

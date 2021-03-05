@@ -28,10 +28,13 @@ import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.auth.model.AppApprovalThreshold;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
+import org.finra.gatekeeper.services.group.service.GatekeeperLdapParseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.AttributesMapper;
+import org.springframework.ldap.query.LdapQueryBuilder;
 import org.springframework.stereotype.Component;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
@@ -51,6 +54,7 @@ public class GatekeeperRoleService {
     private final GatekeeperAuthorizationService gatekeeperAuthorizationService;
     private final GatekeeperAuthProperties gatekeeperAuthProperties;
     private final GatekeeperApprovalProperties gatekeeperApprovalProperties;
+    private final GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties;
 
     private static final String DEFAULT_DN = "distinguishedName";
     private static final String DEFAULT_CN = "cn";
@@ -59,6 +63,7 @@ public class GatekeeperRoleService {
     private final Pattern dbaPattern;
     private final Pattern opsPattern;
     private final Pattern devPattern;
+    private final Pattern restrictedRoles;
 
     private Set<String> sdlcs;
 
@@ -92,6 +97,16 @@ public class GatekeeperRoleService {
                 }
             });
 
+    private LoadingCache<String,Optional<Map<String, Set<GatekeeperADGroupEntry>>>> ldapRoleApplicationCache = CacheBuilder.newBuilder()
+            .maximumSize(1000L)
+            .concurrencyLevel(10)
+            .expireAfterWrite(60L, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, Optional<Map<String, Set<GatekeeperADGroupEntry>>>>() {
+                public Optional<Map<String, Set<GatekeeperADGroupEntry>>> load(String userId) throws Exception {
+                    return Optional.ofNullable(loadRestictedRoleMemberships());
+                }
+            });
+
 
     @Autowired
     public GatekeeperRoleService(GatekeeperAuthorizationService gatekeeperAuthorizationService,
@@ -101,9 +116,11 @@ public class GatekeeperRoleService {
         this.gatekeeperAuthProperties = gatekeeperAuthProperties;
         this.gatekeeperAuthorizationService = gatekeeperAuthorizationService;
         this.gatekeeperApprovalProperties = gatekeeperApprovalProperties;
+        this.gatekeeperRdsAuthProperties = gatekeeperRdsAuthProperties;
         this.dbaPattern = Pattern.compile(gatekeeperRdsAuthProperties.getDbaGroupsPattern());
         this.opsPattern = Pattern.compile(gatekeeperRdsAuthProperties.getOpsGroupsPattern());
         this.devPattern = Pattern.compile(gatekeeperRdsAuthProperties.getDevGroupsPattern());
+        this.restrictedRoles = Pattern.compile(gatekeeperRdsAuthProperties.getAdGroupsPattern());
     }
 
      public GatekeeperUserEntry getUserProfile(){
@@ -122,7 +139,7 @@ public class GatekeeperRoleService {
     private Set<String> loadLdapUserMemberships(Pattern pattern){
         Set<String> memberships = new HashSet<>();
         gatekeeperAuthorizationService.getMemberships().forEach((membership) -> {
-            Matcher m = pattern.matcher(membership);
+            Matcher m = pattern.matcher(membership.toUpperCase());
             if(m.find()) {
                 memberships.add(m.group(1).toUpperCase());
             }
@@ -146,6 +163,44 @@ public class GatekeeperRoleService {
         });
 
         return memberships;
+    }
+
+    private Map<String, Set<GatekeeperADGroupEntry>> loadRestictedRoleMemberships() {
+        String userId = gatekeeperAuthorizationService.getUser().getUserId();
+        logger.info("Loading AD User Roles for " + userId);
+        Map<String, Set<GatekeeperADGroupEntry>> groupMap = new HashMap<String, Set<GatekeeperADGroupEntry>>();
+        Set<String> groupSet = new HashSet<>();
+        gatekeeperAuthorizationService.getMemberships().forEach((membership) -> {
+            Matcher m = restrictedRoles.matcher(membership.toUpperCase());
+            if(m.find()) {
+                groupSet.add(m.group(0).toUpperCase());
+            }
+        });
+
+        for(String group : groupSet){
+            String[] parsed = new GatekeeperLdapParseService(gatekeeperRdsAuthProperties).parseADGroups(group);
+            GatekeeperADGroupEntry g = new GatekeeperADGroupEntry(parsed[0], parsed[1], parsed[2], group);
+            char sdlc = g.getSdlc().toCharArray()[0];
+
+            //If the SDLC tag is marked as unrestricted we don't need to store it
+            boolean enabled = true;
+            for (char sdlcFilter : gatekeeperRdsAuthProperties.getUnrestrictedSDLC()){
+                if(sdlc == sdlcFilter){
+                    enabled = false;
+                }
+            }
+            if(enabled) {
+                String application = g.getApplication();
+                if (groupMap.get(application) == null) {
+                    Set<GatekeeperADGroupEntry> input = new HashSet<GatekeeperADGroupEntry>();
+                    input.add(g);
+                    groupMap.put(application, input);
+                } else {
+                    groupMap.get(application).add(g);
+                }
+            }
+        }
+        return groupMap;
     }
 
     public Map<String, Set<String>> getDevMemberships(String requestorId){
@@ -227,6 +282,10 @@ public class GatekeeperRoleService {
         });
 
         return roleMemberships;
+    }
+
+    public Map<String, Set<GatekeeperADGroupEntry>> getRestrictedRoleMemberships(){
+        return ldapRoleApplicationCache.getUnchecked("requestor").get();
     }
 
     public boolean isApprover(){

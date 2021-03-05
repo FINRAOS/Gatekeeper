@@ -22,10 +22,10 @@ import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.finra.gatekeeper.services.group.service.GatekeeperGroupAuthService;
 import org.finra.gatekeeper.services.group.service.GatekeeperLdapGroupLookupService;
-import org.finra.gatekeeper.services.group.service.GatekeeperLdapRoleLookupService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class GatekeeperGroupAuthServiceTest {
     @Mock
     private GatekeeperRdsAuthProperties rdsAuthProperties;
     @Mock
-    private GatekeeperLdapRoleLookupService gatekeeperLdapRoleLookupService;
+    private GatekeeperRoleService gatekeeperRoleService;
     @Mock
     private AccessRequestWrapper request;
     @Mock
@@ -72,7 +72,7 @@ public class GatekeeperGroupAuthServiceTest {
 
         when(gatekeeperLdapGroupLookupService.getLdapAdGroups()).thenReturn(expectedReturn);
 
-        gatekeeperGroupAuthService = new GatekeeperGroupAuthService(gatekeeperLdapGroupLookupService, rdsAuthProperties, gatekeeperLdapRoleLookupService);
+        gatekeeperGroupAuthService = new GatekeeperGroupAuthService(gatekeeperLdapGroupLookupService, rdsAuthProperties, gatekeeperRoleService);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class GatekeeperGroupAuthServiceTest {
         CCCSet.add(new GatekeeperADGroupEntry("CCC", "DBA", "D", "APP_GK_CCC_DBA_D"));
 
         userRoles.put("CCC", CCCSet);
-        when(gatekeeperLdapRoleLookupService.getLdapAdRoles()).thenReturn(userRoles);
+        when(gatekeeperRoleService.getRestrictedRoleMemberships()).thenReturn(userRoles);
 
         Assert.assertEquals("Allowed", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
@@ -160,8 +160,7 @@ public class GatekeeperGroupAuthServiceTest {
         CCCSet.add(new GatekeeperADGroupEntry("CCC", "RO", "D", "APP_GK_CCC_RO_D"));
 
         userRoles.put("CCC", CCCSet);
-        when(gatekeeperLdapRoleLookupService.getLdapAdRoles()).thenReturn(userRoles);
-
+        when(gatekeeperRoleService.getRestrictedRoleMemberships()).thenReturn(userRoles);
         Assert.assertEquals("User does not have the following groups: APP_GK_CCC_DBA_D", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
     }
@@ -202,8 +201,7 @@ public class GatekeeperGroupAuthServiceTest {
         Set<GatekeeperADGroupEntry> CCCSet = new HashSet<>();
 
         userRoles.put("CCC", CCCSet);
-        when(gatekeeperLdapRoleLookupService.getLdapAdRoles()).thenReturn(userRoles);
-
+        when(gatekeeperRoleService.getRestrictedRoleMemberships()).thenReturn(userRoles);
         Assert.assertEquals("User does not have the following groups: APP_GK_CCC_RO_D , APP_GK_CCC_DBA_D", gatekeeperGroupAuthService.hasGroupAuth(request, requestor));
 
     }

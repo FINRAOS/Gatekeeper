@@ -24,11 +24,11 @@ import DataService from './generic/DataService';
 class UserRoleDataService extends DataService{
     constructor($http,$state){
         super($http,$state);
-        this.resource = '';
+        this.resource = '/auth';
     }
 
     getApi(){
-        return "/api/gatekeeper-rds/loadUser";
+        return '/api/gatekeeper-rds/loadUser';
     }
 }
 
