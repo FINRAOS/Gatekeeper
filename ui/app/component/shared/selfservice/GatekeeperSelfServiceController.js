@@ -45,6 +45,9 @@ class GatekeeperSelfServiceController {
         this.approvalThreshold = vm.global.userInfo.approvalThreshold;
         this.forms = {};
 
+        vm.disableRow = () => {
+            return vm.restrictedRDSApplication;
+        };
 
         this.selfServiceUser = {
             name: vm.global.userInfo.user,
@@ -76,7 +79,9 @@ class GatekeeperSelfServiceController {
             pagination: {
                 pageSelect: true,
                 limitOptions: [5, 10]
-            }
+            },
+            disableRow: vm.disableRow,
+            disableBackgroundColor: 'rgba(0,0,0,0.12)'
         };
 
         this.error = {};

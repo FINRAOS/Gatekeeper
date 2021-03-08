@@ -24,6 +24,9 @@
         <p class=".md-body-2" ng-if="gkSelfServiceCtrl.usersTable.selected.length === 0">
             You have no selected grantees
         </p>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.restrictedRDSApplication">
+            You may only request access for yourself for the selected RDS.
+        </p>
         <md-chips class="gk-selected-item" ng-if="gkSelfServiceCtrl.usersTable.selected.length > 0" ng-model="gkSelfServiceCtrl.usersTable.selected" md-on-remove="gkSelfServiceCtrl.isSelectedUserCurrentUser($chip)" readonly="false">
             <md-chip-template>
                 <strong>{{$chip.name}}</strong>
@@ -74,6 +77,10 @@
         </form>
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.request">
             <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+        </div>
+        <div class="gk-error" ng-if="gkSelfServiceCtrl.error.roles">
+            <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+            <span>{{gkSelfServiceCtrl.error.roles}}</span>
         </div>
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.databases">
             <span class="gk-error-text" layout="row">For the following Databases, these users need to be cleaned up before you can use gatekeeper to access them</span>

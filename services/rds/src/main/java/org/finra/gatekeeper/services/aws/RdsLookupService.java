@@ -27,6 +27,7 @@ import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
+import org.finra.gatekeeper.services.group.service.GatekeeperLdapGroupLookupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,7 @@ public class RdsLookupService {
     private final DatabaseConnectionService databaseConnectionService;
     private final SGLookupService sgLookupService;
     private final GatekeeperProperties gatekeeperProperties;
+    private final GatekeeperLdapGroupLookupService rdsGroupLookupService;
     private final String STATUS_AVAILABLE = "available";
     private final String STATUS_BACKING_UP = "backing-up";
 
@@ -64,11 +66,13 @@ public class RdsLookupService {
     public RdsLookupService(AwsSessionService awsSessionService,
                             DatabaseConnectionService databaseConnectionService,
                             SGLookupService sgLookupService,
-                            GatekeeperProperties gatekeeperProperties) {
+                            GatekeeperProperties gatekeeperProperties,
+                            GatekeeperLdapGroupLookupService rdsGroupLookupService) {
         this.awsSessionService = awsSessionService;
         this.databaseConnectionService = databaseConnectionService;
         this.sgLookupService = sgLookupService;
         this.gatekeeperProperties = gatekeeperProperties;
+        this.rdsGroupLookupService = rdsGroupLookupService;
     }
 
 
@@ -112,7 +116,6 @@ public class RdsLookupService {
                 DBCluster primary = getPrimaryClusterForGlobalCluster(environment, instanceName).get();
                 DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(primary.getDBClusterIdentifier());
                 DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
-                System.out.println("Finished");
                 result.getDBClusters().get(0).setDBClusterIdentifier(instanceName);
                 gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_GLOBAL);
 
@@ -282,7 +285,7 @@ public class RdsLookupService {
 
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
                     dbName != null ? dbName : "", item.getEngine(), status,
-                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled, DatabaseType.RDS));
+                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled, DatabaseType.RDS, rdsGroupLookupService.getLdapAdGroups().get(application)));
         });
 
         return gatekeeperRDSInstances;
@@ -294,7 +297,6 @@ public class RdsLookupService {
      */
     private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds, DatabaseType globalCluster){
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
-
         instances.forEach(item -> {
             // Only concerned with Aurora clusters apparently AWS lumps in docdb and neptune, etc clusters with the call on the RDS API
             // if the engine is not aurora then skip it.
@@ -365,7 +367,7 @@ public class RdsLookupService {
                 }
             }
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbClusterResourceId(), item.getDBClusterIdentifier(),
-                    dbName, item.getEngine(), status, item.getDBClusterArn(), item.getEndpoint() + ":" + port, application, availableRoles, enabled, globalCluster));
+                    dbName, item.getEngine(), status, item.getDBClusterArn(), item.getEndpoint() + ":" + port, application, availableRoles, enabled, globalCluster, rdsGroupLookupService.getLdapAdGroups().get(application)));
         });
 
         return gatekeeperRDSInstances;

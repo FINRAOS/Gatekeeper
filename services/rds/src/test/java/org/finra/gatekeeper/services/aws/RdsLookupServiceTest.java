@@ -27,6 +27,7 @@ import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
+import org.finra.gatekeeper.services.group.service.GatekeeperLdapGroupLookupService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +49,8 @@ public class RdsLookupServiceTest {
     private DatabaseConnectionService databaseConnectionService;
     @Mock
     private SGLookupService sgLookupService;
-
+    @Mock
+    private GatekeeperLdapGroupLookupService rdsGroupLookupService;
     @Mock
     private GKUserCredentialsProvider gkUserCredentialsProvider;
 
@@ -89,7 +91,10 @@ public class RdsLookupServiceTest {
     public void setUp() throws Exception {
         gatekeeperProperties = new GatekeeperProperties()
                 .setAppIdentityTag(APP_IDENTITY);
-        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties);
+
+        Mockito.when(rdsGroupLookupService.getLdapAdGroups()).thenReturn(new HashMap<>());
+
+        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties, rdsGroupLookupService);
         test = new AWSEnvironment("test", "test", "test");
 
         Mockito.when(awsSessionService.getRDSSession(test)).thenReturn(amazonRDSClient);

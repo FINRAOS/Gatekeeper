@@ -14,12 +14,11 @@
  * limitations under the License.
  *
  */
+package org.finra.gatekeeper.services.group.interfaces;
 
-package org.finra.gatekeeper.services.accessrequest.model.response;
+import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
+import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 
-/**
- * An Enum representing the Outcome for the creation of a user
- */
-public enum AccessRequestCreationOutcome {
-    CREATED,NOT_CREATED_USER_ISSUE,USER_NOT_AUTHORIZED
+public interface IGatekeeperGroupAuthService {
+    public String hasGroupAuth(AccessRequestWrapper request, GatekeeperUserEntry requestor);
 }

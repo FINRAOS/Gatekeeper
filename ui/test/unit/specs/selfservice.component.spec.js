@@ -2,14 +2,14 @@
  *
  * Copyright 2018. Gatekeeper Contributors
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an 'AS IS' BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -20,18 +20,17 @@ import AccountDataService from '../../../app/component/shared/AccountDataService
 import AWSDataService from '../../../app/component/shared/AWSDataService';
 import ADDataService from '../../../app/component/shared/ADDataService';
 import GrantDataService from '../../../app/component/shared/GrantDataService';
-import RoleDataService from '../../../app/component/shared/RoleDataService';
-import Ec2ConfigService from "../../../app/component/shared/Ec2ConfigService";
+import Ec2ConfigService from '../../../app/component/shared/Ec2ConfigService';
 
 //Controllers
 import md from 'angular-material';
 import GatekeeperSelfServiceController from '../../../app/component/shared/selfservice/GatekeeperSelfServiceController';
-import Ec2SelfServiceController from "../../../app/component/ec2/selfservice/Ec2SelfServiceController";
+import Ec2SelfServiceController from '../../../app/component/ec2/selfservice/Ec2SelfServiceController';
 
 
 describe('GateKeeper UI self service component', function () {
 
-    let $http, scope, controller;
+    let scope, controller;
 
     beforeEach(angular.mock.module(md));
 
@@ -65,10 +64,10 @@ describe('GateKeeper UI self service component', function () {
             let resp = {data:['stuff']};
 
             $rootScope.userInfo = {
-                role: "SUPPORT",
-                userId:"testId",
-                user:"test",
-                email:"test@email.com"
+                role: 'SUPPORT',
+                userId:'testId',
+                user:'test',
+                email:'test@email.com'
             };
 
 
@@ -85,7 +84,7 @@ describe('GateKeeper UI self service component', function () {
                 selection: 'multiple',
                 selectionId: 'userId',
                 toolbar:{
-                    header: "Search Result",
+                    header: 'Search Result',
                     inlineFilter:true
                 },
                 onSelect: controller.usersTable.onSelect,
@@ -105,7 +104,9 @@ describe('GateKeeper UI self service component', function () {
                 pagination: {
                     pageSelect: true,
                     limitOptions: [5, 10]
-                }
+                },
+                disableRow: controller.disableRow,
+                disableBackgroundColor: 'rgba(0,0,0,0.12)'
             };
 
             expect(controller.usersTable).toEqual(expected);
@@ -119,7 +120,7 @@ describe('GateKeeper UI self service component', function () {
 
             let deferred = $q.defer();
             spyOn(gkADService, 'search').and.returnValue(deferred.promise);
-            let response = {data:[{user:'abc', user:'123', email:'name@org'}]};
+            let response = {data:[{user:'abc', userId:'123', email:'name@org'}]};
             happy ? deferred.resolve(response) : deferred.reject(response);
 
             controller.forms.adForm = {
@@ -155,12 +156,12 @@ describe('GateKeeper UI self service component', function () {
 
         //honestly I have no idea why I need to do this... this code shouldnt even get called.
         it('Should Fetch Users', function(){
-            $httpBackend.expectGET('/api/gatekeeper/grantAccess').respond({object: "hello"});
+            $httpBackend.expectGET('/api/gatekeeper/grantAccess').respond({object: 'hello'});
             searchAD(true);
         });
 
         it('Should Fetch Users - with error', function(){
-            $httpBackend.expectGET('/api/gatekeeper/grantAccess').respond({object: "hello"});
+            $httpBackend.expectGET('/api/gatekeeper/grantAccess').respond({object: 'hello'});
             searchAD(false);
         });
 
@@ -205,10 +206,10 @@ describe('GateKeeper UI self service component', function () {
             };
 
             $rootScope.userInfo = {
-                userId:"testId",
-                user:"test",
-                role:"approver",
-                email:"test@email.com"
+                userId:'testId',
+                user:'test',
+                role:'approver',
+                email:'test@email.com'
             };
 
             if(happy) {
@@ -236,7 +237,7 @@ describe('GateKeeper UI self service component', function () {
                 selection:'multiple',
                 selectionId: 'instanceId',
                 toolbar:{
-                    header:"Search Result",
+                    header:'Search Result',
                     inlineFilter:true,
                     checkboxFilters: [ { label: 'SSM Online Only', filterFn: controller.filterOnline }, { label: 'Show Offline Only', filterFn: controller.filterOffline } ]
                 },
@@ -330,7 +331,7 @@ describe('GateKeeper UI self service component', function () {
             //fake the rest call
             let gdefer = $q.defer();
             spyOn(gkGrantService, 'post').and.returnValue(gdefer.promise);
-            happy ? gdefer.resolve() : gdefer.reject({message:"hello"});
+            happy ? gdefer.resolve() : gdefer.reject({message:'hello'});
 
 			
             controller.usersTable = {
@@ -341,7 +342,7 @@ describe('GateKeeper UI self service component', function () {
 
             controller.awsTable = {
                 selected:[
-                    {name:'awslx', id:"abc", application:'ABC', ip:'127.0.0.1'}
+                    {name:'awslx', id:'abc', application:'ABC', ip:'127.0.0.1'}
                 ]};
 
             controller.forms.grantForm = {
@@ -438,10 +439,10 @@ describe('GateKeeper UI self service component', function () {
             $scope=$rootScope.$new();
             $state = {go:function(){}};
             $rootScope.userInfo = {
-                userId:"testId",
-                user:"test",
-                role:"approver",
-                email:"test@email.com",
+                userId:'testId',
+                user:'test',
+                role:'approver',
+                email:'test@email.com',
                 memberships:['testApplication'],
                 approvalThreshold:20
             };

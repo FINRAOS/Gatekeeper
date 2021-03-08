@@ -40,8 +40,8 @@ public class PropertyConfigApprovalThresholdTest {
     private Map<String, Map<String, Integer>> dbaApprovalThreshold;
     private Map<String, Map<String, Integer>> secondDevApprovalThreshold;
 
-    private String TEST_AGS = "TESTDEV";
-    private String TEST_AGS_2 = "TESTDEV2";
+    private String TEST_APPLICATION = "TESTDEV";
+    private String TEST_APPLICATION_2 = "TESTDEV2";
 
     private String DBA_ROLE = "dba";
     private String DATAFIX_ROLE = "datafix";
@@ -107,17 +107,17 @@ public class PropertyConfigApprovalThresholdTest {
     public void testGetApprovalPolicyDev() {
         Map<String, AppApprovalThreshold> approvalPolicy = gatekeeperApprovalProperties.getApprovalPolicy(roleMemberships);
 
-        Assert.assertEquals(DEV_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
-        Assert.assertEquals(DEV_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
-        Assert.assertEquals(DEV_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
+        Assert.assertEquals(DEV_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
+        Assert.assertEquals(DEV_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
+        Assert.assertEquals(DEV_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
 
-        Assert.assertEquals(DEV_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
-        Assert.assertEquals(DEV_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
-        Assert.assertEquals(DEV_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
+        Assert.assertEquals(DEV_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
+        Assert.assertEquals(DEV_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
+        Assert.assertEquals(DEV_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
 
-        Assert.assertEquals(DEV_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
-        Assert.assertEquals(DEV_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
-        Assert.assertEquals(DEV_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
+        Assert.assertEquals(DEV_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
+        Assert.assertEquals(DEV_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
+        Assert.assertEquals(DEV_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
     }
 
     @Test
@@ -127,17 +127,17 @@ public class PropertyConfigApprovalThresholdTest {
         
         Map<String, AppApprovalThreshold> approvalPolicy = gatekeeperApprovalProperties.getApprovalPolicy(roleMemberships);
 
-        Assert.assertEquals(OPS_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
-        Assert.assertEquals(OPS_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
-        Assert.assertEquals(OPS_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
+        Assert.assertEquals(OPS_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
+        Assert.assertEquals(OPS_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
+        Assert.assertEquals(OPS_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
 
-        Assert.assertEquals(OPS_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
-        Assert.assertEquals(OPS_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
-        Assert.assertEquals(OPS_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
+        Assert.assertEquals(OPS_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
+        Assert.assertEquals(OPS_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
+        Assert.assertEquals(OPS_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
 
-        Assert.assertEquals(OPS_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
-        Assert.assertEquals(OPS_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
-        Assert.assertEquals(OPS_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
+        Assert.assertEquals(OPS_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
+        Assert.assertEquals(OPS_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
+        Assert.assertEquals(OPS_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
     }
 
     @Test
@@ -149,52 +149,52 @@ public class PropertyConfigApprovalThresholdTest {
 
         Map<String, AppApprovalThreshold> approvalPolicy = gatekeeperApprovalProperties.getApprovalPolicy(roleMemberships);
 
-        Assert.assertEquals(DBA_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
-        Assert.assertEquals(DBA_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
-        Assert.assertEquals(DBA_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
+        Assert.assertEquals(DBA_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
+        Assert.assertEquals(DBA_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
+        Assert.assertEquals(DBA_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
 
-        Assert.assertEquals(DBA_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
-        Assert.assertEquals(DBA_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
-        Assert.assertEquals(DBA_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
+        Assert.assertEquals(DBA_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
+        Assert.assertEquals(DBA_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
+        Assert.assertEquals(DBA_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
 
-        Assert.assertEquals(DBA_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
-        Assert.assertEquals(DBA_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
-        Assert.assertEquals(DBA_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
+        Assert.assertEquals(DBA_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
+        Assert.assertEquals(DBA_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
+        Assert.assertEquals(DBA_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
     }
 
     @Test
-    public void testSecondAgsApprovalThresholds() {
+    public void testSecondApplicationApprovalThresholds() {
         addOpsRoleMemberships();
         addDbaRoleMemberships();
         initOpsApprovalThresholds();
         initDbaApprovalThresholds();
-        initSecondAgs();
+        initSecondApplication();
 
         Map<String, AppApprovalThreshold> approvalPolicy = gatekeeperApprovalProperties.getApprovalPolicy(roleMemberships);
 
-        Assert.assertEquals(DBA_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
-        Assert.assertEquals(DBA_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
-        Assert.assertEquals(DBA_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
+        Assert.assertEquals(DBA_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
+        Assert.assertEquals(DBA_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
+        Assert.assertEquals(DBA_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
 
-        Assert.assertEquals(DBA_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
-        Assert.assertEquals(DBA_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
-        Assert.assertEquals(DBA_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
+        Assert.assertEquals(DBA_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
+        Assert.assertEquals(DBA_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
+        Assert.assertEquals(DBA_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
 
-        Assert.assertEquals(DBA_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
-        Assert.assertEquals(DBA_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
-        Assert.assertEquals(DBA_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
+        Assert.assertEquals(DBA_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
+        Assert.assertEquals(DBA_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
+        Assert.assertEquals(DBA_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
 
-        Assert.assertEquals(DEV_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
-        Assert.assertEquals(DEV_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
-        Assert.assertEquals(DEV_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
+        Assert.assertEquals(DEV_DBA_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.DBA).get("dev"));
+        Assert.assertEquals(DEV_DBA_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.DBA).get("qa"));
+        Assert.assertEquals(DEV_DBA_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.DBA).get("prod"));
 
-        Assert.assertEquals(DEV_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
-        Assert.assertEquals(DEV_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
-        Assert.assertEquals(DEV_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
+        Assert.assertEquals(DEV_DATAFIX_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.DATAFIX).get("dev"));
+        Assert.assertEquals(DEV_DATAFIX_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.DATAFIX).get("qa"));
+        Assert.assertEquals(DEV_DATAFIX_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.DATAFIX).get("prod"));
 
-        Assert.assertEquals(DEV_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
-        Assert.assertEquals(DEV_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
-        Assert.assertEquals(DEV_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_AGS_2).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
+        Assert.assertEquals(DEV_READONLY_DEV_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.READONLY).get("dev"));
+        Assert.assertEquals(DEV_READONLY_QA_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.READONLY).get("qa"));
+        Assert.assertEquals(DEV_READONLY_PROD_THRESHOLD, approvalPolicy.get(TEST_APPLICATION_2).getAppApprovalThresholds().get(RoleType.READONLY).get("prod"));
     }
 
 
@@ -304,13 +304,13 @@ public class PropertyConfigApprovalThresholdTest {
         dbaApprovalThreshold.put(DBA_CONFIDENTIAL_ROLE, dbaConfidentialThresholds);
     }
 
-    private void initSecondAgs() {
+    private void initSecondApplication() {
         Set<String> devSdlcs = new HashSet<>();
         devSdlcs.add("DEV");
 
         RoleMembership testDev = new RoleMembership();
         testDev.getRoles().put(GatekeeperRdsRole.DEV, devSdlcs);
-        roleMemberships.put(TEST_AGS_2, testDev);
+        roleMemberships.put(TEST_APPLICATION_2, testDev);
     }
 
     private void initRoleMemberships() {
@@ -322,7 +322,7 @@ public class PropertyConfigApprovalThresholdTest {
 
         RoleMembership testDev = new RoleMembership();
         testDev.getRoles().put(GatekeeperRdsRole.DEV, devSdlcs);
-        roleMemberships.put(TEST_AGS, testDev);
+        roleMemberships.put(TEST_APPLICATION, testDev);
 
         gatekeeperRdsRoles.add(GatekeeperRdsRole.DEV);
 
@@ -336,7 +336,7 @@ public class PropertyConfigApprovalThresholdTest {
         prodSdlcs.add("QA");
         prodSdlcs.add("PROD");
 
-        roleMemberships.get(TEST_AGS).getRoles().put(GatekeeperRdsRole.OPS, prodSdlcs);
+        roleMemberships.get(TEST_APPLICATION).getRoles().put(GatekeeperRdsRole.OPS, prodSdlcs);
 
         gatekeeperRdsRoles.add(GatekeeperRdsRole.OPS);
 
@@ -350,7 +350,7 @@ public class PropertyConfigApprovalThresholdTest {
         prodSdlcs.add("QA");
         prodSdlcs.add("PROD");
 
-        roleMemberships.get(TEST_AGS).getRoles().put(GatekeeperRdsRole.DBA, prodSdlcs);
+        roleMemberships.get(TEST_APPLICATION).getRoles().put(GatekeeperRdsRole.DBA, prodSdlcs);
 
         gatekeeperRdsRoles.add(GatekeeperRdsRole.DBA);
 
