@@ -18,9 +18,11 @@
 package org.finra.gatekeeper.services.aws.model;
 
 import com.google.common.base.MoreObjects;
+import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Simple POJO used to pull what we need off AWS EC2 Instances.
@@ -36,10 +38,14 @@ public class GatekeeperRDSInstance {
     private String application;
     private List<String> availableRoles;
     private DatabaseType databaseType;
+
+
+
+    private Set<GatekeeperADGroupEntry> applicationRoles;
     private boolean enabled;
 
     public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint,
-                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType){
+                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType, Set<GatekeeperADGroupEntry> applicationRoles){
         this.instanceId = instanceId;
         this.name = name;
         this.dbName = dbName;
@@ -51,6 +57,7 @@ public class GatekeeperRDSInstance {
         this.availableRoles = availableRoles;
         this.enabled = enabled;
         this.databaseType = databaseType;
+        this.applicationRoles = applicationRoles;
     }
 
     public String getInstanceId() {
@@ -151,7 +158,13 @@ public class GatekeeperRDSInstance {
         this.databaseType = globalCluster;
         return this;
     }
+    public Set<GatekeeperADGroupEntry> getApplicationRoles() {
+        return applicationRoles;
+    }
 
+    public void setApplicationRoles(Set<GatekeeperADGroupEntry> applicationRoles) {
+        this.applicationRoles = applicationRoles;
+    }
     @Override
     public boolean equals(Object o){
         if(this == o){
@@ -195,6 +208,7 @@ public class GatekeeperRDSInstance {
                 .add("Available Roles", availableRoles)
                 .add("Enabled?", enabled)
                 .add("Database Type", databaseType)
+                .add("Application Groups", applicationRoles)
                 .toString();
     }
 }

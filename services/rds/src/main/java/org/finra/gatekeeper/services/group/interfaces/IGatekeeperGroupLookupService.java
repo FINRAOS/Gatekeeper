@@ -14,12 +14,16 @@
  * limitations under the License.
  *
  */
+package org.finra.gatekeeper.services.group.interfaces;
 
-package org.finra.gatekeeper.services.accessrequest.model.response;
+import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
- * An Enum representing the Outcome for the creation of a user
+ * Interface that is expected to handle user lookup to be used with gatekeeper
  */
-public enum AccessRequestCreationOutcome {
-    CREATED,NOT_CREATED_USER_ISSUE,USER_NOT_AUTHORIZED
+public interface IGatekeeperGroupLookupService {
+    public Map<String, Set<GatekeeperADGroupEntry>> loadGroups();
 }

@@ -105,7 +105,7 @@ class GatekeeperController{
             vm.global.userInfo.email = data.email;
         }).catch((result) => {
             this.error = result;
-            this[STATE].go(STATES.error)
+            this[STATE].go(STATES.error);
         });
 
     }

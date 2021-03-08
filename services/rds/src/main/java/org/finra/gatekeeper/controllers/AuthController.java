@@ -6,6 +6,7 @@ import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.controllers.wrappers.GetRoleResponseWrapper;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -53,6 +57,7 @@ public class AuthController {
         result.setOverridePolicy(gatekeeperOverrideProperties.getOverrides(result.getRoleMemberships()).getOverridePolicy());
         logger.info("User " + user.getUserId() + "'s override policy: " + result.getOverridePolicy());
         result.setApprover(gatekeeperRoleService.isApprover());
+        result.setRdsApplicationRoles(gatekeeperRoleService.getRestrictedRoleMemberships());
         if(result.getApprover()) {
             logger.info("User " + user.getUserId() + " is an approver.");
         } else {
@@ -66,4 +71,5 @@ public class AuthController {
         }
         return result;
     }
+   
 }
