@@ -53,6 +53,11 @@ public class GatekeeperLdapGroupLookupServiceTest {
     @Mock
     private GatekeeperProperties gatekeeperProperties;
 
+    @Mock
+    private GatekeeperProperties.AuthenticationProperties authenticationProperties;
+
+    @Mock
+    private GatekeeperProperties.AuthenticationProperties.GatekeeperLdapProperties gatekeeperLdapProperties;
 
     @Mock
     private GatekeeperRdsAuthProperties gatekeeperRdsAuthProperties;
@@ -60,8 +65,8 @@ public class GatekeeperLdapGroupLookupServiceTest {
     
     @Before
     public void initMocks(){
-
-        when(gatekeeperProperties.getAuth().getLdap()).thenReturn(
+        when(gatekeeperProperties.getAuth()).thenReturn(authenticationProperties);
+        when(authenticationProperties.getLdap()).thenReturn(
                 new GatekeeperProperties.AuthenticationProperties.GatekeeperLdapProperties()
                         .setUsersCnAttribute("cn")
                         .setUsersIdAttribute("sAMAccountName")
@@ -69,12 +74,13 @@ public class GatekeeperLdapGroupLookupServiceTest {
                         .setDistinguishedName("distinguishedName")
                         .setGroupsBase("OU=GROUPS")
                         .setUsersBase("OU=Locations")
+                        .setRestrictedGroupsBase("OU=GROUPS")
                         .setUsersNameAttribute("name"));
 
-        when(gatekeeperProperties.getAuth().getLdap()).thenReturn(
-                new GatekeeperProperties.AuthenticationProperties.GatekeeperLdapProperties());
+
         when(gatekeeperRdsAuthProperties.getAdGroupsPattern()).thenReturn("APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)");
         when(gatekeeperRdsAuthProperties.getRestrictedPrefix()).thenReturn("APP_GK_");
+
         gatekeeperLdapParseService = new GatekeeperLdapParseService(gatekeeperRdsAuthProperties);
 
         gatekeeperLdapGroupLookupService = new GatekeeperLdapGroupLookupService(ldapTemplate, gatekeeperProperties, gatekeeperRdsAuthProperties, gatekeeperLdapParseService);
@@ -103,7 +109,6 @@ public class GatekeeperLdapGroupLookupServiceTest {
         char[] sdlc = new char[1];
         sdlc[0] = ' ';
         when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
-
 
         Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperLdapGroupLookupService.loadGroups()).areEqual());
     }
