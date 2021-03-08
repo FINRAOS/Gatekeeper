@@ -95,7 +95,7 @@ public class RdsLookupServiceTest {
         Mockito.when(rdsGroupLookupService.getLdapAdGroups()).thenReturn(new HashMap<>());
 
         rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties, rdsGroupLookupService);
-        test = new AWSEnvironment("test", "test", "test");
+        test = new AWSEnvironment("test", "test", "dev");
 
         Mockito.when(awsSessionService.getRDSSession(test)).thenReturn(amazonRDSClient);
 
