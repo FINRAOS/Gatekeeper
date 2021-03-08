@@ -284,16 +284,7 @@ public class RdsLookupService {
                 }
             }
             //Only get AD Groups from the current SDLC
-            Set<GatekeeperADGroupEntry> adGroups = new HashSet<>();
-            Set<GatekeeperADGroupEntry> allAdGroups = rdsGroupLookupService.getLdapAdGroups().get(application);
-            if(allAdGroups != null) {
-                for (GatekeeperADGroupEntry entry : allAdGroups) {
-                    char environmentSdlc = environment.getSdlc().toUpperCase().charAt(0);
-                    if (entry.getSdlc().charAt(0) == environmentSdlc) {
-                        adGroups.add(entry);
-                    }
-                }
-            }
+            Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
                     dbName != null ? dbName : "", item.getEngine(), status,
                     item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled, DatabaseType.RDS, adGroups));
@@ -378,22 +369,28 @@ public class RdsLookupService {
                 }
             }
             //Only get AD Groups from the current SDLC
-            Set<GatekeeperADGroupEntry> adGroups = new HashSet<>();
-            Set<GatekeeperADGroupEntry> allAdGroups = rdsGroupLookupService.getLdapAdGroups().get(application);
-            if(allAdGroups != null) {
-                for (GatekeeperADGroupEntry entry : allAdGroups) {
-                    char environmentSdlc = environment.getSdlc().toUpperCase().charAt(0);
-                    if (entry.getSdlc().charAt(0) == environmentSdlc) {
-                        adGroups.add(entry);
-                    }
-                }
-            }
+            Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbClusterResourceId(), item.getDBClusterIdentifier(),
                     dbName, item.getEngine(), status, item.getDBClusterArn(), item.getEndpoint() + ":" + port, application, availableRoles, enabled, globalCluster, adGroups));
         });
 
         return gatekeeperRDSInstances;
     }
+
+    private Set<GatekeeperADGroupEntry> filterBySdlc(AWSEnvironment environment, String application) {
+        Set<GatekeeperADGroupEntry> adGroups = new HashSet<>();
+        Set<GatekeeperADGroupEntry> allAdGroups = rdsGroupLookupService.getLdapAdGroups().get(application);
+        if(allAdGroups != null) {
+            for (GatekeeperADGroupEntry entry : allAdGroups) {
+                char environmentSdlc = environment.getSdlc().toUpperCase().charAt(0);
+                if (entry.getSdlc().charAt(0) == environmentSdlc) {
+                    adGroups.add(entry);
+                }
+            }
+        }
+        return adGroups;
+    }
+
     private String getAddress(String address, String port, String dbName){
         return String.format("%s:%s/%s", address, port, dbName);
     }
