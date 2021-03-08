@@ -71,8 +71,5 @@ public class AuthController {
         }
         return result;
     }
-    @RequestMapping(value = "/loadUser", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Map<String, Set<GatekeeperADGroupEntry>> loadUser() {
-        return gatekeeperRoleService.getRestrictedRoleMemberships();
-    }
+   
 }
