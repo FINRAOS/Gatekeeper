@@ -139,17 +139,21 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             let items = vm.selectedItems[0];
             if(items !== undefined) {
                 let applicationRoles = items.applicationRoles;
-                if (applicationRoles.length > 0) {
-                    vm.restrictedRDSApplication = true;
-                    while (this.usersTable.selected.length > 0) {
-                        this.usersTable.selected.pop();
+                if(applicationRoles !== null){
+                    if (applicationRoles.length > 0) {
+                        vm.restrictedRDSApplication = true;
+                        while (this.usersTable.selected.length > 0) {
+                            this.usersTable.selected.pop();
+                        }
+                        this.usersTable.selected.push(this.selfServiceUser);
+                        vm.selfService = true;
                     }
-                    this.usersTable.selected.push(this.selfServiceUser);
-                    vm.selfService = true;
+                    else{
+                        vm.restrictedRDSApplication = false;
+                    }
                 }
                 else{
                     vm.restrictedRDSApplication = false;
-
                 }
             }
             else{
