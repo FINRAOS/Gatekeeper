@@ -29,6 +29,7 @@ class GkRdsCheckbox extends Directive{
             formAttr: '@',
             label: '@',
             disableFn: '=',
+            roleGroup: '=',
         };
         this.transclude = true;
         this.controllerAs="ctrl";
@@ -60,6 +61,10 @@ class GkRdsCheckbox extends Directive{
                 $scope.formObj[$scope.formAttr] = false;
             }
             return disabled;
+        };
+
+        vm.roleGroup=()=>{
+            return $scope.roleGroup();
         };
     }
 
