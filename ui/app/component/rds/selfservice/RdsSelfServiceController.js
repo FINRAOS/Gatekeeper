@@ -147,7 +147,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
             });
             if(!vm.global.userInfo.isApprover) {
                 if (map !== undefined) {
-
                     if (map.get(application) !== undefined) {
                         let roleName = this.convertRoleText(role);
                         let roleObject;
@@ -156,7 +155,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                 roleObject = roleItem;
                             }
                         });
-
                         if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
                             return true;
                         }

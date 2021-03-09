@@ -14,13 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<div>
 <md-checkbox class="gk-role-checkbox" ng-change="ctrl.updateForm(value)" ng-model="value" aria-label="{{ label }}" ng-init="formValue = false" ng-disabled="ctrl.disable()">
     {{ label }}
     <md-tooltip class ="gk-role-tooltip" ng-if="ctrl.disable()" font-size="128px">
         {{ ctrl.roleGroup() }}
     </md-tooltip>
-
 </md-checkbox>
 
-</div>
