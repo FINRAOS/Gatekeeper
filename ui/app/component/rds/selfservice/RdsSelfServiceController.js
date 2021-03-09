@@ -58,10 +58,6 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
     }
     returnRoleGroup(role){
-        let map;
-        if(vm.global.userInfo.rdsApplicationRoles !== undefined) {
-            map = new Map(Object.entries(vm.global.userInfo.rdsApplicationRoles));
-        }
         return () => {
             let application = null;
             let applicationRoles = null;
@@ -72,19 +68,17 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                 if (item.availableRoles.indexOf(role) === -1) {
                     text = 'This role does not exist for the current database';
                 }
-                });
+            });
             if(!vm.global.userInfo.isApprover) {
-                if (map !== undefined) {
-                    if (map.get(application) !== undefined) {
-                        let roleName = this.convertRoleText(role);
-                        applicationRoles.forEach((roleItem) => {
-                            if (roleItem.gkRole === roleName) {
-                                if(text ===''){
-                                    text = 'User requires the following role: ' + roleItem.name;
-                                }
+                let roleName = this.convertRoleText(role);
+                if(applicationRoles !== null){
+                    applicationRoles.forEach((roleItem) => {
+                        if (roleItem.gkRole === roleName) {
+                            if(text ===''){
+                                text = 'User requires the following role: ' + roleItem.name;
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }
             if(text === ''){
