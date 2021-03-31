@@ -32,7 +32,7 @@
         <aws.sdk.version>1.11.800</aws.sdk.version>
         <compiler.version>3.3</compiler.version>
         <failsafe.version>2.18.1</failsafe.version>
-        <guava.version>24.0-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <h2.version>1.4.185</h2.version>
         <junit.version>5.0.0</junit.version>
         <logback.version>1.2.3</logback.version>
