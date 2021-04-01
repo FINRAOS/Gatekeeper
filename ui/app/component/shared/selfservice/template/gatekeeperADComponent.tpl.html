@@ -18,6 +18,12 @@
 <md-card layout-padding>
     <div id="containerADSearch">
         <h1 class=".md-display-1">Who needs access?</h1>
+        <div ng-if="gkSelfServiceCtrl.restrictedRDSApplication" layout="row" layout-align="start start" layout-padding>
+            <md-icon class="gk-alert md-accent md-avatar" md-svg-src="alert:warning"></md-icon>
+            <span>
+                You have selected a restricted RDS. For the following request you may only request access for yourself.
+            </span>
+        </div>
         <form name="gkSelfServiceCtrl.forms.adForm" layout="row">
             <div layout="column">
                 <md-input-container>
