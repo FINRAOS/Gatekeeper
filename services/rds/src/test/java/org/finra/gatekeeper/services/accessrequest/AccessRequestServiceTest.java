@@ -50,6 +50,7 @@ import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
+import org.finra.gatekeeper.services.group.service.GatekeeperGroupAuthService;
 import org.hibernate.query.internal.NativeQueryImpl;
 import org.junit.Assert;
 import org.junit.Before;
@@ -192,6 +193,9 @@ public class AccessRequestServiceTest {
     @Mock
     private NativeQueryImpl roleQuery;
 
+    @Mock
+    private GatekeeperGroupAuthService groupAuthService;
+
     private List<Map<String, String>> requestsMap = new ArrayList<>();
     private List<Map<String, String>> instanceMap = new ArrayList<>();
     private List<Map<String, String>> userMap = new ArrayList<>();
@@ -289,6 +293,8 @@ public class AccessRequestServiceTest {
         when(runtimeService.createProcessInstanceQuery()).thenReturn(processInstanceQuery);
         when(runtimeService.createProcessInstanceQuery().count()).thenReturn(2L);
 
+        //Mocks for GroupAuthService
+        when(groupAuthService.hasGroupAuth(Mockito.any(), Mockito.any())).thenReturn("Allowed");
 
         //Mocks for getActiveRequest()
         when(ownerOneTask.getExecutionId()).thenReturn("ownerOneTask");

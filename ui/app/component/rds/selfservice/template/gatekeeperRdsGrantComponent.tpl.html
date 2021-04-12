@@ -24,6 +24,9 @@
         <p class=".md-body-2" ng-if="gkSelfServiceCtrl.usersTable.selected.length === 0">
             You have no selected grantees
         </p>
+        <p class=".md-body-2" ng-if="gkSelfServiceCtrl.restrictedRDSApplication">
+            You may only request access for yourself for the selected RDS.
+        </p>
         <md-chips class="gk-selected-item" ng-if="gkSelfServiceCtrl.usersTable.selected.length > 0" ng-model="gkSelfServiceCtrl.usersTable.selected" md-on-remove="gkSelfServiceCtrl.isSelectedUserCurrentUser($chip)" readonly="false">
             <md-chip-template>
                 <strong>{{$chip.name}}</strong>
@@ -44,7 +47,7 @@
         <h3 class=".md-display-3">With the following roles</h3>
         <form name="gkSelfServiceCtrl.forms.grantForm" layout="column">
             <div layout="row">
-                <gatekeeper-role-checkbox  ng-repeat="role in gkSelfServiceCtrl.roles" form-obj="gkSelfServiceCtrl.forms.grantForm.selectedRoles" form-attr="{{ role.model }}" label="{{ role.label }}" disable-fn="role.disableFn"></gatekeeper-role-checkbox>
+                <gatekeeper-role-checkbox  ng-repeat="role in gkSelfServiceCtrl.roles" form-obj="gkSelfServiceCtrl.forms.grantForm.selectedRoles" form-attr="{{ role.model }}" label="{{ role.label }}" disable-fn="role.disableFn" role-group="role.roleGroup"></gatekeeper-role-checkbox>
             </div>
             <div layout="row">
                 <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
@@ -74,6 +77,10 @@
         </form>
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.request">
             <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+        </div>
+        <div class="gk-error" ng-if="gkSelfServiceCtrl.error.roles">
+            <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
+            <span>{{gkSelfServiceCtrl.error.roles}}</span>
         </div>
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.databases">
             <span class="gk-error-text" layout="row">For the following Databases, these users need to be cleaned up before you can use gatekeeper to access them</span>

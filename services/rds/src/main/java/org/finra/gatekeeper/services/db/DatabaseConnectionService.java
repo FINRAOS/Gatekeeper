@@ -250,7 +250,10 @@ public class DatabaseConnectionService {
     }
 
     private String getAddress(String endpoint, String dbName){
-        return endpoint + "/" + dbName;
+        if(dbName != null && !dbName.isEmpty()) {
+            return endpoint + "/" + dbName;
+        }
+        return endpoint + "/";
     }
 
     /*
@@ -261,7 +264,10 @@ public class DatabaseConnectionService {
     }
 
     private String getAddress(String endpoint, Integer port, String dbName){
-        return String.format("%s:%s/%s", endpoint, port, dbName);
+        if(dbName != null && !dbName.isEmpty()) {
+            return String.format("%s:%s/%s", endpoint, port, dbName);
+        }
+        return String.format("%s:%s/", endpoint, port);
     }
 
 }

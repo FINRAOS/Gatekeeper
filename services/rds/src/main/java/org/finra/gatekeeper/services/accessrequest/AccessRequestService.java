@@ -44,6 +44,7 @@ import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
+import org.finra.gatekeeper.services.group.service.GatekeeperGroupAuthService;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -83,6 +84,7 @@ public class AccessRequestService {
     private final EmailServiceWrapper emailServiceWrapper;
     private final SnsService snsService;
     private final EntityManager entityManager;
+    private final GatekeeperGroupAuthService gatekeeperGroupAuthService;
     private final String REJECTED = "REJECTED";
     private final String APPROVED = "APPROVED";
     private final String CANCELED = "CANCELED";
@@ -162,7 +164,9 @@ public class AccessRequestService {
                                 DatabaseConnectionService databaseConnectionService,
                                 EmailServiceWrapper emailServiceWrapper,
                                 SnsService snsService,
-                                EntityManager entityManager){
+                                EntityManager entityManager,
+                                GatekeeperGroupAuthService groupAuthService
+    ){
         this.taskService = taskService;
         this.accessRequestRepository = accessRequestRepository;
         this.gatekeeperRoleService = gatekeeperRoleService;
@@ -175,6 +179,7 @@ public class AccessRequestService {
         this.emailServiceWrapper = emailServiceWrapper;
         this.snsService = snsService;
         this.entityManager = entityManager;
+        this.gatekeeperGroupAuthService = groupAuthService;
     }
 
     /**
@@ -187,6 +192,17 @@ public class AccessRequestService {
      */
     public AccessRequestCreationResponse storeAccessRequest(AccessRequestWrapper request) throws GatekeeperException{
         GatekeeperUserEntry requestor = gatekeeperRoleService.getUserProfile();
+
+        //Approvers override elevated requirements
+        if(!gatekeeperRoleService.isApprover()){
+            //Fails if they do not have authorization for an elevated request
+            String response = gatekeeperGroupAuthService.hasGroupAuth(request, requestor);
+            if(!response.equals("Allowed")){
+                logger.error("User is not authorized for this request.");
+                return new AccessRequestCreationResponse(AccessRequestCreationOutcome.USER_NOT_AUTHORIZED,response);
+            }
+        }
+
 
         Integer maxDays = gatekeeperRoleService.isApprover() ? overridePolicy.getMaxDays() : overridePolicy.getMaxDaysForRequest(gatekeeperRoleService.getRoleMemberships(), request.getRoles(), request.getAccountSdlc());
         logger.info("Maximum days allowed for user " + requestor.getUserId() + ": " + maxDays);
@@ -223,6 +239,7 @@ public class AccessRequestService {
         }catch(Exception e){
             throw new GatekeeperException("Unable to verify the Users for the provided databases", e);
         }
+
 
         if(!checkResult.isEmpty()){
             return new AccessRequestCreationResponse(AccessRequestCreationOutcome.NOT_CREATED_USER_ISSUE,checkResult);

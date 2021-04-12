@@ -38,7 +38,7 @@ describe('GateKeeper UI gatekeeper component', function () {
             deferred = $q.defer();
             spyOn(mockDataSvc, 'fetch').and.returnValue(deferred.promise);
 
-            controller = new GatekeeperController($state, mockDataSvc,scope, $rootScope);
+            controller = new GatekeeperController($state, mockDataSvc, scope, $rootScope);
         }));
 
         it('ready() will return false if user is not set and should return true if user is set', inject(function(){
@@ -47,6 +47,7 @@ describe('GateKeeper UI gatekeeper component', function () {
                         name:'test guy',
                         role:"SUPPORT",
                         email:"test@place.com",
+                        rdsApplicationRoles: [],
                         memberships:['Application'],
                         userId: 'tguy'
                     }
@@ -63,6 +64,8 @@ describe('GateKeeper UI gatekeeper component', function () {
                         name:'test guy',
                         role:"UNAUTHORIZED",
                         email:"test@place.com",
+                        applicationRoles: [],
+                        rdsApplicationRoles: [],
                         memberships:['Application'],
                         userInfo: {
                             role: "SUPPORT"

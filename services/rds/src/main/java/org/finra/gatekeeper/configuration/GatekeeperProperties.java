@@ -60,6 +60,11 @@ public class GatekeeperProperties {
          */
         private String team;
 
+        /**
+         * Whether or not to send Access Requested emails
+         */
+        private boolean sendAccessRequestedEmail;
+
         public String getApproverEmails() {
             return approverEmails;
         }
@@ -93,6 +98,15 @@ public class GatekeeperProperties {
 
         public EmailProperties setTeam(String team) {
             this.team = team;
+            return this;
+        }
+
+        public boolean isSendAccessRequestedEmail() {
+            return sendAccessRequestedEmail;
+        }
+
+        public EmailProperties setSendAccessRequestedEmail(boolean sendAccessRequestedEmail) {
+            this.sendAccessRequestedEmail = sendAccessRequestedEmail;
             return this;
         }
 
@@ -248,6 +262,12 @@ public class GatekeeperProperties {
             private String distinguishedName;
 
 
+            /**
+             * The base to search for the restricted AD Groups
+             */
+            private String restrictedGroupsBase;
+
+
             public String getPattern() {
                 return pattern;
             }
@@ -335,6 +355,15 @@ public class GatekeeperProperties {
 
             public GatekeeperLdapProperties setDistinguishedName(String distinguishedName) {
                 this.distinguishedName = distinguishedName;
+                return this;
+            }
+
+            public String getRestrictedGroupsBase() {
+                return restrictedGroupsBase;
+            }
+
+            public GatekeeperLdapProperties setRestrictedGroupsBase(String restrictedGroupsBase) {
+                this.restrictedGroupsBase = restrictedGroupsBase;
                 return this;
             }
         }

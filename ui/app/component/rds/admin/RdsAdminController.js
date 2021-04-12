@@ -107,6 +107,8 @@ class RdsAdminController extends GatekeeperAdminController{
                 sdlc: vm.forms.awsInstanceForm.selectedAccount.sdlc,
                 instanceId: row.instanceId,
                 instanceName: row.name,
+                instanceType: vm.forms.awsInstanceForm.selectedType.key
+
             });
 
         vm.usersTable.promise.then((response) => {
@@ -136,7 +138,10 @@ class RdsAdminController extends GatekeeperAdminController{
                     vm.forms.awsInstanceForm.selectedAccount.sdlc,
                     vm.selectedItems[0].instanceId,
                     vm.selectedItems[0].name,
-                    vm.usersTable.selected);
+                    vm.usersTable.selected,
+                    vm.forms.awsInstanceForm.selectedType.key
+
+                );
 
                 vm.usersTable.promise.then((response) => {
                     vm.usersTable.data = response.data;

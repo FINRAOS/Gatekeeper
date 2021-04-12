@@ -26,17 +26,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix="gatekeeper")
 public class GatekeeperSnsProperties {
 
-    private String topicARN;
     private SnsProperties sns;
-
-    public String getTopicARN() {
-        return topicARN;
-    }
-
-    public GatekeeperSnsProperties setTopicARN(String topicARN) {
-        this.topicARN = topicARN;
-        return this;
-    }
 
     public SnsProperties getSns() { return sns; }
 
@@ -49,12 +39,22 @@ public class GatekeeperSnsProperties {
         private int retryCount = -1;
         private int retryIntervalMillis = -1;
         private int retryIntervalMultiplier = -1;
+        private String topicARN;
         private String approvalTopicARN;
 
         public String getApprovalTopicARN() { return approvalTopicARN; }
 
         public SnsProperties setApprovalTopicARN(String approvalTopicARN) {
             this.approvalTopicARN = approvalTopicARN;
+            return this;
+        }
+
+        public String getTopicARN() {
+            return topicARN;
+        }
+
+        public SnsProperties setTopicARN(String topicARN) {
+            this.topicARN = topicARN;
             return this;
         }
 

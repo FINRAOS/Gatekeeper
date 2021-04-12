@@ -37,11 +37,11 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         this[DIALOG] = $mdDialog;
 
         vm.roles = [
-                { model: 'readonly', label: 'Read Only', disableFn: vm.disableRoleCheckbox('gk_readonly') },
-                { model: 'readonly_confidential', label: 'Read Only (Confidential)', disableFn: vm.disableRoleCheckbox('gk_readonly_confidential') },
-                { model: 'datafix', label: 'Datafix', disableFn: vm.disableRoleCheckbox('gk_datafix') },
-                { model: 'dba', label: 'DBA', disableFn: vm.disableRoleCheckbox('gk_dba') },
-                { model: 'dba_confidential', label: 'DBA (Confidential)', disableFn: vm.disableRoleCheckbox('gk_dba_confidential') }
+                { model: 'readonly', label: 'Read Only', disableFn: vm.disableRoleCheckbox('gk_readonly'),roleGroup: vm.returnRoleGroup('gk_readonly')},
+                { model: 'readonly_confidential', label: 'Read Only (Confidential)', disableFn: vm.disableRoleCheckbox('gk_readonly_confidential'),roleGroup: vm.returnRoleGroup('gk_readonly_confidential')},
+                { model: 'datafix', label: 'Datafix', disableFn: vm.disableRoleCheckbox('gk_datafix'),roleGroup: vm.returnRoleGroup('gk_datafix')},
+                { model: 'dba', label: 'DBA', disableFn: vm.disableRoleCheckbox('gk_dba'),roleGroup: vm.returnRoleGroup('gk_dba') },
+                { model: 'dba_confidential', label: 'DBA (Confidential)', disableFn: vm.disableRoleCheckbox('gk_dba_confidential'),roleGroup: vm.returnRoleGroup('gk_dba_confidential') }
             ];
         vm.selectedItems = [];
         vm.rdsInstances = [];
@@ -54,25 +54,149 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
         }).catch((error)=>{
             console.log('Error retrieving justification config: ' + error);
         });
+
+
     }
+    returnRoleGroup(role){
+        return () => {
+            let application = null;
+            let applicationRoles = null;
+            let text = '';
+            vm.selectedItems.forEach((item) => {
+                application = item.application;
+                applicationRoles = item.applicationRoles;
+                if (item.availableRoles.indexOf(role) === -1) {
+                    text = 'This role does not exist for the current database';
+                }
+            });
+            if(!vm.global.userInfo.isApprover) {
+                let roleName = this.convertRoleText(role);
+                if(applicationRoles !== null){
+                    applicationRoles.forEach((roleItem) => {
+                        if (roleItem.gkRole === roleName) {
+                            if(text ===''){
+                                text = 'User requires the following role: ' + roleItem.name;
+                            }
+                        }
+                    });
+                }
+            }
+            if(text === ''){
+                text = 'This role is currently disabled';
+            }
+            return text;
+        };
 
+    }
+    convertRoleText(role){
+        switch (role){
+            case 'gk_datafix':
+                return 'DF';
+            case 'gk_dba_confidential':
+                return 'DBAC';
+            case 'gk_readonly':
+                return 'RO';
+            case 'gk_dba':
+                return 'DBA';
+            case 'gk_readonly_confidential':
+                return 'ROC';
+            default:
+                return role;
 
+        }
+    }
+    shallowEqual(userGroup, rdsGroup){
+        if(userGroup.gkRole !== rdsGroup.gkRole){
+            return false;
+        }
+        if(userGroup.application !== rdsGroup.application){
+            return false;
+        }
+        if(userGroup.sdlc !== rdsGroup.sdlc){
+            return false;
+        }
+        if(userGroup.name !== rdsGroup.name){
+            return false;
+        }
+        return true;
+    }
     disableRoleCheckbox(roleStr){
         let role = roleStr;
+        let map;
+        if(vm.global.userInfo.rdsApplicationRoles !== undefined) {
+            map = new Map(Object.entries(vm.global.userInfo.rdsApplicationRoles));
+        }
         return () => {
             let dbsThatDontSupportRole = vm.selectedItems.length;
+            let application = null;
+            let applicationRoles = null;
+
             vm.selectedItems.forEach((item) => {
                 if (item.availableRoles.indexOf(role) !== -1) {
                     dbsThatDontSupportRole--;
                 }
-            });
+                application = item.application;
+                applicationRoles = item.applicationRoles;
 
+            });
+            if(!vm.global.userInfo.isApprover) {
+                if (map !== undefined) {
+                    if (map.get(application) !== undefined) {
+                        let roleName = this.convertRoleText(role);
+                        let roleObject;
+                        applicationRoles.forEach((roleItem) => {
+                            if (roleItem.gkRole === roleName) {
+                                roleObject = roleItem;
+                            }
+                        });
+                        if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
+                            return true;
+                        }
+                    } else if (applicationRoles !== null) {
+                        if (applicationRoles.length > 0) {
+                            return true;
+                        }
+                    }
+                }
+            }
             return vm.selectedItems.length === 0 || dbsThatDontSupportRole > 0;
         };
     }
 
+    disableAddOtherUser() {
+        if(!vm.global.userInfo.isApprover){
+            let items = vm.selectedItems[0];
+            if(items !== undefined) {
+                let applicationRoles = items.applicationRoles;
+                if(applicationRoles !== null){
+                    if (applicationRoles.length > 0) {
+                        vm.restrictedRDSApplication = true;
+                        while (this.usersTable.selected.length > 0) {
+                            this.usersTable.selected.pop();
+                        }
+                        this.usersTable.selected.push(this.selfServiceUser);
+                        vm.selfService = true;
+                    }
+                    else{
+                        vm.restrictedRDSApplication = false;
+                    }
+                }
+                else{
+                    vm.restrictedRDSApplication = false;
+                }
+            }
+            else{
+                vm.restrictedRDSApplication = false;
+            }
+        }
+        else {
+            vm.restrictedRDSApplication= false;
+        }
+    }
+
     isFormValid(){
         let valueChecked = false;
+        this.disableAddOtherUser();
 
         if(vm.forms.grantForm && vm.forms.grantForm.selectedRoles) {
             angular.forEach(vm.forms.grantForm.selectedRoles, (v, k) => {
@@ -211,7 +335,27 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                         .position('bottom right')
                                         .hideDelay(10000)
                                 );
-                            }else{
+                            }else if(response.data.outcome === 'USER_NOT_AUTHORIZED'){
+                                msg = 'User is not authorized to make this request. \n' + response.data.response;
+                                let config = {
+                                    clickOutsideToClose: true,
+                                    title: 'ERROR',
+                                    template: require("../../shared/request/template/error.tpl.html"),
+                                    parent: angular.element(document.body),
+                                    locals: {
+                                        message: msg
+                                    },
+                                    controller: ['$scope', '$mdDialog', 'message', function ($scope, $mdDialog, message) {
+                                        $scope.message = message;
+                                        $scope.cancel = function () {
+                                            $mdDialog.cancel();
+                                        };
+                                    }
+                                    ]
+                                };
+                                vm[DIALOG].show(config);
+                            }
+                        else{
                                 msg = 'Access was NOT requested due to old/expired users having temporary tables on the databases that were selected, please work with the Ops team to get these users cleaned up.';
                                 let config = {
                                     clickOutsideToClose: true,
@@ -241,7 +385,10 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
 
                                 //needed since forms are still dirty
                                 vm.confirm = false;
-                            }else{
+                            }else if(response.data.outcome === 'USER_NOT_AUTHORIZED'){
+                                vm.error.roles = response.data.response;
+                            }
+                            else{
                                 vm.error.databases = response.data.response;
                             }
                         }).catch((error) => {

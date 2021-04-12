@@ -52,7 +52,7 @@ public class DatabaseController {
 
         AWSEnvironment awsEnvironment = new AWSEnvironment(removeUsersWrapper.getAccount(), removeUsersWrapper.getRegion(), removeUsersWrapper.getSdlc());
         try {
-            GatekeeperRDSInstance rdsInstance = rdsLookupService.getOneInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName()).get();
+            GatekeeperRDSInstance rdsInstance = rdsLookupService.getOneInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName(), removeUsersWrapper.getInstanceType()).get();
             List<String> result = this.databaseConnectionService.forceRevokeAccessUsersOnDatabase(rdsInstance, awsEnvironment, removeUsersWrapper.getUsers());
             if(!result.isEmpty()){
                 throw new GatekeeperException("Failed to remove the following users: " + result + ". Please verify that they do not have any dependent objects; " +
@@ -64,6 +64,6 @@ public class DatabaseController {
                     + removeUsersWrapper.getRegion() + ") - " + e.getMessage() , e);
         }
 
-        return rdsLookupService.getUsersForInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName());
+        return rdsLookupService.getUsersForInstance(awsEnvironment, removeUsersWrapper.getInstanceId(), removeUsersWrapper.getInstanceName(), removeUsersWrapper.getInstanceType());
     }
 }

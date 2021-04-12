@@ -86,7 +86,7 @@ public class AccessRequestController {
 
     @RequestMapping(value = "/approveRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object approveRequest(@RequestBody ActiveAccessRequestWrapper request) {
-        return accessRequestService.approveRequest(request.getTaskId(), request.getId(), request.getApproverComments());
+        return accessRequestService.approveRequest(request.getTaskId(), request.getId(), request.getApproverComments(), request.getHours());
     }
 
     @RequestMapping(value = "/rejectRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)

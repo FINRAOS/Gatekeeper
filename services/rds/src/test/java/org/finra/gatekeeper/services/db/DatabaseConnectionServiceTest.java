@@ -44,10 +44,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class DatabaseConnectionServiceTest {
@@ -96,9 +93,9 @@ public class DatabaseConnectionServiceTest {
                 .setArn("testArn");
 
         supportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), database.getEngine(), database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS);
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS, new HashSet<>());
         unsupportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), TEST_UNSUPPORTED_ENGINE, database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS);
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS, new HashSet<>());
         rdsInstance = new DBInstance()
                 .withDBInstanceIdentifier(database.getName())
                 .withEngine(database.getEngine())

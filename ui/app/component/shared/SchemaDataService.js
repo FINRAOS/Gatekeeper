@@ -27,7 +27,7 @@ class SchemaDataService extends SearchableDataService{
     constructor($http,$state){
         super($http,$state);
         this.resource = 'getAvailableSchemas';
-        this.params= ['account','region','sdlc','instanceId', "instanceName"];
+        this.params= ['account','region','sdlc','instanceId', "instanceName", "instanceType"];
     }
 }
 

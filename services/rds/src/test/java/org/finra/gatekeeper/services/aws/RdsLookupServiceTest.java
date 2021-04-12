@@ -27,6 +27,7 @@ import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
+import org.finra.gatekeeper.services.group.service.GatekeeperLdapGroupLookupService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +49,8 @@ public class RdsLookupServiceTest {
     private DatabaseConnectionService databaseConnectionService;
     @Mock
     private SGLookupService sgLookupService;
-
+    @Mock
+    private GatekeeperLdapGroupLookupService rdsGroupLookupService;
     @Mock
     private GKUserCredentialsProvider gkUserCredentialsProvider;
 
@@ -89,8 +91,11 @@ public class RdsLookupServiceTest {
     public void setUp() throws Exception {
         gatekeeperProperties = new GatekeeperProperties()
                 .setAppIdentityTag(APP_IDENTITY);
-        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties);
-        test = new AWSEnvironment("test", "test", "test");
+
+        Mockito.when(rdsGroupLookupService.getLdapAdGroups()).thenReturn(new HashMap<>());
+
+        rdsLookupService = new RdsLookupService(awsSessionService, databaseConnectionService, sgLookupService, gatekeeperProperties, rdsGroupLookupService);
+        test = new AWSEnvironment("test", "test", "dev");
 
         Mockito.when(awsSessionService.getRDSSession(test)).thenReturn(amazonRDSClient);
 
@@ -379,7 +384,7 @@ public class RdsLookupServiceTest {
         Mockito.when(amazonRDSClient.describeDBInstances(Mockito.any())).thenReturn(
                 new DescribeDBInstancesResult().withDBInstances(
                         initializeInstance("instance1", RDS_ENGINE_PG, "gk-A-instance", "db-gk1", STATUS_AVAILABLE, SG_ONE, null)));
-        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "gk-A-instance", "gk-A-instance");
+        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "gk-A-instance", "gk-A-instance", "RDS");
         Assert.assertTrue(instance.isPresent());
         Assert.assertEquals("TEST", instance.get().getApplication());
         Assert.assertEquals("available", instance.get().getStatus());
@@ -392,7 +397,7 @@ public class RdsLookupServiceTest {
                 new DescribeDBClustersResult().withDBClusters(
                         initializeCluster("dbendpoint1", "gk-A-cluster", "cluster-gk1", STATUS_AVAILABLE, SG_ONE, null, 2, true))
         );
-        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "cluster-gk1", "gk-A-cluster");
+        Optional<GatekeeperRDSInstance> instance = rdsLookupService.getOneInstance(test, "cluster-gk1", "gk-A-cluster", "AURORA_REGIONAL");
         Assert.assertTrue(instance.isPresent());
         Assert.assertEquals("TEST", instance.get().getApplication());
         Assert.assertEquals("available", instance.get().getStatus());

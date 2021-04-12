@@ -48,6 +48,7 @@ public class EmailServiceWrapper {
     private String opsEmails;
     private String teamEmail;
     private String mailFrom;
+    private boolean sendAccessRequestedEmail;
 
     @Autowired
     public EmailServiceWrapper(EmailService emailService, GatekeeperProperties gatekeeperProperties){
@@ -56,6 +57,7 @@ public class EmailServiceWrapper {
         this.opsEmails = gatekeeperProperties.getEmail().getOpsEmails();
         this.teamEmail = gatekeeperProperties.getEmail().getTeam();
         this.mailFrom = gatekeeperProperties.getEmail().getFrom();
+        this.sendAccessRequestedEmail = gatekeeperProperties.getEmail().isSendAccessRequestedEmail();
     }
 
     /*
@@ -94,12 +96,19 @@ public class EmailServiceWrapper {
 
     /**
      * Notifies the gatekeeper admins (the approvers) that there's a new access request in their bucket.
-     *
+     * Will only send email if gatekeeper.email.sendAccessRequestedEmail is set to true
      * @param request - The request the email is for
      */
     public void notifyAdmins(AccessRequest request){
         logger.info("Notify the admins of: " + request);
-        emailHelper(approverEmails, null, String.format("GATEKEEPER: Access Requested (%s)", request.getId()), "accessRequested", request);
+        if(sendAccessRequestedEmail) {
+            logger.info("Notify the admins of: " + request);
+            emailHelper(approverEmails, null, String.format("GATEKEEPER: Access Requested (%s)", request.getId()), "accessRequested", request);
+        }
+        else{
+            logger.info("No email was sent to notify admins of " + request + ". Set gatekeeper.email.sendAccessRequestedEmail to true to send emails.");
+        }
+
     }
 
     public void notifyExpired(AccessRequest request){

@@ -60,7 +60,20 @@
                 </tr>
                 <tr layout-padding>
                     <td><span class="md-body-2">Hours Requested: </span></td>
-                    <td layout-padding><span>{{::dialogCtrl.row.hours}} </span></td>
+                    <td>
+                        <md-input-container id="containerGkInputGrant" layout="center" ng-if="::dialogCtrl.isAdmin">
+                            <input
+
+                                    id="gkInputGrant"
+                                    aria-label="Hours"
+                                    class=".md-display-1"
+                                    min="1" max="168"
+                                    type="number"
+                                    value = {{::dialogCtrl.row.hours}}
+                                    ng-model="dialogCtrl.row.hours" required>
+                        </md-input-container>
+                        <span layout-padding ng-if="::!dialogCtrl.isAdmin">{{::dialogCtrl.row.hours}} </span>
+                    </td>
                 </tr>
                 <tr layout-padding>
                     <td><span class="md-body-2">Request Created: </span></td>

@@ -17,6 +17,7 @@
 
 package org.finra.gatekeeper.services.roles;
 
+import com.google.common.collect.Maps;
 import org.finra.gatekeeper.common.authfilter.parser.GatekeeperUserProfile;
 import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
@@ -27,6 +28,7 @@ import org.finra.gatekeeper.configuration.GatekeeperRdsAuthProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
 import org.finra.gatekeeper.services.auth.model.RoleMembership;
+import org.finra.gatekeeper.services.group.model.GatekeeperADGroupEntry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,6 +97,8 @@ public class GatekeeperRoleServiceTest {
         when(gatekeeperRdsAuthProperties.getDbaGroupsPattern()).thenReturn("COMPANY_([a-zA-Z]+)_DBA");
         when(gatekeeperRdsAuthProperties.getOpsGroupsPattern()).thenReturn("COMPANY_([a-zA-Z]+)_OPS");
         when(gatekeeperRdsAuthProperties.getDevGroupsPattern()).thenReturn("COMPANY_([a-zA-Z]+)_DEV_(DEV|QA|QC|PROD)");
+        when(gatekeeperRdsAuthProperties.getAdGroupsPattern()).thenReturn("APP_GK_([A-Z]{2,8})_(RO|DF|DBA|ROC|DBAC)_(Q|D|P)");
+        when(gatekeeperRdsAuthProperties.getRestrictedPrefix()).thenReturn("APP_GK_");
 
         when(userEntry.getEmail()).thenReturn("userEntry@gk.org");
         when(userEntry.getName()).thenReturn("userName");
@@ -352,6 +356,48 @@ public class GatekeeperRoleServiceTest {
         Assert.assertEquals(3, result.size());
     }
 
+    @Test
+    public void testLoadRestrictedGroups(){
+        Map<String, Set<GatekeeperADGroupEntry>> expectedReturn = new HashMap<String, Set<GatekeeperADGroupEntry>>();
+        Set<GatekeeperADGroupEntry> AAASet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> BBBSet = new HashSet<>();
+
+        AAASet.add(new GatekeeperADGroupEntry("AAA", "RO", "D", "APP_GK_AAA_RO_D"));
+        AAASet.add(new GatekeeperADGroupEntry("AAA", "DBA", "Q", "APP_GK_AAA_DBA_Q"));
+        BBBSet.add(new GatekeeperADGroupEntry("BBB", "RO", "D", "APP_GK_BBB_RO_D"));
+
+        expectedReturn.put("BBB", BBBSet);
+        expectedReturn.put("AAA", AAASet);
+
+        char[] sdlc = new char[1];
+        sdlc[0] = ' ';
+        when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
+        when(gatekeeperAuthorizationService.getMemberships()).thenReturn(initRestrictedMemberships());
+
+
+        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperRoleService.getRestrictedRoleMemberships()).areEqual());
+    }
+
+    @Test
+    public void testLoadRestrictedGroupsWithUnrestrictedSDLC(){
+        Map<String, Set<GatekeeperADGroupEntry>> expectedReturn = new HashMap<String, Set<GatekeeperADGroupEntry>>();
+        Set<GatekeeperADGroupEntry> AAASet = new HashSet<>();
+        Set<GatekeeperADGroupEntry> BBBSet = new HashSet<>();
+
+        AAASet.add(new GatekeeperADGroupEntry("AAA", "RO", "D", "APP_GK_AAA_RO_D"));
+        BBBSet.add(new GatekeeperADGroupEntry("BBB", "RO", "D", "APP_GK_BBB_RO_D"));
+
+        expectedReturn.put("BBB", BBBSet);
+        expectedReturn.put("AAA", AAASet);
+
+        char[] sdlc = new char[1];
+        sdlc[0] = 'Q';
+        when(gatekeeperRdsAuthProperties.getUnrestrictedSDLC()).thenReturn(sdlc);
+        when(gatekeeperAuthorizationService.getMemberships()).thenReturn(initRestrictedMemberships());
+
+        Assert.assertTrue(Maps.difference(expectedReturn, gatekeeperRoleService.getRestrictedRoleMemberships()).areEqual());
+    }
+
     private void initRoleMemberships() {
         roleMemberships = new HashMap<>();
         gatekeeperRdsRoles = new HashSet<>();
@@ -385,6 +431,15 @@ public class GatekeeperRoleServiceTest {
         roleMemberships.put("TESTDBA", testDba);
 
         gatekeeperRdsRoles.add(GatekeeperRdsRole.DBA);
+    }
+
+
+    private Set<String> initRestrictedMemberships(){
+        Set<String> fakeSet = new HashSet<>();
+        fakeSet.add("APP_GK_AAA_RO_D");
+        fakeSet.add("APP_GK_BBB_RO_D");
+        fakeSet.add("APP_GK_AAA_DBA_Q");
+        return fakeSet;
     }
 
 }

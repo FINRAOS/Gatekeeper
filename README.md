@@ -220,6 +220,8 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 | gatekeeper.email.team | The team that will be maintaining gatekeeper on your environment. | string 
 | gatekeeper.email.approverEmails | The email address for the group who will be handling approvals | string
 | gatekeeper.email.opsEmails | The email address for gatekeeper to reach out to the Ops team | string
+| gatekeeper.email.sendAccessRequestedEmail | Whether to send Access Requested emails | boolean
+| gatekeeper.email.changeDisclaimer | The disclaimer displayed in any access confirmation emails  | string
 
 #### DATABASE
 | Property | Description | Type|
@@ -370,7 +372,9 @@ These configurations are specific to Gatekeeper RDS
 | gatekeeper.auth.dbaGroupsPattern | A regular expression to extract group(s) of DBAS from ldap groups, requires one capture | string
 | gatekeeper.auth.opsGroupsPattern | A regular expression to extract group(s) of Ops Members from ldap groups. requires one capture | string
 | gatekeeper.auth.devGroupsPattern | A regular expression to extract group(s) of Dev Members from ldap groups. requires one capture | string
-
+| gatekeeper.auth.adGroupsPattern | A regular expression to extract AD group(s) from ldap groups. requires three captures | string
+| gatekeeper.auth.restrictedSDLC | What SDLC's should have the restrictive filter disabled | string
+| gatekeeper.auth.restrictedPrefix | The prefix for restricted AD Group(s) - Defaults to APP_GK_ | string
 ### SNS
 Gatekeeper supports the publishing of Approval/Expiration events to an SNS topic, this can be useful if you have other applications that need to react to an event from the gatekeeper service. 
 
