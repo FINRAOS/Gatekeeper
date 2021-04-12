@@ -149,7 +149,8 @@ class RdsSelfServiceController extends GatekeeperSelfServiceController {
                                 roleObject = roleItem;
                             }
                         });
-                        if (!map.get(application).some(mapRole => this.shallowEqual(mapRole, roleObject))) {
+
+                        if (roleObject && !map.get(application).some(mapRole=>this.shallowEqual(mapRole, roleObject))){
                             return true;
                         }
                     } else if (applicationRoles !== null) {
