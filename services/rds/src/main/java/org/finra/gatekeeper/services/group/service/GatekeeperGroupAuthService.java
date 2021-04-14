@@ -100,7 +100,7 @@ public class GatekeeperGroupAuthService implements IGatekeeperGroupAuthService {
         Set<GatekeeperADGroupEntry> userRoles = gatekeeperRoleService.getRestrictedRoleMemberships().get(application);
         //Check if the user has all the roles
         if(userRoles == null){
-            return missingGroupsMessage(requestor, requestGroups, application);
+            userRoles = new HashSet<>();
         }
         boolean permission = true;
        
