@@ -86,7 +86,7 @@ jobs:
   build_base_docker:
     working_directory: /repo
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: docker:19.03.15-git
     steps:
       - checkout
       - setup_remote_docker
@@ -107,7 +107,7 @@ jobs:
   build_java_docker:
     working_directory: /repo
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: docker:19.03.15-git
     steps:
       - checkout
       - setup_remote_docker
@@ -138,7 +138,7 @@ jobs:
   build_nginx_docker:
     working_directory: /repo
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: docker:19.03.15-git
     steps:
       - checkout
       - setup_remote_docker
@@ -169,7 +169,7 @@ jobs:
   build_and_push_ui:
     working_directory: ~/repo
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: docker:19.03.15-git
     steps:
       - checkout
       - setup_remote_docker
@@ -201,7 +201,7 @@ jobs:
   build_and_push_rds:
     working_directory: ~/repo
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: docker:19.03.15-git
     steps:
       - checkout
       - setup_remote_docker
@@ -232,7 +232,7 @@ jobs:
   build_and_push_ec2:
     working_directory: ~/repo
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: docker:19.03.15-git
     steps:
       - checkout
       - setup_remote_docker
