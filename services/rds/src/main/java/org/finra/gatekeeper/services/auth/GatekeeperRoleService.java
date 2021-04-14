@@ -285,7 +285,7 @@ public class GatekeeperRoleService {
     }
 
     public Map<String, Set<GatekeeperADGroupEntry>> getRestrictedRoleMemberships(){
-        return ldapRoleApplicationCache.getUnchecked("requestor").get();
+        return ldapRoleApplicationCache.getUnchecked(gatekeeperAuthorizationService.getUser().getUserId()).get();
     }
 
     public boolean isApprover(){
