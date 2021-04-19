@@ -21,8 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.TaskService;
+import org.activiti.engine.impl.event.logger.EventLoggerListener;
 import org.activiti.engine.task.Task;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
+import org.finra.gatekeeper.common.services.eventlogging.*;
 import org.finra.gatekeeper.configuration.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.configuration.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.controllers.AccessRequestController;
@@ -56,7 +58,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.querydsl.QuerydslUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
-
 import javax.persistence.EntityManagerFactory;
 import java.math.BigInteger;
 import javax.persistence.*;
@@ -248,7 +249,7 @@ public class AccessRequestService {
         logger.info("Storing Access Request");
         accessRequestRepository.save(accessRequest);
         logger.info("Access Request stored with ID: " + accessRequest.getId());
-
+        RequestEventLogger.logEventToJson(EventType.AccessRequested, accessRequest);
         //Kick off the activiti workflow
 
         Map<String, Object> variables = new HashMap<>();

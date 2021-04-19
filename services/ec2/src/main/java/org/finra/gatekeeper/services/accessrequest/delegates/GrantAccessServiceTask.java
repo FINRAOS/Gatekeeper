@@ -19,6 +19,7 @@ package org.finra.gatekeeper.services.accessrequest.delegates;
 import com.amazonaws.services.simplesystemsmanagement.model.CommandStatus;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
@@ -84,6 +85,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
         AccessRequest accessRequest = accessRequestService.updateInstanceStatus((AccessRequest) execution.getVariable("accessRequest"));
         logger.info("Granting Access to " + accessRequest);
+        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessGranted, accessRequest);
         try {
 
             // Prepare parameters

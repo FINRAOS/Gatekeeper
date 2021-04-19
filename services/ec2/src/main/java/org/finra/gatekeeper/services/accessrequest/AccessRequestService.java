@@ -25,6 +25,7 @@ import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntit
 import org.activiti.engine.task.Task;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
+import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.controllers.AccessRequestController;
@@ -196,6 +197,8 @@ public class AccessRequestService {
         logger.info("Storing Access Request");
         accessRequestRepository.save(accessRequest);
         logger.info("Access Request stored with ID: " + accessRequest.getId());
+        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessRequested, accessRequest);
+
 
         //Kick off the activiti workflow
 

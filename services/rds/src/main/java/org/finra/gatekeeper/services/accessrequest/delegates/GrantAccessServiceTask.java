@@ -19,6 +19,8 @@ package org.finra.gatekeeper.services.accessrequest.delegates;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
+import org.finra.gatekeeper.common.services.eventlogging.EventType;
+import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
@@ -70,6 +72,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
         AccessRequest accessRequest = (AccessRequest) execution.getVariable("accessRequest");
         logger.info("Granting Access to " + accessRequest);
+        RequestEventLogger.logEventToJson(EventType.AccessGranted, accessRequest);
         try {
 
             // Prepare parameters
