@@ -249,7 +249,7 @@ public class AccessRequestService {
         logger.info("Storing Access Request");
         accessRequestRepository.save(accessRequest);
         logger.info("Access Request stored with ID: " + accessRequest.getId());
-        RequestEventLogger.logEventToJson(EventType.AccessRequested, accessRequest);
+
         //Kick off the activiti workflow
 
         Map<String, Object> variables = new HashMap<>();
@@ -274,7 +274,7 @@ public class AccessRequestService {
             emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
             logger.error("Unable to push access request (" + accessRequestId + ") to SNS topic.");
         }
-
+        RequestEventLogger.logEventToJson(EventType.AccessRequested, accessRequest);
         return new AccessRequestCreationResponse(AccessRequestCreationOutcome.CREATED, accessRequest);
     }
 

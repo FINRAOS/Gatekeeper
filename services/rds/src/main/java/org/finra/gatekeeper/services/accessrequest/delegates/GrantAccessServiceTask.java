@@ -72,7 +72,6 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
         AccessRequest accessRequest = (AccessRequest) execution.getVariable("accessRequest");
         logger.info("Granting Access to " + accessRequest);
-        RequestEventLogger.logEventToJson(EventType.AccessGranted, accessRequest);
         try {
 
             // Prepare parameters
@@ -117,5 +116,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
         if (execution.getVariable("requestStatus") == null) {
             execution.setVariable("requestStatus", RequestStatus.GRANTED);
         }
+        RequestEventLogger.logEventToJson(EventType.AccessGranted, accessRequest);
+
     }
 }

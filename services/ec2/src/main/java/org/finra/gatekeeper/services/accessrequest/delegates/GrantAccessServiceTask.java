@@ -85,7 +85,6 @@ public class GrantAccessServiceTask implements JavaDelegate {
 
         AccessRequest accessRequest = accessRequestService.updateInstanceStatus((AccessRequest) execution.getVariable("accessRequest"));
         logger.info("Granting Access to " + accessRequest);
-        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessGranted, accessRequest);
         try {
 
             // Prepare parameters
@@ -134,6 +133,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
         if (execution.getVariable("requestStatus") == null) {
             execution.setVariable("requestStatus", RequestStatus.GRANTED);
         }
+        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessGranted, accessRequest);
     }
 
     /**

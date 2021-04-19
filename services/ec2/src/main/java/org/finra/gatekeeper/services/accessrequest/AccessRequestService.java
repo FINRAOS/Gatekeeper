@@ -197,8 +197,6 @@ public class AccessRequestService {
         logger.info("Storing Access Request");
         accessRequestRepository.save(accessRequest);
         logger.info("Access Request stored with ID: " + accessRequest.getId());
-        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessRequested, accessRequest);
-
 
         //Kick off the activiti workflow
 
@@ -224,6 +222,7 @@ public class AccessRequestService {
             emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
             logger.error("Unable to push access request (" + accessRequestId + ") to SNS topic.");
         }
+        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessRequested, accessRequest);
         return accessRequest;
     }
 
