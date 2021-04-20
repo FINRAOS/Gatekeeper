@@ -20,6 +20,7 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
+import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
 import org.finra.gatekeeper.services.accessrequest.model.messaging.enums.EventType;
 import org.finra.gatekeeper.services.aws.Ec2LookupService;
@@ -131,6 +132,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                 emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
                 logger.error("Error pushing to SNS topic upon request expiration. Request ID: " + accessRequest.getId());
             }
+            RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessExpired, accessRequest);
 
         }catch(Exception e){
             //Since we avoid bad SSM configurations, this code generally only gets called if there's an exception because of something in our code.

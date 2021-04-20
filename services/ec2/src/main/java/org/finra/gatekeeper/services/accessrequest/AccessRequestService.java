@@ -25,6 +25,7 @@ import org.activiti.engine.impl.persistence.entity.HistoricVariableInstanceEntit
 import org.activiti.engine.task.Task;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
+import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
 import org.finra.gatekeeper.controllers.AccessRequestController;
@@ -221,6 +222,7 @@ public class AccessRequestService {
             emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
             logger.error("Unable to push access request (" + accessRequestId + ") to SNS topic.");
         }
+        RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessRequested, accessRequest);
         return accessRequest;
     }
 

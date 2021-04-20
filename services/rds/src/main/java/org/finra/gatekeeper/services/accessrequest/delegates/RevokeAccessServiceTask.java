@@ -22,6 +22,8 @@ import org.activiti.engine.ManagementService;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.activiti.engine.runtime.Job;
+import org.finra.gatekeeper.common.services.eventlogging.EventType;
+import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
@@ -92,6 +94,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                     }
                 }
             }
+            RequestEventLogger.logEventToJson(EventType.AccessExpired, accessRequest);
 
         }catch(Exception e){
             if(job.getRetries() - 1 == 0){
