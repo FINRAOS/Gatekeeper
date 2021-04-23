@@ -50,6 +50,9 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
         this.fetching.aws = false;
 
+        this.disableRow = (row) => {
+            return row.ssmStatus !== 'Online';
+        };
 
         //aws stuff
         this.awsSearchableTags = [
@@ -153,12 +156,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
         }
 
     }
-
-    disableRow(row){
-        return row.ssmStatus !== 'Online';
-    }
-
-
+    
     filterOnline(row){
         return row.ssmStatus === 'Online';
     }
