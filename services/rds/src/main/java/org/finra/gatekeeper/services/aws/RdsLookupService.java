@@ -399,7 +399,7 @@ public class RdsLookupService {
         logger.info("Refreshing RDS Instance Data");
         long startTime = System.currentTimeMillis();
         DescribeDBInstancesRequest describeDBInstancesRequest = new DescribeDBInstancesRequest()
-                .withFilters(new Filter().withName("engine").withValues("postgres", "mysql", "oracle-se1", "oracle-se2", "oracle-ee"));
+                .withFilters(new Filter().withName("engine").withValues("postgres", "mysql", "oracle-se2", "oracle-ee"));
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
         DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(describeDBInstancesRequest);
