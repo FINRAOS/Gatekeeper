@@ -28,7 +28,7 @@ var include = [
 var webpackConfig = require('./webpack.config');
 
 var webpack_module = {
-    loaders: webpackConfig.module.loaders
+    rules: webpackConfig.module.rules
 };
 
 
@@ -159,7 +159,7 @@ module.exports = function (config) {
         },
 
         plugins: [
-            require('karma-webpack'),
+            'karma-webpack',
             'karma-jasmine',
             'karma-junit-reporter',
             'karma-chrome-launcher',

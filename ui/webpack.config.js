@@ -1,6 +1,7 @@
 var isProd = process.env.NODE_ENV.trim() === 'production';
 
 var webpack = require('webpack');
+var TerserPlugin = require("terser-webpack-plugin");
 var WebpackDevServer = require("webpack-dev-server");
 var HtmlWebpackPlugin = require("html-webpack-plugin");
 var path = require('path');
@@ -16,66 +17,115 @@ var vendor = [
     'moment'
 ];
 
+var commonsConfig = {
+    name: 'common',
+    filename: isProd ? '[name].[fullhash].js' : '[name].js'
+};
+
 var plugins = [
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.optimize.CommonsChunkPlugin('common', isProd ? '[name].[hash].js' : '[name].js')
+
 ];
 if (isProd) {
-    plugins.splice(2, 0, new webpack.optimize.UglifyJsPlugin({
-        mangle: false,
-        sourceMap: false,
-        compress: {
-            warnings: false
-        }
-    }));
     plugins.splice(3, 0, new HtmlWebpackPlugin({
         hash: true,
         filename: './index.html',//relative to root of the application
         template: './index.html'
-    }))
+    }));
 }
 
 
 module.exports = {
+    mode: isProd ? 'production' : 'development',
     //for local dev against a backend
+    optimization:{
+        splitChunks: {
+            chunks: 'all'
+        }
+    },
     devServer: {
-        proxy: [
-            {
-                path:"/api/gatekeeper-ec2/*",
-                headers: { "account": "sm" }
+        proxy: {
+            '/api/gatekeeper-ec2': {
+                target: 'http://localhost:8080',
+                headers: {'samaccountname': 'meles'}
+            },
+            '/api/gatekeeper-rds': {
+                target: 'http://localhost:8088',
+                headers: {'samaccountname': 'meles'}
             }
-            ,{
-                path:"/api/gatekeeper-rds/*",
-                headers: { "account": "sm" }
-            }
-        ]
+        },
     },
     context: path.resolve(__dirname, 'app'),
     entry: {
         vendor: vendor,
-        bundle: isProd ? ['babel-polyfill', './app.js'] : ['babel-polyfill', 'webpack/hot/dev-server', './app.js']
+        bundle: isProd ? [ '/app.js'] : ['webpack/hot/dev-server', './app.js']
     },
-    devtool: isProd ? '' : 'source-map',
     output: {
-        path: isProd ? './dist' : './app',
-        filename: isProd ? '[name].[hash].js' : '[name].js'
+        path: path.join(__dirname, isProd ? '/dist' : '/app'),
+        filename: isProd ? '[name].[fullhash].js' : '[name].js'
+    },
+    optimization: {
+        minimize: isProd,
+        minimizer: [new TerserPlugin()],
+    },
+    performance: {
+        hints: false
     },
     plugins: plugins,
     module: {
-        loaders: [
-            {test: /\.js$/, loader: 'babel!imports?angular', include: /app|src|test/},
-            {test: /\.woff$/, loader: 'url-loader?limit=10000&mimetype=application/font-woff'},
-            {test: /\.woff2$/, loader: 'url-loader?limit=10000&mimetype=application/font-woff'},
-            {test: /\.ttf$/, loader: 'url-loader?limit=10000&mimetype=application/octet-stream'},
-            {test: /\.eot$/, loader: 'file-loader'},
-            {test: /\.svg$/, loader: 'url-loader?limit=10000&mimetype=image/svg+xml'},
-            {test: /\.tpl\.html$/, loader: 'raw'},
-            {test: /\.png$/, loader: 'url-loader?limit=100000&mimetype=image/png'},
-            {test: /\.jpg$/, loader: 'file-loader'},
-            {test: /\.ico$/, loader: 'file-loader'},
-            {test: /\.css$/, loader: 'style!css'},
-            {test: /\.less$/, loader: 'style!css!less'}
+        rules: [
+            {
+                test: /\.m?js$/,
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env']
+                    }
+                }
+            },
+            {
+                test: /\.(woff|woff2|ttf|eot)$/,
+                use: 'url-loader',
+            },
+            {
+                test: /\.svg$/,
+                use: 'svgo-loader',
+                type: 'asset'
+            },
+            {
+                test: /\.tpl\.html$/,
+                use: 'raw-loader'
+            },
+            {
+                test: /\.png$/,
+                use: [{
+                    loader: 'url-loader',
+                    options: {
+                        limit:100000,
+                        mimetype: 'image / png'
+                    }
+                }]
+            },
+            {
+                test: /\.jpg$/,
+                use: [{loader: 'file-loader'}]
+            },
+            {
+                test: /\.ico$/,
+                use: [{loader: 'file-loader'}]
+            },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
+            },
+            {
+                test: /\.less$/,
+                use: ['style-loader', 'css-loader', 'less-loader']
+            }
         ]
     }
 };
+
+if(!isProd){
+    module.exports.devtool = 'source-map';
+}
