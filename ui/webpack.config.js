@@ -29,7 +29,7 @@ if (isProd) {
     plugins.splice(3, 0, new HtmlWebpackPlugin({
         hash: true,
         filename: './index.html',//relative to root of the application
-        template: './index.html'
+        template: './index-build.html'
     }));
 }
 
@@ -46,11 +46,11 @@ module.exports = {
         proxy: {
             '/api/gatekeeper-ec2': {
                 target: 'http://localhost:8080',
-                headers: {'samaccountname': 'meles'}
+                headers: {'user': 'sm'}
             },
             '/api/gatekeeper-rds': {
                 target: 'http://localhost:8088',
-                headers: {'samaccountname': 'meles'}
+                headers: {'user': 'sm'}
             }
         },
     },
