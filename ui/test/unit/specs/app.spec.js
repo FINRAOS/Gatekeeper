@@ -17,7 +17,7 @@
 
 'use strict';
 
-import module from "../../../app/app";
+import module from '../../../app/app';
 
 describe('ui-seed', function () {
 

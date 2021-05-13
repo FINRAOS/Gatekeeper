@@ -25,22 +25,20 @@ var hasCoverage = global.process.argv.reduce(function (result, arg) {
 var include = [
     path.resolve('./app')
 ];
-var webpackConfig = require('./webpack.config');
+var webpackConfig = require('./webpack.config.js');
 
 var webpack_module = {
-    loaders: webpackConfig.module.loaders
+    rules: webpackConfig.module.rules
 };
 
 
 if (hasCoverage) {
-    webpack_module.postLoaders = [
-        //{test: /\.js$/, loader: 'isparta', include: include, exclude: /\.spec\.js$/}
-        {
-            test: /\.js$/,
-            include: include,
-            loader: 'istanbul-instrumenter'
-        }
-    ];
+    // webpack_module.rules.push(
+    //     {
+    //         test: /\.js$/,
+    //         include: include,
+    //         use: {loader: 'istanbul-instrumenter-loader'}
+    //     });
 }
 
 module.exports = function (config) {
@@ -109,26 +107,10 @@ module.exports = function (config) {
         // - Firefox
         // - Opera
         // - Safari (only Mac)
-        // - PhantomJS
         // - IE (only Windows)
-        /*
-         browsers: ['PhantomJS','PhantomJS_custom'],
-         customLaunchers: {
-         'PhantomJS_custom': {
-         base: 'PhantomJS',
-         options: {
-         windowName: 'my-window',
-         settings: {
-         webSecurityEnabled: false
-         }
-         },
-         flags: ['--remote-debugger-port=9000']
-         }
-         },
-         */
 //        browsers: ['Chrome','IE'],
      //   browsers: ['Chrome'],
-        browsers: ['PhantomJS'],
+        browsers: ['ChromeHeadless'],
 //        customLaunchers: {
 //            'IE9': {
 //                base: 'IE',
@@ -159,11 +141,10 @@ module.exports = function (config) {
         },
 
         plugins: [
-            require('karma-webpack'),
+            'karma-webpack',
             'karma-jasmine',
             'karma-junit-reporter',
             'karma-chrome-launcher',
-            'karma-phantomjs-launcher',
             'karma-htmlfile-reporter',
             'karma-coverage',
             'karma-spec-reporter',
