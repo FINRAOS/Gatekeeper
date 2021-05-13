@@ -16,11 +16,6 @@ var vendor = [
     'moment'
 ];
 
-var commonsConfig = {
-    name: 'common',
-    filename: isProd ? '[name].[fullhash].js' : '[name].js'
-};
-
 var plugins = [
 
 ];
@@ -73,7 +68,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.m?js$/,
+                test: /\.js$/,
                 exclude: /(node_modules|bower_components)/,
                 use: {
                     loader: 'babel-loader',
