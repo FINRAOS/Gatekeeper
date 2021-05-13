@@ -2,7 +2,6 @@ var isProd = process.env.NODE_ENV.trim() === 'production';
 
 var webpack = require('webpack');
 var TerserPlugin = require("terser-webpack-plugin");
-var WebpackDevServer = require("webpack-dev-server");
 var HtmlWebpackPlugin = require("html-webpack-plugin");
 var path = require('path');
 var vendor = [
@@ -37,11 +36,6 @@ if (isProd) {
 module.exports = {
     mode: isProd ? 'production' : 'development',
     //for local dev against a backend
-    optimization:{
-        splitChunks: {
-            chunks: 'all'
-        }
-    },
     devServer: {
         proxy: {
             '/api/gatekeeper-ec2': {
@@ -65,7 +59,12 @@ module.exports = {
     },
     optimization: {
         minimize: isProd,
-        minimizer: [new TerserPlugin()],
+        minimizer: [new TerserPlugin({
+            extractComments: false,
+            terserOptions: {
+                mangle: false
+            }
+        })],
     },
     performance: {
         hints: false
