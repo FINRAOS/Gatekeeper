@@ -21,6 +21,7 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
@@ -142,4 +143,5 @@ public class AwsSessionService {
     public AmazonSNS getSNSSession(){
         return awsSessionFactory.createSNSSession();
     }
+    public AWSLambda getAwsLambda(){ return awsSessionFactory.createLambdaSession(); }
 }

@@ -65,7 +65,7 @@ public class DatabaseConnectionService {
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(
                     new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), account.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getName())
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                     .withUser(user)
                     .withPassword(password)
                     .withRole(roleType)
@@ -89,7 +89,7 @@ public class DatabaseConnectionService {
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine())
                     .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getName())
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                             .withUser(user)
                             .withRole(roleType));
             logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + status);
@@ -125,7 +125,7 @@ public class DatabaseConnectionService {
         for(DbUser user:  users){
             boolean outcome = databaseConnectionFactory.getConnection(db.getEngine())
                     .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getName())
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                             .withUser(user.getUsername()));
             if(!outcome){
                 usersNotRemoved.add(user.getUsername());
@@ -145,7 +145,8 @@ public class DatabaseConnectionService {
                     .withRegion(awsEnvironment.getRegion())
                     .withSdlc(awsEnvironment.getSdlc())
                     .withAddress(getAddress(database.getEndpoint(), database.getDbName()))
-                    .withDbInstanceName(database.getName()));
+                    .withDbInstanceName(database.getName())
+                    .withDbEngine(database.getEngine()));
     }
 
     //This is usually called through the Activiti workflow
@@ -158,7 +159,8 @@ public class DatabaseConnectionService {
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
                         .withAddress(getAddress(database.getEndpoint(), database.getDbName()))
-                        .withDbInstanceName(database.getName()));
+                        .withDbInstanceName(database.getName())
+                        .withDbEngine(database.getEngine()));
     }
 
     public String checkDb(DBInstance db, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
@@ -171,6 +173,7 @@ public class DatabaseConnectionService {
                         .withSdlc(awsEnvironment.getSdlc())
                         .withAddress(getAddress(db.getEndpoint(), db.getDBName()))
                         .withDbInstanceName(db.getDBInstanceIdentifier())
+                        .withDbEngine(db.getEngine())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -185,6 +188,7 @@ public class DatabaseConnectionService {
                         .withSdlc(awsEnvironment.getSdlc())
                         .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
                         .withDbInstanceName(db.getDBClusterIdentifier())
+                        .withDbEngine(db.getEngine())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -198,7 +202,10 @@ public class DatabaseConnectionService {
                         .withRegion(awsEnvironment.getRegion())
                         .withSdlc(awsEnvironment.getSdlc())
                         .withAddress(getAddress(db.getEndpoint(), db.getDbName()))
-                        .withDbInstanceName(db.getName()));
+                        .withDbInstanceName(db.getName())
+                        .withDbEngine(db.getEngine())
+        );
+
     }
 
     public List<String> getAvailableRolesForDb(DBInstance db, AWSEnvironment awsEnvironment) throws Exception {
@@ -209,7 +216,8 @@ public class DatabaseConnectionService {
                 .withRegion(awsEnvironment.getRegion())
                 .withSdlc(awsEnvironment.getSdlc())
                 .withAddress(getAddress(db.getEndpoint(), db.getDBName()))
-                .withDbInstanceName(db.getDBInstanceIdentifier()));
+                .withDbInstanceName(db.getDBInstanceIdentifier())
+                .withDbEngine(db.getEngine()));
     }
 
     public List<String> getAvailableRolesForDb(DBCluster db, AWSEnvironment awsEnvironment) throws Exception {
@@ -220,7 +228,8 @@ public class DatabaseConnectionService {
                 .withRegion(awsEnvironment.getRegion())
                 .withSdlc(awsEnvironment.getSdlc())
                 .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
-                .withDbInstanceName(db.getDBClusterIdentifier()));
+                .withDbInstanceName(db.getDBClusterIdentifier())
+                .withDbEngine(db.getEngine()));
     }
 
     /**
@@ -241,7 +250,7 @@ public class DatabaseConnectionService {
             outcome = databaseConnectionFactory.getConnection(db.getEngine())
                     .checkIfUsersHasTables(
                             new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName())
+                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                                         .withUsers(userWithRoles));
         }catch(Exception ex){
             logger.error("Failed to check users on database: ", ex);

@@ -201,7 +201,7 @@ public class MySQLDBConnection implements DBConnection {
         String userRole = getGkUserName(user, role); //16 is the maximum length for a user in MySQL, if there's a user hitting this limit, a shorter suffix shall be used
         //revoke the user if they exist
         revokeAccess(new RdsRevokeAccessQuery(rdsGrantAccessQuery.getAccount(), rdsGrantAccessQuery.getAccountId(), rdsGrantAccessQuery.getRegion(), rdsGrantAccessQuery.getSdlc(),
-                rdsGrantAccessQuery.getAddress(), rdsGrantAccessQuery.getDbInstanceName())
+                rdsGrantAccessQuery.getAddress(), rdsGrantAccessQuery.getDbInstanceName(), rdsGrantAccessQuery.getDbEngine())
                     .withUser(user)
                     .withRole(role));
 

@@ -151,9 +151,9 @@ public class DatabaseConnectionServiceTest {
                 .withSdlc(environment.getSdlc())
                 .withAddress(endpoint)
                 .withDbInstanceName(database.getName());
-        expectedRevokeRequest = new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName());
-        expectedGrantRequest = new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName());
-        expectedCheckUsersRequest = new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName());
+        expectedRevokeRequest = new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine());
+        expectedGrantRequest = new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine());
+        expectedCheckUsersRequest = new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine());
 
         Mockito.when(databaseConnectionFactory.getConnection(TEST_ENGINE)).thenReturn(mockDBConnection);
         Mockito.when(databaseConnectionFactory.getConnection(TEST_UNSUPPORTED_ENGINE)).thenThrow(new GKUnsupportedDBException("UnsupportedDB"));

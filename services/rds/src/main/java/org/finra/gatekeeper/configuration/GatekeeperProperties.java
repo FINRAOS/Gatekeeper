@@ -550,6 +550,35 @@ public class GatekeeperProperties {
         return this;
     }
 
+
+
+    /**
+     * Gatekeeper Lambda Connection Settings
+     */
+    private GatekeeperLambdaProperties lambda;
+
+    public static class GatekeeperLambdaProperties{
+        private String function;
+
+        public String getFunction() {
+            return function;
+        }
+
+        public void setFunction(String function) {
+            this.function = function;
+        }
+
+
+    }
+
+    public GatekeeperLambdaProperties getLambda() {
+        return lambda;
+    }
+
+    public void setLambda(GatekeeperLambdaProperties lambda) {
+        this.lambda = lambda;
+    }
+
     /**
      * API where AWS account info is provided
      */
