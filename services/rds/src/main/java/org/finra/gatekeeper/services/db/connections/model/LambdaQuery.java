@@ -71,22 +71,6 @@ public class LambdaQuery {
         this.dbEngine = rdsQuery.getDbEngine();
     }
 
-//    public RdsQuery getRdsQuery(){
-//        return new RdsQuery(account, accountId, region, sdlc, address, dbInstanceName, dbEngine);
-//    }
-//
-//    public RdsCheckUsersTableQuery getRdsCheckUsersTableQuery(){
-//        return new RdsCheckUsersTableQuery(account, accountId, region, sdlc, address, dbInstanceName, dbEngine, users);
-//    }
-//
-//    public RdsRevokeAccessQuery getRdsRevokeAccessQuery(){
-//        return new RdsRevokeAccessQuery(account, accountId, region, sdlc, address, dbInstanceName, dbEngine, user, role);
-//    }
-//
-//    public RdsGrantAccessQuery getRdsGrantAccessQuery(){
-//        return new RdsGrantAccessQuery(account, accountId, region, sdlc, address, dbInstanceName, dbEngine, user, password, role, time);
-//    }
-
     public String getAccount() {
         return account;
     }
