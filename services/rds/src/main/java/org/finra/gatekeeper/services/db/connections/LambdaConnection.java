@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2022. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ public class LambdaConnection  implements DBConnection{
                 .setHeaders(headers)
                 .setHttpMethod(method.toUpperCase())
                 .setBase64Encoded(false)
-                .setPath("/api/rds/" + uri);
+                .setPath(uri);
         try {
             InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(lambdaFunctionName).withPayload(OBJECT_MAPPER.writeValueAsString(lambdaPayload));
             AWSLambda awsLambda = awsSessionService.getAwsLambda();
