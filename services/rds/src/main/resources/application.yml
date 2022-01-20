@@ -94,11 +94,11 @@ gatekeeper:
 
   db:
     supportedDbs:
-      mysql: lambdaConnection
-      postgres: lambdaConnection
-      aurora: lambdaConnection
-      aurora-mysql: lambdaConnection
-      aurora-postgresql: lambdaConnection
+      mysql: mySQLDBConnection
+      postgres: postgresDBConnection
+      aurora: mySQLDBConnection
+      aurora-mysql: mySQLDBConnection
+      aurora-postgresql: postgresDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
     sslParams: ssl=${gatekeeper.db.ssl}&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
     postgres:

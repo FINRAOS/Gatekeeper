@@ -113,7 +113,10 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
-        LambdaDTO lambdaDTO = new LambdaDTO().withDbEngine(rdsGrantAccessQuery.getDbEngine()).withLambdaQuery(new LambdaQuery(rdsGrantAccessQuery)).withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery));
+        LambdaDTO lambdaDTO = new LambdaDTO()
+                .withDbEngine(rdsGrantAccessQuery.getDbEngine())
+                .withLambdaQuery(new LambdaQuery(rdsGrantAccessQuery))
+                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery));
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
             String lambdaJson = invokeLambda("grantAccess", "POST", body).get("body").toString();
@@ -126,7 +129,10 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws Exception{
-        LambdaDTO lambdaDTO = new LambdaDTO().withDbEngine(rdsRevokeAccessQuery.getDbEngine()).withLambdaQuery(new LambdaQuery(rdsRevokeAccessQuery)).withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery));
+        LambdaDTO lambdaDTO = new LambdaDTO()
+                .withDbEngine(rdsRevokeAccessQuery.getDbEngine())
+                .withLambdaQuery(new LambdaQuery(rdsRevokeAccessQuery))
+                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery));
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
             String lambdaJson = invokeLambda("revokeAccess", "POST", body).get("body").toString();
@@ -139,7 +145,10 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public List<String> checkDb(RdsQuery rdsQuery) throws GKUnsupportedDBException{
-        LambdaDTO lambdaDTO = new LambdaDTO().withDbEngine(rdsQuery.getDbEngine()).withLambdaQuery(new LambdaQuery(rdsQuery)).withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        LambdaDTO lambdaDTO = new LambdaDTO()
+                .withDbEngine(rdsQuery.getDbEngine())
+                .withLambdaQuery(new LambdaQuery(rdsQuery))
+                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
             String lambdaJson = invokeLambda("checkDb", "POST", body).get("body").toString();
@@ -152,7 +161,10 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public List<DbUser> getUsers(RdsQuery rdsQuery) throws SQLException {
-        LambdaDTO lambdaDTO = new LambdaDTO().withDbEngine(rdsQuery.getDbEngine()).withLambdaQuery(new LambdaQuery(rdsQuery)).withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        LambdaDTO lambdaDTO = new LambdaDTO()
+                .withDbEngine(rdsQuery.getDbEngine())
+                .withLambdaQuery(new LambdaQuery(rdsQuery))
+                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
             String lambdaJson = invokeLambda("getUsers", "POST", body).get("body").toString();
@@ -177,7 +189,10 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws SQLException{
-        LambdaDTO lambdaDTO = new LambdaDTO().withDbEngine(rdsQuery.getDbEngine()).withLambdaQuery(new LambdaQuery(rdsQuery)).withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        LambdaDTO lambdaDTO = new LambdaDTO()
+                .withDbEngine(rdsQuery.getDbEngine())
+                .withLambdaQuery(new LambdaQuery(rdsQuery))
+                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
             String lambdaJson = invokeLambda("getAvailableSchemas", "POST", body).get("body").toString();
@@ -189,6 +204,6 @@ public class LambdaConnection  implements DBConnection{
         return Collections.EMPTY_MAP;
     }
 
-
+    private
 
 }
