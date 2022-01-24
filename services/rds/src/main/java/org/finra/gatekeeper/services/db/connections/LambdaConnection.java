@@ -92,7 +92,7 @@ public class LambdaConnection  implements DBConnection{
                 .setHeaders(headers)
                 .setHttpMethod(method.toUpperCase())
                 .setBase64Encoded(false)
-                .setPath(uri);
+                .setPath("/" + uri);
         try {
             InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(lambdaFunctionName).withPayload(OBJECT_MAPPER.writeValueAsString(lambdaPayload));
             AWSLambda awsLambda = awsSessionService.getAwsLambda();
@@ -113,67 +113,19 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
-        LambdaDTO lambdaDTO = new LambdaDTO()
-                .withDbEngine(rdsGrantAccessQuery.getDbEngine())
-                .withLambdaQuery(new LambdaQuery(rdsGrantAccessQuery))
-                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery));
-        try {
-            String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
-            String lambdaJson = invokeLambda("grantAccess", "POST", body).get("body").toString();
-            boolean lambdaResult = OBJECT_MAPPER.readValue(lambdaJson, boolean.class);
-            return lambdaResult;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return invokeHelper(new LambdaQuery(rdsGrantAccessQuery), "grantAccess", "POST", Boolean.class);
     }
 
     public boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws Exception{
-        LambdaDTO lambdaDTO = new LambdaDTO()
-                .withDbEngine(rdsRevokeAccessQuery.getDbEngine())
-                .withLambdaQuery(new LambdaQuery(rdsRevokeAccessQuery))
-                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery));
-        try {
-            String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
-            String lambdaJson = invokeLambda("revokeAccess", "POST", body).get("body").toString();
-            boolean lambdaResult = OBJECT_MAPPER.readValue(lambdaJson, boolean.class);
-            return lambdaResult;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return false;
+        return invokeHelper(new LambdaQuery(rdsRevokeAccessQuery), "revokeAccess", "POST", Boolean.class);
     }
 
     public List<String> checkDb(RdsQuery rdsQuery) throws GKUnsupportedDBException{
-        LambdaDTO lambdaDTO = new LambdaDTO()
-                .withDbEngine(rdsQuery.getDbEngine())
-                .withLambdaQuery(new LambdaQuery(rdsQuery))
-                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
-        try {
-            String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
-            String lambdaJson = invokeLambda("checkDb", "POST", body).get("body").toString();
-            List<String> lambdaResult = Arrays.asList(OBJECT_MAPPER.readValue(lambdaJson, String[].class));
-            return lambdaResult;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return Arrays.asList(e.toString());
-        }
+        return invokeHelper(new LambdaQuery(rdsQuery), "checkDb", "POST", List.class);
     }
 
     public List<DbUser> getUsers(RdsQuery rdsQuery) throws SQLException {
-        LambdaDTO lambdaDTO = new LambdaDTO()
-                .withDbEngine(rdsQuery.getDbEngine())
-                .withLambdaQuery(new LambdaQuery(rdsQuery))
-                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
-        try {
-            String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
-            String lambdaJson = invokeLambda("getUsers", "POST", body).get("body").toString();
-            List<DbUser> lambdaResult = OBJECT_MAPPER.readValue(lambdaJson, new TypeReference<List<DbUser>>(){});
-            return lambdaResult;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return Collections.EMPTY_LIST;
+        return invokeHelper(new LambdaQuery(rdsQuery), "getUsers", "POST", List.class);
     }
 
     public List<String> checkIfUsersHasTables(RdsCheckUsersTableQuery rdsQuery){
@@ -189,21 +141,50 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws SQLException{
-        LambdaDTO lambdaDTO = new LambdaDTO()
-                .withDbEngine(rdsQuery.getDbEngine())
-                .withLambdaQuery(new LambdaQuery(rdsQuery))
-                .withGatekeeperPassword(gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
-        try {
-            String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
-            String lambdaJson = invokeLambda("getAvailableSchemas", "POST", body).get("body").toString();
-            Map lambdaResult = OBJECT_MAPPER.readValue(lambdaJson, new TypeReference<Map<RoleType, List<String>>>(){});
-            return lambdaResult;
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return Collections.EMPTY_MAP;
+        return invokeHelper(new LambdaQuery(rdsQuery), "getAvailableSchemas", "POST", Map.class);
     }
 
-    private
+    private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, Class<T> clazz){
+        LambdaDTO lambdaDTO = new LambdaDTO()
+                .withDbEngine(lambdaQuery.getDbEngine())
+                .withLambdaQuery(lambdaQuery);
+        try {
+            String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
+            String lambdaJson = invokeLambda(uri, method, body).get("body").toString();
+            T lambdaResult;
+            switch (uri){
+                case "grantAccess":
+                case "revokeAccess":
+                    lambdaResult = (T) OBJECT_MAPPER.readValue(lambdaJson, boolean.class);
+                    return lambdaResult;
+                case "checkDb":
+                    lambdaResult = (T) Arrays.asList(OBJECT_MAPPER.readValue(lambdaJson, String[].class));
+                    return lambdaResult;
+                case "getUsers":
+                    lambdaResult = (T) OBJECT_MAPPER.readValue(lambdaJson, new TypeReference<List<DbUser>>(){});
+                    return lambdaResult;
+                case "getAvailableSchemas":
+                    lambdaResult = (T) OBJECT_MAPPER.readValue(lambdaJson, new TypeReference<Map<RoleType, List<String>>>(){});
+                    return lambdaResult;
+                default:
+                    throw new Exception("Invalid URI");
+            }
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            switch (uri){
+                case "grantAccess":
+                case "revokeAccess":
+                    return (T) Boolean.valueOf(false);
+                case "checkDb":
+                    return (T) Arrays.asList(e.toString());
+                case "getUsers":
+                    return (T) Collections.EMPTY_LIST;
+                case "getAvailableSchemas":
+                    return (T) Collections.EMPTY_MAP;
+                default:
+                    return null;
+            }
+        }
+    }
 }
