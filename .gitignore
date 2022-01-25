@@ -22,6 +22,9 @@
 hs_err_pid*
 
 /.idea/
+/services/.idea/
+/services/.settings/
+/services/.project
 /services/ec2/logs/
 /services/gatekeeper-parent.iml
 /services/common/gatekeeper-common.iml

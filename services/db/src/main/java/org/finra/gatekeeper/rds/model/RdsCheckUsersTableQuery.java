@@ -37,12 +37,12 @@ public class RdsCheckUsersTableQuery extends RdsQuery {
         return this;
     }
 
-    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName) {
-        super(account, accountId, region, sdlc, address, dbInstanceName);
+    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine) {
+        super(account, accountId, region, sdlc, address, dbInstanceName, dbEngine);
     }
 
-    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, List<String> users) {
-        super(account, accountId, region, sdlc, address, dbInstanceName);
+    public RdsCheckUsersTableQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine, List<String> users) {
+        super(account, accountId, region, sdlc, address, dbInstanceName, dbEngine);
         this.users = users;
     }
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~
-  ~ Copyright 2018. Gatekeeper Contributors
+  ~ Copyright 2022. Gatekeeper Contributors
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@
 		<failsafe.version>2.19.1</failsafe.version>
 		<freemarker.version>2.3.29</freemarker.version>
 		<h2.version>1.4.185</h2.version>
-		<java.version>1.8</java.version>
+		<java.version>11</java.version>
 		<mysql.version>6.0.5</mysql.version>
 		<postgres.version>42.2.1</postgres.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -139,6 +139,11 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-sns</artifactId>
+			<version>${aws.sdk.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-lambda</artifactId>
 			<version>${aws.sdk.version}</version>
 		</dependency>
 		<dependency>

@@ -39,7 +39,7 @@ public class RdsGrantAccessQuery extends RdsQuery {
      * The amount of time for the request
      */
     private Integer time;
-
+    
     public String getUser() {
         return user;
     }
@@ -76,12 +76,12 @@ public class RdsGrantAccessQuery extends RdsQuery {
         return this;
     }
 
-    public RdsGrantAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbName) {
-        super(account, accountId, region, sdlc, address, dbName);
+    public RdsGrantAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbName, String dbEngine) {
+        super(account, accountId, region, sdlc, address, dbName, dbEngine);
     }
 
-    public RdsGrantAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String user, String password, RoleType role, Integer time) {
-        super(account, accountId, region, sdlc, address, dbInstanceName);
+    public RdsGrantAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine, String user, String password, RoleType role, Integer time) {
+        super(account, accountId, region, sdlc, address, dbInstanceName, dbEngine);
         this.user = user;
         this.password = password;
         this.role = role;

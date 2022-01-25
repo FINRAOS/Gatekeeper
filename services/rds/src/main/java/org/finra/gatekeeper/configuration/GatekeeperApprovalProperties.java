@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2022. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-@ConfigurationProperties(prefix="gatekeeper.approval-threshold")
+@ConfigurationProperties(prefix="gatekeeper.approvalthreshold")
 public class GatekeeperApprovalProperties {
     /**
      * Thresholds for DEV Role

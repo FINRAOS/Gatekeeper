@@ -16,9 +16,12 @@
                 <li><b>${db.getInstanceId()}</b> -- ${db.getName()?has_content?string(db.getName(), 'Unknown')} -- ${db.getEngine()}</li>
                 <b>Schemas/Tables Included: </b>
                 <#assign currentDb = schemaTables[db.getName()]>
-                    <#list currentDb[role] as schemaTable>
-                        <ul>${schemaTable}</ul>
-                    </#list>
+                    <#if currentDb[role]??>
+                        <#list currentDb[role] as schemaTable>
+                            <ul>${schemaTable}</ul>
+                        </#list>
+                    </#if>
+
             </#list>
         </ul>
 

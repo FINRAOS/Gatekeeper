@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2022. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -548,6 +548,35 @@ public class GatekeeperProperties {
     public GatekeeperProperties setDb(GatekeeperDbProperties gatekeeperDbProperties) {
         this.db = gatekeeperDbProperties;
         return this;
+    }
+
+
+
+    /**
+     * Gatekeeper Lambda Connection Settings
+     */
+    private GatekeeperLambdaProperties lambda;
+
+    public static class GatekeeperLambdaProperties{
+        private String function;
+
+        public String getFunction() {
+            return function;
+        }
+
+        public void setFunction(String function) {
+            this.function = function;
+        }
+
+
+    }
+
+    public GatekeeperLambdaProperties getLambda() {
+        return lambda;
+    }
+
+    public void setLambda(GatekeeperLambdaProperties lambda) {
+        this.lambda = lambda;
     }
 
     /**

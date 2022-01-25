@@ -11,6 +11,7 @@
 
     <properties>
         <guava.version>24.0-jre</guava.version>
+        <java.version>11</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -20,5 +21,16 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
