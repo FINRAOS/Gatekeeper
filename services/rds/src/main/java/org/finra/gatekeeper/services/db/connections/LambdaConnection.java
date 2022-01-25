@@ -28,6 +28,7 @@ import com.amazonaws.services.lambda.model.InvokeResult;
 import com.amazonaws.services.lambda.model.ServiceException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
@@ -113,19 +114,19 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
-        return invokeHelper(new LambdaQuery(rdsGrantAccessQuery), "grantAccess", "POST", Boolean.class);
+        return invokeHelper(new LambdaQuery(rdsGrantAccessQuery), "grantAccess", "POST", new TypeReference<Boolean>(){});
     }
 
     public boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws Exception{
-        return invokeHelper(new LambdaQuery(rdsRevokeAccessQuery), "revokeAccess", "POST", Boolean.class);
+        return invokeHelper(new LambdaQuery(rdsRevokeAccessQuery), "revokeAccess", "POST", new TypeReference<Boolean>(){});
     }
 
     public List<String> checkDb(RdsQuery rdsQuery) throws GKUnsupportedDBException{
-        return invokeHelper(new LambdaQuery(rdsQuery), "checkDb", "POST", List.class);
+        return invokeHelper(new LambdaQuery(rdsQuery), "checkDb", "POST", new TypeReference<List<String>>(){});
     }
 
     public List<DbUser> getUsers(RdsQuery rdsQuery) throws SQLException {
-        return invokeHelper(new LambdaQuery(rdsQuery), "getUsers", "POST", List.class);
+        return invokeHelper(new LambdaQuery(rdsQuery), "getUsers", "POST", new TypeReference<List<DbUser>>(){});
     }
 
     public List<String> checkIfUsersHasTables(RdsCheckUsersTableQuery rdsQuery){
@@ -141,50 +142,22 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws SQLException{
-        return invokeHelper(new LambdaQuery(rdsQuery), "getAvailableSchemas", "POST", Map.class);
+        return invokeHelper(new LambdaQuery(rdsQuery), "getAvailableSchemas", "POST", new TypeReference<Map<RoleType, List<String>>>(){});
     }
 
-    private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, Class<T> clazz){
+    private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, TypeReference<T> clazz) {
         LambdaDTO lambdaDTO = new LambdaDTO()
                 .withDbEngine(lambdaQuery.getDbEngine())
                 .withLambdaQuery(lambdaQuery);
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
             String lambdaJson = invokeLambda(uri, method, body).get("body").toString();
-            T lambdaResult;
-            switch (uri){
-                case "grantAccess":
-                case "revokeAccess":
-                    lambdaResult = (T) OBJECT_MAPPER.readValue(lambdaJson, boolean.class);
-                    return lambdaResult;
-                case "checkDb":
-                    lambdaResult = (T) Arrays.asList(OBJECT_MAPPER.readValue(lambdaJson, String[].class));
-                    return lambdaResult;
-                case "getUsers":
-                    lambdaResult = (T) OBJECT_MAPPER.readValue(lambdaJson, new TypeReference<List<DbUser>>(){});
-                    return lambdaResult;
-                case "getAvailableSchemas":
-                    lambdaResult = (T) OBJECT_MAPPER.readValue(lambdaJson, new TypeReference<Map<RoleType, List<String>>>(){});
-                    return lambdaResult;
-                default:
-                    throw new Exception("Invalid URI");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            switch (uri){
-                case "grantAccess":
-                case "revokeAccess":
-                    return (T) Boolean.valueOf(false);
-                case "checkDb":
-                    return (T) Arrays.asList(e.toString());
-                case "getUsers":
-                    return (T) Collections.EMPTY_LIST;
-                case "getAvailableSchemas":
-                    return (T) Collections.EMPTY_MAP;
-                default:
-                    return null;
-            }
+            return OBJECT_MAPPER.readValue(lambdaJson, clazz);
+        } catch (JsonMappingException jsonMappingException) {
+            jsonMappingException.printStackTrace();
+        } catch (JsonProcessingException jsonProcessingException) {
+            jsonProcessingException.printStackTrace();
         }
+        return null;
     }
 }
