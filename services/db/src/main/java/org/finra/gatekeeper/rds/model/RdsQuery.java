@@ -51,6 +51,11 @@ public class RdsQuery {
      */
     private String dbInstanceName;
 
+    /**
+     * The Engine the DB uses
+     */
+    private String dbEngine;
+
     public String getAccount() {
         return account;
     }
@@ -105,13 +110,23 @@ public class RdsQuery {
         return this;
     }
 
-    public RdsQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName) {
+    public String getDbEngine() {
+        return dbEngine;
+    }
+
+    public RdsQuery withDbEngine(String dbEngine) {
+        this.dbEngine = dbEngine;
+        return this;
+    }
+
+    public RdsQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine) {
         this.account = account;
         this.accountId = accountId;
         this.region = region;
         this.sdlc = sdlc;
         this.address = address;
         this.dbInstanceName = dbInstanceName;
+        this.dbEngine = dbEngine;
     }
 
     public RdsQuery() {

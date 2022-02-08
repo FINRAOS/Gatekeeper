@@ -1,5 +1,5 @@
 #
-#  Copyright 2018. Gatekeeper Contributors
+#  Copyright 2022. Gatekeeper Contributors
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
 #
 #Global stuff
 #This stuff is usually replaced by the container profile, feel free to set them to what you need should you find yourself doing local development
-server.servlet.context-path: /api/gatekeeper-rds
-
 gatekeeper:
   aws:
     proxyHost: unset
@@ -109,7 +107,7 @@ gatekeeper:
       sslMode: verify-full
       sslCert: /etc/aws-rds/ssl/rds-combined-ca-bundle.pem
     mysql:
-      ssl: connectTimeout=5000&useSSL=true&requireSSL=true&serverSslCert=/etc/aws-rds/rds-combined-ca-bundle.pem
+      ssl: connectTimeout=5000&useSSL=true&requireSSL=true&serverSslCert=${gatekeeper.db.ssl}
     gkUser: gatekeeper
     gkPass: ${GATEKEEPER_RDS_USER_PASSWORD}
 
@@ -138,6 +136,8 @@ spring:
 server:
   tomcat:
     max-http-header-size: 32768
+  servlet:
+    context-path: /api/gatekeeper-rds
 
 ---
 #Unit Test Profile
@@ -203,4 +203,6 @@ gatekeeper:
     gkUser: ${gatekeeper.rds.user}
     gkPass: ${gatekeeper.rds.password}
     gkCredentialProvider: ${gatekeeper.rds.gkCredentialProvider}
+  lambda:
+    function: ${gatekeeper.lambda.function}
 

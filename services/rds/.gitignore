@@ -15,7 +15,9 @@ tmp/**/*
 *.swp
 *~.nib
 .classpath
+.classpath
 .settings/
 .loadpath
-
+.classpath
+.factorypath
 /logs/
