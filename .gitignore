@@ -7,6 +7,11 @@
 # BlueJ files
 *.ctxt
 
+.project
+.classpath
+.factorypath
+.project
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
@@ -29,7 +34,14 @@ hs_err_pid*
 /services/gatekeeper-parent.iml
 /services/common/gatekeeper-common.iml
 /services/common/target/
+/services/common/.idea/
+/services/common/.settings/
 /services/target/
+/services/.idea/
+/services/.settings/
+/services/db/target/
+/services/db/.idea/
+/services/db/.settings/
 /ui/dist/
 /demo-services/fake-sso/.idea/
 /demo-services/fake-account-service/target/

@@ -37,7 +37,7 @@ We are initally providing a local run of the gatekeeper application, in the comi
 
 Gatekeeper requires the following tools to be installed and on your $PATH variable:
 
-1. Java 8+
+1. Java 11+
 2. Maven 3+
 3. NPM 3+
 4. Docker
@@ -241,6 +241,20 @@ Gatekeeper primarily communicates out temporary credentials via email, these are
 | gatekeeper.explanationFieldRequired | Whether to require an explanation when approval is required. | String
 | gatekeeper.ticketIdFieldRequired | Whether to require a ticket ID when approval is required. | String
 | gatekeeper.ticketIdFieldMessage | Placeholder message in the ticket ID field. Automatically appended with " (Optional)" if gatekeeper.ticketIdFieldRequired is set to false. | String
+
+#### DEEP HEALTH
+| Property | Description | Type|
+|----------|-------------|------|
+| gatekeeper.explanationFieldRequired | Whether to require an explanation when approval is required. | String
+| gatekeeper.health.tagLabel | Application Label | String
+| gatekeeper.health.tagValue | Application Label Value | String
+| gatekeeper.health.componentName | Name of the Component to Test | String
+| gatekeeper.health.components| Components to Test (ldap, accounts)| String
+| gatekeeper.health.ldapTagValue | LDAP Tag | String
+| gatekeeper.health.accountTagValue | LDAP Account | String
+| gatekeeper.health.ldapAccountCheck | LDAP Account to verify connection against | String
+| gatekeeper.health.databaseComponent= | Database Connection Component | String
+| gatekeeper.health.databaseTag= | Application DB Tag | String
 
 ### EC2
 These configurations are specific to Gatekeeper EC2

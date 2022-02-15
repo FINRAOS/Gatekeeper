@@ -115,4 +115,7 @@ public interface AccessRequestRepository extends JpaRepository<AccessRequest, Lo
             "              gatekeeper_rds.access_request requests " +
             "where requests.id = live_requests.id", nativeQuery = true)
     List<Map<String, Object>> getLiveAccessRequestExpirations();
+
+    @Query(value = "select 1 from AccessRequest")
+    void healthCheck();
 }
