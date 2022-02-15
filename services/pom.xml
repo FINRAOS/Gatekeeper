@@ -30,7 +30,6 @@
     <properties>
         <activiti.version>5.20.0</activiti.version>
         <aws.sdk.version>1.11.800</aws.sdk.version>
-        <compiler.version>3.3</compiler.version>
         <failsafe.version>2.18.1</failsafe.version>
         <guava.version>24.0-jre</guava.version>
         <h2.version>1.4.185</h2.version>
@@ -44,9 +43,9 @@
         <slf4j.version>1.7.25</slf4j.version>
         <maven-surefire-plugin.version>2.16</maven-surefire-plugin.version>
         <maven-surefire-reports-plugin.version>2.16</maven-surefire-reports-plugin.version>
-        <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <java.version>11</java.version>
     </properties>
 
     <modules>
@@ -177,11 +176,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>${compiler.version}</version>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <proc>none</proc>
+                    <release>${java.version}</release>
                 </configuration>
             </plugin>
 

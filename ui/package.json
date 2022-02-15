@@ -8,7 +8,7 @@
     "start": "npm run serve",
     "serve": "export NODE_ENV=dev && node node_modules/.bin/webpack serve --config webpack.config.js --hot --color --progress --content-base app/ --port 9000",
     "win-start": "npm run win-serve",
-    "win-serve": "set NODE_ENV=dev && node node_modules/.bin/webpack serve --config webpack.config.js --hot --color --progress --content-base app/ --port 9000",
+    "win-serve": "set NODE_ENV=dev && node ./node_modules/webpack/bin/webpack.js serve --config webpack.config.js --hot --color --progress --content-base app/ --port 9000",
     "build": "export NODE_ENV=production && node node_modules/.bin/webpack && cp -r app/assets dist",
     "win-build": "set NODE_ENV=production && node_modules\\.bin\\webpack && mkdir dist\\assets && copy app\\assets dist\\assets",
     "pretest": "npm install",

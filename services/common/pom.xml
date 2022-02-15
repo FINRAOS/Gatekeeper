@@ -16,7 +16,6 @@
 
     <properties>
         <aws.sdk.version>1.11.800</aws.sdk.version>
-        <java.version>1.8</java.version>
         <freemarker.version>2.3.20</freemarker.version>
         <commons.version>3.4</commons.version>
     </properties>
@@ -79,6 +78,14 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

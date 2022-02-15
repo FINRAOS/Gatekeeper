@@ -49,14 +49,14 @@ public class RdsRevokeAccessQuery extends RdsQuery {
         return this;
     }
 
-    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String user, RoleType role) {
-        super(account, accountId, region, sdlc, address, dbInstanceName);
+    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine, String user, RoleType role) {
+        super(account, accountId, region, sdlc, address, dbInstanceName, dbEngine);
         this.user = user;
         this.role = role;
     }
 
-    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName) {
-        super(account, accountId, region, sdlc, address, dbInstanceName);
+    public RdsRevokeAccessQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine) {
+        super(account, accountId, region, sdlc, address, dbInstanceName, dbEngine);
     }
 
     @Override
