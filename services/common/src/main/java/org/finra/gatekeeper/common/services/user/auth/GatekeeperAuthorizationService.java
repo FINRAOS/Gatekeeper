@@ -20,16 +20,30 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
+import org.finra.gatekeeper.common.services.health.interfaces.DeepHealthCheckItem;
+import org.finra.gatekeeper.common.services.health.model.DeepHealthCheckTargetDTO;
+import org.finra.gatekeeper.common.services.health.model.enums.DeepHealthCheckTargetStatus;
+import org.finra.gatekeeper.common.services.health.model.enums.DependencyCriticality;
 import org.finra.gatekeeper.common.services.user.interfaces.IGatekeeperUserAuthorizationService;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-public abstract class GatekeeperAuthorizationService implements IGatekeeperUserAuthorizationService {
+public abstract class GatekeeperAuthorizationService implements IGatekeeperUserAuthorizationService, DeepHealthCheckItem {
+
+    @Value("${gatekeeper.auth.ldap.server}")
+    private String endpoint;
+    @Value("${gatekeeper.health.ldapTagValue}")
+    private String ldapTag;
+    @Value("${gatekeeper.health.ldapAccountCheck}")
+    private String ldapAccountCheck;
+
     final Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier;
 
     /* User Cache */
@@ -70,6 +84,26 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
 
     public GatekeeperUserEntry getUser(){
         return userCache.getUnchecked(gatekeeperUserProfileSupplier.get().getName()).get();
+    }
+
+    public DeepHealthCheckTargetDTO doHealthCheck(){
+        DeepHealthCheckTargetDTO deepHealthCheckTargetDTO = new DeepHealthCheckTargetDTO()
+                .setApplication(ldapTag)
+                .setUri(endpoint)
+                .setCategory("User and Group Lookup")
+                .setDependencyType(DependencyCriticality.REQUIRED)
+                .setDescription("This checks whether Gatekeeper can perform an LDAP lookup.")
+                .setComponent("LDAP Connection")
+                .setStartTimestamp(LocalDateTime.now().toString());
+        try {
+            GatekeeperUserEntry user = loadUser(ldapAccountCheck);
+            deepHealthCheckTargetDTO.setStatus(DeepHealthCheckTargetStatus.SUCCESS);
+        } catch (Exception e) {
+            deepHealthCheckTargetDTO.setExceptionMessage(e.getMessage());
+            deepHealthCheckTargetDTO.setStatus(DeepHealthCheckTargetStatus.FAILURE);
+        }
+        return deepHealthCheckTargetDTO
+                .setEndTimestamp(LocalDateTime.now().toString());
     }
 
     abstract GatekeeperUserEntry loadUser(String userName);

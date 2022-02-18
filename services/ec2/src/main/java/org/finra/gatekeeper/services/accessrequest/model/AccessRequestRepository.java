@@ -17,6 +17,7 @@
 package org.finra.gatekeeper.services.accessrequest.model;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,4 +28,7 @@ import java.util.List;
 public interface AccessRequestRepository extends JpaRepository<AccessRequest, Long> {
     AccessRequest getAccessRequestById(Long id);
     List<AccessRequest> getAccessRequestsByIdIn(Collection<Long> ids);
+
+    @Query(value = "select 1 from AccessRequest")
+    void healthCheck();
 }

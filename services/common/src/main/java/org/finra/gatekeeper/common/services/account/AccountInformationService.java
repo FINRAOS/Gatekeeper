@@ -23,11 +23,17 @@ import com.google.common.cache.LoadingCache;
 import org.finra.gatekeeper.common.properties.GatekeeperAccountProperties;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.backend2backend.Backend2BackendService;
+import org.finra.gatekeeper.common.services.health.interfaces.DeepHealthCheckItem;
+import org.finra.gatekeeper.common.services.health.model.DeepHealthCheckTargetDTO;
+import org.finra.gatekeeper.common.services.health.model.enums.DeepHealthCheckTargetStatus;
+import org.finra.gatekeeper.common.services.health.model.enums.DependencyCriticality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +44,14 @@ import java.util.stream.Collectors;
  * Service which does backend calls
  */
 @Component
-public class AccountInformationService {
+public class AccountInformationService implements DeepHealthCheckItem {
 
     private final Logger logger = LoggerFactory.getLogger(AccountInformationService.class);
     private final GatekeeperAccountProperties gatekeeperAccountProperties;
+
+    @Value("${gatekeeper.health.accountTagValue:NONE}")
+    private String accountTag;
+
     private final Backend2BackendService backend2backendService;
 
     @Autowired
@@ -100,6 +110,26 @@ public class AccountInformationService {
             }
         });
         return accounts;
+    }
+    @Override
+    public DeepHealthCheckTargetDTO doHealthCheck() {
+        DeepHealthCheckTargetDTO deepHealthCheckTargetDTO = new DeepHealthCheckTargetDTO()
+                .setApplication(accountTag)
+                .setUri(gatekeeperAccountProperties.getServiceURL() + "/" + gatekeeperAccountProperties.getServiceURI())
+                .setCategory("api")
+                .setDependencyType(DependencyCriticality.IGNORE)
+                .setDescription("This checks whether Gatekeeper can interact with AWS Info.")
+                .setComponent("AWS Info")
+                .setStartTimestamp(LocalDateTime.now().toString());
+        try{
+            loadAccounts();
+            deepHealthCheckTargetDTO.setStatus(DeepHealthCheckTargetStatus.SUCCESS);
+        } catch (Exception e) {
+            deepHealthCheckTargetDTO.setExceptionMessage(e.getMessage())
+                    .setStatus(DeepHealthCheckTargetStatus.FAILURE);
+        }
+        return deepHealthCheckTargetDTO
+                .setEndTimestamp(LocalDateTime.now().toString());
     }
 
 }
