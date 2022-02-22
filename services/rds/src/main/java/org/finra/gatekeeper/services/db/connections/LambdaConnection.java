@@ -134,7 +134,7 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public List<String> getAvailableRoles(RdsQuery rdsQuery) throws SQLException{
-        return Arrays.asList("gk_readonly", "gk_datafix", "gk_dba");
+        return invokeHelper(new LambdaQuery(rdsQuery), "getAvailableRoles", "POST", new TypeReference<List<String>>(){});
     }
 
     private String getGkUserName(String user, RoleType role){
