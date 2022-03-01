@@ -38,9 +38,9 @@ public class AwsSessionFactory {
                 .standard()
                 .build();
     }
-    public AWSLambda createLambdaSession(){
+    public AWSLambda createLambdaSession(String region){
         return AWSLambdaClientBuilder
-                .standard()
+                .standard().withRegion(region)
                 .build();
     }
 

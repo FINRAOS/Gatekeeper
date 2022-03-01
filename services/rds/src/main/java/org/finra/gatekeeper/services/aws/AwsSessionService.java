@@ -143,5 +143,7 @@ public class AwsSessionService {
     public AmazonSNS getSNSSession(){
         return awsSessionFactory.createSNSSession();
     }
-    public AWSLambda getAwsLambda(){ return awsSessionFactory.createLambdaSession(); }
+    public AWSLambda getAwsLambda(String region){
+        return awsSessionFactory.createLambdaSession(region);
+    }
 }

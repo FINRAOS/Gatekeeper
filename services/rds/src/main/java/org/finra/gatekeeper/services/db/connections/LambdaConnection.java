@@ -18,6 +18,7 @@
 package org.finra.gatekeeper.services.db.connections;
 
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaAsyncClientBuilder;
@@ -69,7 +70,7 @@ public class LambdaConnection  implements DBConnection{
     private final AwsSessionService awsSessionService;
     private final GKUserCredentialsProvider gkUserCredentialsProvider;
     private final String gkUserName;
-    private final String lambdaFunctionName;
+    private final Map<String, String> lambdaFunctions;
 
     @Autowired
     public LambdaConnection(AwsSessionService awsSessionService,
@@ -77,16 +78,20 @@ public class LambdaConnection  implements DBConnection{
                             @Qualifier("credentialsProvider") GKUserCredentialsProvider gkUserCredentialsProvider){
         this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.gkUserName = gatekeeperProperties.getDb().getGkUser();
-        this.lambdaFunctionName = gatekeeperProperties.getLambda().getFunction();
+        this.lambdaFunctions = gatekeeperProperties.getLambda().getFunctions();
         this.awsSessionService = awsSessionService;
 
     }
 
     public Map ping(){
-        return invokeLambda("ping", "GET", "{}");
+        return invokeLambda("ping", "GET", "{}", "us-east-1");
     }
 
-    private Map invokeLambda(String uri, String method, String body){
+    private Map invokeLambda(String uri, String method, String body, String region) {
+        if(lambdaFunctions.get(region) == null){
+            return Collections.singletonMap("body", Arrays.asList("\"Error: No lambda for " + region + "\""));
+        }
+
         Map<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "application/json");
         LambdaPayload lambdaPayload = new LambdaPayload().setBody(body)
@@ -95,8 +100,8 @@ public class LambdaConnection  implements DBConnection{
                 .setBase64Encoded(false)
                 .setPath("/" + uri);
         try {
-            InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(lambdaFunctionName).withPayload(OBJECT_MAPPER.writeValueAsString(lambdaPayload));
-            AWSLambda awsLambda = awsSessionService.getAwsLambda();
+            InvokeRequest invokeRequest = new InvokeRequest().withFunctionName(lambdaFunctions.get(region)).withPayload(OBJECT_MAPPER.writeValueAsString(lambdaPayload));
+            AWSLambda awsLambda = awsSessionService.getAwsLambda(region);
 
             InvokeResult invokeResult = awsLambda.invoke(invokeRequest);
             String invokeResultString = new String( invokeResult.getPayload().array());
@@ -108,8 +113,13 @@ public class LambdaConnection  implements DBConnection{
             }
             return lambdaResult;
         } catch (Exception e) {
+            if(e.toString().contains("Function not found")){
+                //Should Only be hit during the check db function
+                logger.info(lambdaFunctions.get(region) + " not found in " + region);
+                return Collections.singletonMap("body", Arrays.asList("\"Error: No lambda for " + region + "\""));
+            }
             logger.error(e.toString());
-            return Collections.singletonMap("Error", e);
+            return Collections.singletonMap("body", "\"Error: " + e + "\"");
         }
     }
 
@@ -122,6 +132,9 @@ public class LambdaConnection  implements DBConnection{
     }
 
     public List<String> checkDb(RdsQuery rdsQuery) throws GKUnsupportedDBException{
+        if(lambdaFunctions.get(rdsQuery.getRegion()) == null){
+            return Arrays.asList("Error: No lambda for " + rdsQuery.getRegion());
+        }
         return invokeHelper(new LambdaQuery(rdsQuery), "checkDb", "POST", new TypeReference<List<String>>(){});
     }
 
@@ -145,13 +158,13 @@ public class LambdaConnection  implements DBConnection{
         return invokeHelper(new LambdaQuery(rdsQuery), "getAvailableSchemas", "POST", new TypeReference<Map<RoleType, List<String>>>(){});
     }
 
-    private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, TypeReference<T> clazz) {
+    private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, TypeReference<T> clazz){
         LambdaDTO lambdaDTO = new LambdaDTO()
                 .withDbEngine(lambdaQuery.getDbEngine())
                 .withLambdaQuery(lambdaQuery);
         try {
             String body = OBJECT_MAPPER.writeValueAsString(lambdaDTO);
-            String lambdaJson = invokeLambda(uri, method, body).get("body").toString();
+            String lambdaJson = invokeLambda(uri, method, body, lambdaQuery.getRegion()).get("body").toString();
             return OBJECT_MAPPER.readValue(lambdaJson, clazz);
         } catch (JsonMappingException jsonMappingException) {
             jsonMappingException.printStackTrace();
