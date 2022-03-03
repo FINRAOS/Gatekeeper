@@ -83,10 +83,6 @@ public class LambdaConnection  implements DBConnection{
 
     }
 
-    public Map ping(){
-        return invokeLambda("ping", "GET", "{}", "us-east-1");
-    }
-
     private Map invokeLambda(String uri, String method, String body, String region) {
         if(lambdaFunctions.get(region) == null){
             return Collections.singletonMap("body", Arrays.asList("\"Error: No lambda for " + region + "\""));
