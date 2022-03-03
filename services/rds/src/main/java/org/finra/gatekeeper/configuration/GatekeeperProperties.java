@@ -558,14 +558,14 @@ public class GatekeeperProperties {
     private GatekeeperLambdaProperties lambda;
 
     public static class GatekeeperLambdaProperties{
-        private String function;
+        private Map<String, String> functions;
 
-        public String getFunction() {
-            return function;
+        public Map<String, String> getFunctions() {
+            return functions;
         }
 
-        public void setFunction(String function) {
-            this.function = function;
+        public void setFunctions(Map<String, String> functions) {
+            this.functions = functions;
         }
 
 

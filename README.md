@@ -382,6 +382,10 @@ These configurations are specific to Gatekeeper RDS
 
 | Property | Description | Type |
 |----------|-------------|------|
+| gatekeeper.lambda.functions.[region] | The arn for a RDS Lambda Function| string
+
+| Property | Description | Type |
+|----------|-------------|------|
 | gatekeeper.auth.approverGroup | The LDAP group containing Gatekeeper Approvers for RDS | string
 | gatekeeper.auth.dbaGroupsPattern | A regular expression to extract group(s) of DBAS from ldap groups, requires one capture | string
 | gatekeeper.auth.opsGroupsPattern | A regular expression to extract group(s) of Ops Members from ldap groups. requires one capture | string
