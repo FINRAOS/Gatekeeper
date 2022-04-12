@@ -37,6 +37,7 @@
 		<failsafe.version>2.19.1</failsafe.version>
 		<freemarker.version>2.3.29</freemarker.version>
 		<h2.version>1.4.185</h2.version>
+		<mongodb.version>3.12.10</mongodb.version>
 		<java.version>11</java.version>
 		<mysql.version>6.0.5</mysql.version>
 		<postgres.version>42.2.1</postgres.version>
@@ -102,6 +103,11 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>${postgres.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>${mongodb.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>

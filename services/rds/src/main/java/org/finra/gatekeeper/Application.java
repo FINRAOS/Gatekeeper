@@ -20,11 +20,12 @@ package org.finra.gatekeeper;
 
 import org.activiti.spring.boot.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 // Exclude the ActivitiSecurityAutoConfiguration class from being initialized because this doesn't work with Spring boot 2
-@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
+@SpringBootApplication(exclude = {SecurityAutoConfiguration.class, MongoAutoConfiguration.class})
 public class Application extends SpringBootServletInitializer {
 
     public static void main(String[] args) {

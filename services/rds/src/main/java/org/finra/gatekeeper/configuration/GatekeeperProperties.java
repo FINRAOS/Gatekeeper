@@ -411,6 +411,7 @@ public class GatekeeperProperties {
         private Map<String, String> supportedDbs;
         private PostgresDbProperties postgres;
         private MySqlDbProperties mysql;
+        private DocumentDbProperties documentdb;
 
         public static class PostgresDbProperties{
             private Boolean ssl;
@@ -464,6 +465,59 @@ public class GatekeeperProperties {
 
             public MySqlDbProperties setSsl(String ssl) {
                 this.ssl = ssl;
+                return this;
+            }
+        }
+
+        public static class DocumentDbProperties {
+            private Boolean ssl;
+            private String sslCert;
+            private String replicaSet;
+            private String readPreference;
+            private Boolean retryWrites;
+
+            public Boolean getSsl() {
+                return ssl;
+            }
+
+            public DocumentDbProperties setSsl(Boolean ssl) {
+                this.ssl = ssl;
+                return this;
+            }
+
+            public String getSslCert() {
+                return sslCert;
+            }
+
+            public DocumentDbProperties setSslCert(String sslCert) {
+                this.sslCert = sslCert;
+                return this;
+            }
+
+            public String getReplicaSet() {
+                return replicaSet;
+            }
+
+            public DocumentDbProperties setReplicaSet(String replicaSet) {
+                this.replicaSet = replicaSet;
+                return this;
+            }
+
+            public String getReadPreference() {
+                return readPreference;
+            }
+
+            public DocumentDbProperties setReadPreference(String readPreference) {
+                this.readPreference = readPreference;
+                return this;
+            }
+
+            public Boolean getRetryWrites() {
+                return retryWrites;
+            }
+
+            public DocumentDbProperties setRetryWrites(Boolean retryWrites) {
+                this.retryWrites = retryWrites;
                 return this;
             }
         }
@@ -528,6 +582,15 @@ public class GatekeeperProperties {
 
         public GatekeeperDbProperties setMysql(MySqlDbProperties mysql) {
             this.mysql = mysql;
+            return this;
+        }
+
+        public DocumentDbProperties getDocumentdb() {
+            return documentdb;
+        }
+
+        public GatekeeperDbProperties setDocumentdb(DocumentDbProperties documentdb) {
+            this.documentdb = documentdb;
             return this;
         }
 

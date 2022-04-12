@@ -82,9 +82,11 @@ public class RdsLookupService {
             case RDS:
                 return doFilterRds(environment, searchString);
             case AURORA_REGIONAL:
-                return doFilterAurora(environment, searchString);
+                return doFilterCluster(environment, searchString, DatabaseType.AURORA_REGIONAL, "aurora");
+            case DOCUMENTDB_REGIONAL:
+                return doFilterCluster(environment, searchString, DatabaseType.DOCUMENTDB_REGIONAL, "docdb");
             case AURORA_GLOBAL:
-                return doFilterAuroraGlobal(environment, searchString);
+                return doFilterClusterGlobal(environment, searchString, DatabaseType.AURORA_GLOBAL, "aurora");
             default:
                 return Collections.emptyList();
         }
@@ -118,14 +120,19 @@ public class RdsLookupService {
                 DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(primary.getDBClusterIdentifier());
                 DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
                 result.getDBClusters().get(0).setDBClusterIdentifier(instanceName);
-                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_GLOBAL);
-
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceCluster(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_GLOBAL, "aurora");
             }
                 break;
             case "AURORA_REGIONAL": {
                 DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName);
                 DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
-                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_REGIONAL);
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceCluster(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.AURORA_REGIONAL, "aurora");
+                }
+                break;
+            case "DOCUMENTDB_REGIONAL": {
+                DescribeDBClustersRequest request = new DescribeDBClustersRequest().withDBClusterIdentifier(instanceName);
+                DescribeDBClustersResult result = amazonRDSClient.describeDBClusters(request);
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceCluster(environment, amazonRDSClient, result.getDBClusters(), securityGroupIds, DatabaseType.DOCUMENTDB_REGIONAL, "docdb");
                 }
                 break;
             case "RDS": {
@@ -136,7 +143,7 @@ public class RdsLookupService {
             default:
                 logger.error("Something went wrong when selecting instance type of the RDS");
         }
-        
+
 
         logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
@@ -172,18 +179,18 @@ public class RdsLookupService {
                 || instance.getDbiResourceId().toLowerCase().contains(searchString.toLowerCase())));
     }
 
-    private List<GatekeeperRDSInstance> doFilterAurora(AWSEnvironment environment, String searchString) {
+    private List<GatekeeperRDSInstance> doFilterCluster(AWSEnvironment environment, String searchString, DatabaseType type, String engine) {
         // Get all instances that match the given search string
-        return loadInstancesAurora(environment, instance ->
+        return loadInstancesCluster(environment, instance ->
                 instance.getDBClusterIdentifier().toLowerCase().contains(searchString.toLowerCase())
-                        || instance.getDbClusterResourceId().toLowerCase().contains(searchString.toLowerCase()));
+                        || instance.getDbClusterResourceId().toLowerCase().contains(searchString.toLowerCase()), type, engine);
     }
 
-    private List<GatekeeperRDSInstance> doFilterAuroraGlobal(AWSEnvironment environment, String searchString) {
+    private List<GatekeeperRDSInstance> doFilterClusterGlobal(AWSEnvironment environment, String searchString, DatabaseType type, String engine) {
         // Get all instances that match the given search string
-        return loadInstancesAuroraGlobal(environment, globalCluster ->
+        return loadInstancesClusterGlobal(environment, globalCluster ->
                 globalCluster.getGlobalClusterIdentifier().toLowerCase().contains(searchString.toLowerCase())
-                        || globalCluster.getGlobalClusterIdentifier().toLowerCase().contains(searchString.toLowerCase()));
+                        || globalCluster.getGlobalClusterIdentifier().toLowerCase().contains(searchString.toLowerCase()), type, engine);
     }
 
     private String getApplicationTagforInstanceArn(AmazonRDSClient client, String arn){
@@ -297,15 +304,14 @@ public class RdsLookupService {
      * This looks at database clusters for Aurora, similar to the function loadToGatekeeperRDSInstance() but the difference
      * being we have to look at the cluster as a whole vs the single instance
      */
-    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceAurora(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds, DatabaseType globalCluster){
+    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceCluster(AWSEnvironment environment, AmazonRDSClient client, List<DBCluster> instances, List<String> securityGroupIds, DatabaseType globalCluster, String engine){
         ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
         instances.forEach(item -> {
             // Only concerned with Aurora clusters apparently AWS lumps in docdb and neptune, etc clusters with the call on the RDS API
             // if the engine is not aurora then skip it.
-            if(!item.getEngine().contains("aurora")){
+            if(!item.getEngine().contains(engine)){
                 return;
             }
-
             String application = getApplicationTagforInstanceArn(client, item.getDBClusterArn());
             boolean enabled = false;
             String status = item.getStatus();
@@ -376,7 +382,7 @@ public class RdsLookupService {
 
         return gatekeeperRDSInstances;
     }
-
+    
     private Set<GatekeeperADGroupEntry> filterBySdlc(AWSEnvironment environment, String application) {
         Set<GatekeeperADGroupEntry> adGroups = new HashSet<>();
         Set<GatekeeperADGroupEntry> allAdGroups = rdsGroupLookupService.getLdapAdGroups().get(application);
@@ -424,8 +430,8 @@ public class RdsLookupService {
         return gatekeeperRDSInstances;
     }
 
-    protected List<GatekeeperRDSInstance> loadInstancesAurora(AWSEnvironment environment, Predicate<? super DBCluster> filter) {
-        logger.info("Looking up Aurora Clusters");
+    protected List<GatekeeperRDSInstance> loadInstancesCluster(AWSEnvironment environment, Predicate<? super DBCluster> filter, DatabaseType type, String engine) {
+        logger.info("Looking up "+ engine +" Clusters");
         Long startTime = System.currentTimeMillis();
         DescribeDBClustersRequest describeDBClustersRequest = new DescribeDBClustersRequest();
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
@@ -450,29 +456,29 @@ public class RdsLookupService {
             });
         });
 
-        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment,amazonRDSClient,
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceCluster(environment,amazonRDSClient,
                 result.getDBClusters()
                         .stream()
                         .filter(cluster -> !auroraClusterGlobalClusterMapping.containsKey(cluster.getDBClusterArn()))
                         .filter(filter)
-                        .collect(Collectors.toList()), securityGroupIds, DatabaseType.AURORA_REGIONAL);
+                        .collect(Collectors.toList()), securityGroupIds, type, engine);
 
         //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
         while(result.getMarker() != null) {
             result = amazonRDSClient.describeDBClusters(describeDBClustersRequest.withMarker(result.getMarker()));
-            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient,
+            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstanceCluster(environment, amazonRDSClient,
                     result.getDBClusters()
                             .stream()
                             .filter(filter)
-                            .collect(Collectors.toList()), securityGroupIds, DatabaseType.AURORA_REGIONAL));
+                            .collect(Collectors.toList()), securityGroupIds, type, engine));
         }
         logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
         return gatekeeperRDSInstances;
     }
 
-    protected List<GatekeeperRDSInstance> loadInstancesAuroraGlobal(AWSEnvironment environment, Predicate<? super GlobalCluster> filter) {
-        logger.info("Looking up Aurora Global Clusters");
+    protected List<GatekeeperRDSInstance> loadInstancesClusterGlobal(AWSEnvironment environment, Predicate<? super GlobalCluster> filter, DatabaseType type, String engine) {
+        logger.info("Looking up " + engine + " Global Clusters");
         Long startTime = System.currentTimeMillis();
         DescribeDBClustersRequest describeDBClustersRequest = new DescribeDBClustersRequest();
         List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
@@ -515,8 +521,8 @@ public class RdsLookupService {
                     dbCluster -> dbCluster.setDBClusterIdentifier(primaryToGlobalMapping.get(dbCluster.getDBClusterArn()))
             );
             // process the primary aurora regional clusters, this re-uses the aurora processing with the global cluster as the cluster id instead of the primary cluster
-            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceAurora(environment, amazonRDSClient,
-                    primaryClusters, securityGroupIds, DatabaseType.AURORA_GLOBAL);
+            gatekeeperRDSInstances = loadToGatekeeperRDSInstanceCluster(environment, amazonRDSClient,
+                    primaryClusters, securityGroupIds, type, engine);
 
             logger.info("Refreshed instance data in " + ((double) (System.currentTimeMillis() - startTime) / 1000) + " Seconds");
         }
