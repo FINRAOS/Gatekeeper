@@ -42,8 +42,9 @@ class GkRdsSearch extends Directive{
         vm.types = [
             {name: 'RDS', key: 'RDS'},
             {name: 'Aurora (Regional)', key: 'AURORA_REGIONAL'},
-            {name: 'Aurora (Global)', key: 'AURORA_GLOBAL'}
-            ];
+            {name: 'Aurora (Global)', key: 'AURORA_GLOBAL'},
+            {name: 'DocumentDB (Regional)', key: 'DOCUMENTDB_REGIONAL'}, 
+        ];
 
         vm.rdsService = gkRDSService;
         gkAccountService.fetch().then((response) =>{
