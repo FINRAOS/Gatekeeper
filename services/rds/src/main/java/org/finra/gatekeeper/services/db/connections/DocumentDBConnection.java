@@ -202,6 +202,7 @@ public class DocumentDBConnection implements DBConnection {
             if(!createRolePermCheckResult){
                 issues.add("gatekeeper user missing root role in admin db");
             }
+            client.close();
 
         } catch(MongoException ex){
             logger.error("Failed to connect to DB", ex);
@@ -211,10 +212,6 @@ public class DocumentDBConnection implements DBConnection {
                 issues.add("Password authentication failed for gatekeeper user");
             }else{
                 issues.add("Unable to connect to DB (" + ex.getCause().getMessage() + ")");
-            }
-        }finally{
-            if(client != null) {
-                client.close();
             }
         }
 
