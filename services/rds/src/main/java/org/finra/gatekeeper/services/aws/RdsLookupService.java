@@ -493,7 +493,7 @@ public class RdsLookupService {
         auroraGlobalClusters.forEach(globalCluster -> {
             globalCluster.getGlobalClusterMembers().forEach(
                     memberCluster -> {
-                        if(memberCluster.getIsWriter()) {
+                        if(memberCluster.getIsWriter() && memberCluster.getDBClusterArn().contains(environment.getRegion())) {
                             primaryDBClusterARNs.add(memberCluster.getDBClusterArn());
                             primaryToGlobalMapping.put(memberCluster.getDBClusterArn(), globalCluster.getGlobalClusterIdentifier());
                         }
