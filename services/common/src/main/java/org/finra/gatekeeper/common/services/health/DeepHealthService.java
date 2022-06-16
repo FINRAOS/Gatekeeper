@@ -10,6 +10,7 @@ import org.finra.gatekeeper.common.services.health.model.DeepHealthCheckTargetDT
 import org.finra.gatekeeper.common.services.health.model.DeepHealthStatusDTO;
 import org.finra.gatekeeper.common.services.health.model.enums.DeepHealthCheckTargetStatus;
 import org.finra.gatekeeper.common.services.health.model.enums.DeepHealthStopLight;
+import org.finra.gatekeeper.common.services.health.model.enums.DependencyCriticality;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -54,15 +55,17 @@ public class DeepHealthService {
         List<DeepHealthCheckTargetDTO> results = healthChecks.stream()
                 .map(DeepHealthCheckItem::doHealthCheck)
                 .collect(Collectors.toList());
-
+        DeepHealthStopLight status = results.stream().allMatch(item -> item.getStatus() == DeepHealthCheckTargetStatus.SUCCESS)
+                ? DeepHealthStopLight.GREEN : DeepHealthStopLight.RED;
+        if(status.equals(DeepHealthStopLight.RED)){
+            status = results.stream().allMatch(item -> (item.getStatus() == DeepHealthCheckTargetStatus.SUCCESS || item.getDependencyType().equals(DependencyCriticality.IGNORE)))
+                    ? DeepHealthStopLight.YELLOW : DeepHealthStopLight.RED;
+        }
         DeepHealthCheckDTO deepHealthCheckDTO = new DeepHealthCheckDTO()
                 .setComponent(gatekeeperHealthProperties.getComponentName())
                 .setDependencies(results)
-                .setRollUpStatus(new DeepHealthStatusDTO().setStatus(
-                        results.stream().allMatch(item -> item.getStatus() == DeepHealthCheckTargetStatus.SUCCESS)
-                                ? DeepHealthStopLight.GREEN : DeepHealthStopLight.RED)
+                .setRollUpStatus(new DeepHealthStatusDTO().setStatus(status)
                 );
-
         response.put(gatekeeperHealthProperties.getTagLabel(), gatekeeperHealthProperties.getTagValue());
         response.putAll(objectMapper.convertValue(deepHealthCheckDTO, Map.class));
 
