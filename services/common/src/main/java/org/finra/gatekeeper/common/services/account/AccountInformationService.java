@@ -86,7 +86,7 @@ public class AccountInformationService implements DeepHealthCheckItem {
     }
 
     private List<Account> loadAccounts(){
-        logger.info("Getting Account information from " + gatekeeperAccountProperties.getServiceURL() + gatekeeperAccountProperties.getServiceURI());
+        logger.info("Getting Account information from " + gatekeeperAccountProperties.getServiceURL() + "/" + gatekeeperAccountProperties.getServiceURI());
 
         Map<String, String> overrideMap = gatekeeperAccountProperties.getAccountSdlcOverrides();
         Map<String, Integer> sdlcGroupMap = gatekeeperAccountProperties.getSdlcGrouping();

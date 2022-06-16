@@ -490,9 +490,10 @@ public class RdsLookupServiceTest {
 
     private DescribeGlobalClustersResult initializeGlobalClusters(){
         return new DescribeGlobalClustersResult().withGlobalClusters(Arrays.asList(
-                initializeGlobalCluster("gcluster-1", "member1", "reader1"),
-                initializeGlobalCluster("gcluster-2", "member5", "reader2"),
-                initializeGlobalCluster("gcluster-3", "member8", "reader3")
+                //Have to include "test" or whatever matches the region for the test AWS Environment due to only looking for regional clusters in the current region
+                initializeGlobalCluster("gcluster-1", "test-member1", "reader1"),
+                initializeGlobalCluster("gcluster-2", "test-member5", "reader2"),
+                initializeGlobalCluster("gcluster-3", "test-member8", "reader3")
         ));
     }
 
