@@ -15,6 +15,7 @@
 #
 #Global stuff
 #This stuff is usually replaced by the container profile, feel free to set them to what you need should you find yourself doing local development
+
 gatekeeper:
   aws:
     proxyHost: unset
@@ -99,6 +100,7 @@ gatekeeper:
       aurora: mySQLDBConnection
       aurora-mysql: mySQLDBConnection
       aurora-postgresql: postgresDBConnection
+      docdb: documentDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
     sslParams: ssl=${gatekeeper.db.ssl}&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
     postgres:
@@ -108,6 +110,12 @@ gatekeeper:
       sslCert: /etc/aws-rds/ssl/rds-combined-ca-bundle.pem
     mysql:
       ssl: connectTimeout=5000&useSSL=true&requireSSL=true&serverSslCert=${gatekeeper.db.ssl}
+    documentdb:
+      ssl: true
+      sslCert: /etc/aws-rds/ssl/rds-combined-ca-bundle.pem
+      replicaSet: rs0
+      readPreference: secondaryPreferred
+      retryWrites: false
     gkUser: gatekeeper
     gkPass: ${GATEKEEPER_RDS_USER_PASSWORD}
 
@@ -205,4 +213,5 @@ gatekeeper:
     gkCredentialProvider: ${gatekeeper.rds.gkCredentialProvider}
   lambda:
     function: ${gatekeeper.lambda.function}
+
 
