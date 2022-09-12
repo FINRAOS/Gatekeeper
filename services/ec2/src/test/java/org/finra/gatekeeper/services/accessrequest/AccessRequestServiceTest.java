@@ -296,6 +296,7 @@ public class AccessRequestServiceTest {
         Map<String,String> statusMap = new HashMap<>();
         statusMap.put("testId","Unknown");
         when(ssmService.checkInstancesWithSsm(any(),any())).thenReturn(statusMap);
+        when(ssmService.checkInstancesAreValidWithSsm(any(), any())).thenReturn("");
         when(accountInformationService.getAccountByAlias(any())).thenReturn(mockAccount);
 
 

@@ -76,22 +76,117 @@ public class SsmService {
             informationFilters.add(filter);
             describeInstanceInformationRequest.setInstanceInformationFilterList(informationFilters);
             describeInstanceInformationRequest.setMaxResults(50);
-
+            boolean encounteredError = false;
             //make the initial call, SSM Chunks it up so we need to call it with tokens til the string returns empty.
-            DescribeInstanceInformationResult describeInstanceInformationResult = ssmClient.describeInstanceInformation(describeInstanceInformationRequest);
+            DescribeInstanceInformationResult describeInstanceInformationResult = new DescribeInstanceInformationResult();
+            do{
+                encounteredError = false;
+                try {
+                    describeInstanceInformationResult = ssmClient.describeInstanceInformation(describeInstanceInformationRequest);
 
-            describeInstanceInformationResult.getInstanceInformationList().forEach(instance ->
-                    instanceStatuses.put(instance.getInstanceId(), instance.getPingStatus()));
+                    describeInstanceInformationResult.getInstanceInformationList().forEach(instance ->
+                            instanceStatuses.put(instance.getInstanceId(), instance.getPingStatus()));
+                }catch (InvalidInstanceIdException e){
+                    String invalidInstanceIds = e.getErrorMessage().replaceFirst("Invalid instance ids: ", "");
+                    List<String> loopList = new ArrayList<>();
+                    loopList.addAll(partitionedList);
+                    for (String id : loopList){
+                        if (invalidInstanceIds.contains(id)){
+                            try {
+                                List<String> invalidIds = new ArrayList<>();
+                                invalidIds.add(id);
+                                InstanceInformationFilter invalidFilter = new InstanceInformationFilter();
+                                invalidFilter.setKey("InstanceIds");
+                                invalidFilter.setValueSet(invalidIds);
+                                List<InstanceInformationFilter> invalidFilters = new ArrayList<>();
+                                invalidFilters.add(filter);
+                                ssmClient.describeInstanceInformation(new DescribeInstanceInformationRequest().withInstanceInformationFilterList(invalidFilters));
+                            }catch (InvalidInstanceIdException ef){
+                                partitionedList.remove(id);
+                                instanceStatuses.put(id, "Invalid ID");
+                            }
+                        }
+                    }
+                    if(!partitionedList.isEmpty()){
+                        encounteredError = true;
+                        filter.setValueSet(partitionedList);
+                    }
+                }
+            }while (encounteredError);
 
             while(describeInstanceInformationResult.getNextToken() != null) {
-                //get the next chunk of results
-                describeInstanceInformationResult = ssmClient.describeInstanceInformation(describeInstanceInformationRequest.withNextToken(describeInstanceInformationResult.getNextToken()));
-                describeInstanceInformationResult.getInstanceInformationList().forEach(instance ->
-                        instanceStatuses.put(instance.getInstanceId(), instance.getPingStatus()));
+                try{
+                    //get the next chunk of results
+                    describeInstanceInformationResult = ssmClient.describeInstanceInformation(describeInstanceInformationRequest.withNextToken(describeInstanceInformationResult.getNextToken()));
+                    describeInstanceInformationResult.getInstanceInformationList().forEach(instance ->
+                            instanceStatuses.put(instance.getInstanceId(), instance.getPingStatus()));
+                }catch (InvalidInstanceIdException e){
+                    String invalidInstanceIds = e.getErrorMessage().replaceFirst("Invalid instance ids: ", "");
+                    List<String> loopList = new ArrayList<>();
+                    loopList.addAll(partitionedList);
+                    for (String id : loopList){
+                        if (invalidInstanceIds.contains(id)){
+                            try {
+                                List<String> invalidIds = new ArrayList<>();
+                                invalidIds.add(id);
+                                InstanceInformationFilter invalidFilter = new InstanceInformationFilter();
+                                invalidFilter.setKey("InstanceIds");
+                                invalidFilter.setValueSet(invalidIds);
+                                List<InstanceInformationFilter> invalidFilters = new ArrayList<>();
+                                invalidFilters.add(filter);
+                                ssmClient.describeInstanceInformation(new DescribeInstanceInformationRequest().withInstanceInformationFilterList(invalidFilters));
+                            }catch (InvalidInstanceIdException ef){
+                                partitionedList.remove(id);
+                                instanceStatuses.put(id, "Invalid ID");
+                            }
+                        }
+                    }
+                    if(!partitionedList.isEmpty()){
+                        filter.setValueSet(partitionedList);
+                    }
+                }
             }
         }
 
         return instanceStatuses;
+    }
+
+    public String checkInstancesAreValidWithSsm(AWSEnvironment environment, List<String> instanceIds){
+
+        AWSSimpleSystemsManagement ssmClient = awsSessionService.getSsmSession(environment);
+        for(int i = 0; i < instanceIds.size(); i+=50){
+            //since we're partitioning 50 at a time we need to make sure that we don't go over the index of the actual size of the set itself
+            //if we do then we will use the upper value of the set.
+            Integer upperBound = i+50 < instanceIds.size() ? i+50 : instanceIds.size();
+
+            List<String> partitionedList = instanceIds.subList(i, upperBound);
+
+
+            DescribeInstanceInformationRequest describeInstanceInformationRequest = new DescribeInstanceInformationRequest();
+            InstanceInformationFilter filter = new InstanceInformationFilter();
+            filter.setKey("InstanceIds");
+            filter.setValueSet(partitionedList);
+            List<InstanceInformationFilter> informationFilters = new ArrayList<>();
+            informationFilters.add(filter);
+            describeInstanceInformationRequest.setInstanceInformationFilterList(informationFilters);
+            describeInstanceInformationRequest.setMaxResults(50);
+            //make the initial call, SSM Chunks it up so we need to call it with tokens til the string returns empty.
+            DescribeInstanceInformationResult describeInstanceInformationResult = new DescribeInstanceInformationResult();
+            try {
+                describeInstanceInformationResult = ssmClient.describeInstanceInformation(describeInstanceInformationRequest);
+            }catch (InvalidInstanceIdException e){
+                return e.getErrorMessage();
+            }
+            while(describeInstanceInformationResult.getNextToken() != null) {
+                try{
+                    //get the next chunk of results
+                    describeInstanceInformationResult = ssmClient.describeInstanceInformation(describeInstanceInformationRequest.withNextToken(describeInstanceInformationResult.getNextToken()));
+                }catch (InvalidInstanceIdException e){
+                    return e.getErrorMessage();
+                }
+            }
+        }
+        return "";
     }
 
     /**
