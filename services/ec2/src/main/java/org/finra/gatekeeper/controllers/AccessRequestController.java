@@ -29,8 +29,10 @@ import org.finra.gatekeeper.common.services.account.model.Account;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -64,7 +66,16 @@ public class AccessRequestController {
     @RequestMapping(value = "/grantAccess", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public AccessRequest createRequest(@RequestBody AccessRequestWrapper request) throws GatekeeperException {
         //todo sam accountname for the requestor
-        return accessRequestService.storeAccessRequest(request);
+
+        try {
+            return accessRequestService.storeAccessRequest(request);
+        }catch (GatekeeperException e){
+            if( e.getMessage().contains("Invalid instance ids")){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+            }
+            throw e;
+        }
+
     }
 
     @RequestMapping(value = "/requests/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

@@ -171,13 +171,19 @@ public class AccessRequestService {
 
         //Validating that all instances in the request are the same as the requested platform
         //This also means that all instances have the same platform.
+        List<String> instanceIds = new ArrayList<>();
         for(AWSInstance instance : request.getInstances()){
             if(!instance.getPlatform().equals(request.getPlatform())){
                 throw new GatekeeperException("Instance platform doesn't match requested platform. Instance: "
                         + instance.getPlatform() + " Requested: " +request.getPlatform());
             }
+            instanceIds.add(instance.getInstanceId());
         }
-
+        AWSEnvironment environment = new AWSEnvironment(request.getAccount(),request.getRegion());
+        String invalidInstances = ssmService.checkInstancesAreValidWithSsm(environment, instanceIds);
+        if(!invalidInstances.isEmpty()){
+            throw new GatekeeperException(invalidInstances);
+        }
         //throw gk in front of all the user id's
         request.getUsers().forEach(u -> u.setUserId("gk-" + u.getUserId()));
 
