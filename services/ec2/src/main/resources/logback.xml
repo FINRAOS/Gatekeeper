@@ -1,11 +1,10 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/base.xml" />
-
-
+    <conversionRule conversionWord="crlf" converterClass="org.owasp.security.logging.mask.CRLFConverter" />
     <appender name="FILE"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <pattern>%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd'T'HH:mm:ss.SSSXXX}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %crlf(%m) %n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}</pattern>
         </encoder>
         <file>${LOG_FILE}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
@@ -18,14 +17,18 @@
             <MaxFileSize>100MB</MaxFileSize>
         </triggeringPolicy>
     </appender>
-
+    <appender name="CONSOLE"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %crlf(%m) %n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}</pattern>
+        </encoder>
+    </appender>
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
+<!--        <appender-ref ref="CONSOLE" />-->
         <appender-ref ref="FILE" />
     </root>
     <!--<root level="DEBUG">-->
     <!--<appender-ref ref="CONSOLE" />-->
     <!--<appender-ref ref="FILE" />-->
     <!--</root>-->
-
 </configuration>
