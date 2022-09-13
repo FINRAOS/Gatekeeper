@@ -156,7 +156,8 @@ Currently Gatekeeper only supports authorization through LDAP, the application e
 
 |Property                                               | Description                                                             | Type                                                          |
 |-------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| gatekeeper.auth.userIdHeader                           | The header in which gatekeeper looks to extract the authenticated user | string                                                        | 
+| gatekeeper.auth.userIdHeader                           | The header in which gatekeeper looks to extract the authenticated user | string                                                        |
+| gatekeeper.header.contentSecurityPolicy 	             | (Optional) Content-Security-Policy header to be appended to "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "      | string 	| 
 | gatekeeper.auth.ldap.isActiveDirectory                 | Whether your LDAP server is Microsoft Active Directory or not (Nested groups are not supported with Non-Active Directory LDAP servers) | boolean
 | gatekeeper.auth.ldap.objectClass                       | The Object class to look for users with (ex. posixAccount, person, user) | string 
 | gatekeeper.auth.ldap.usersBase                         | The base in which the Users are stored on the LDAP Server (e.g. ou=Users,dc=example,dc=org) | string

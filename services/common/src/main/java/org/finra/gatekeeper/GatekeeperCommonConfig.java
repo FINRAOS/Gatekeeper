@@ -25,6 +25,7 @@ import org.finra.gatekeeper.common.authfilter.parser.SSOParser;
 import org.finra.gatekeeper.common.authfilter.UserHeaderFilter;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.properties.GatekeeperAwsProperties;
+import org.finra.gatekeeper.common.properties.GatekeeperHeaderProperties;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperActiveDirectoryLDAPAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperOpenLDAPAuthorizationService;
@@ -63,12 +64,13 @@ public class GatekeeperCommonConfig {
     private final String base;
     private final String proxyHost;
     private final Integer proxyPort;
+    private final String contentSecurityPolicy;
 
     private final GatekeeperAuthProperties gatekeeperAuthProperties;
 
     @Autowired
     public GatekeeperCommonConfig(GatekeeperAwsProperties gatekeeperAwsProperties,
-                                  GatekeeperAuthProperties gatekeeperAuthProperties){
+                                  GatekeeperAuthProperties gatekeeperAuthProperties, GatekeeperHeaderProperties gatekeeperHeaderProperties){
         //AWS
         if(gatekeeperAwsProperties.getProxyHost().equalsIgnoreCase("unset") && !gatekeeperAwsProperties.getProxyHost().equals("${PROXY_HOST}")) {
             logger.info("Setting Proxy Host to " + gatekeeperAwsProperties.getProxyHost());
@@ -86,6 +88,9 @@ public class GatekeeperCommonConfig {
             logger.info("No valid proxy port configuration found. (was " + gatekeeperAwsProperties.getProxyPort() + "), so not setting proxyPort");
             this.proxyPort = null;
         }
+
+        //Headers
+        this.contentSecurityPolicy = gatekeeperHeaderProperties.getContentSecurityPolicy();
 
         //LDAP
         this.userIdHeader = gatekeeperAuthProperties.getUserIdHeader();
@@ -123,7 +128,11 @@ public class GatekeeperCommonConfig {
     @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
     public FilterRegistrationBean userProfileFilterRegistration() {
         FilterRegistrationBean userProfileFilterRegistration = new FilterRegistrationBean();
-        userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader)));
+        if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
+            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader), contentSecurityPolicy));
+        } else {
+            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader)));
+        }
         userProfileFilterRegistration.setOrder(0);
         return userProfileFilterRegistration;
     }
