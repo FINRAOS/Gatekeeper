@@ -19,7 +19,7 @@ package org.finra.gatekeeper.configuration;
 
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
-import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.JavaEmailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -31,7 +31,7 @@ public class GatekeeperConfig {
     @Bean
     public Configuration freemarkerConfig() {
         Configuration configuration = new Configuration(Configuration.VERSION_2_3_29);
-        configuration.setClassForTemplateLoading(EmailService.class, "/emails");
+        configuration.setClassForTemplateLoading(JavaEmailService.class, "/emails");
         configuration.setDefaultEncoding("UTF-8");
         configuration.setLocale(Locale.US);
         configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);

@@ -20,7 +20,7 @@ import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.JavaEmailService;
 import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.finra.gatekeeper.services.keypairs.KeypairService;
@@ -56,7 +56,7 @@ public class EmailServiceWrapperTest {
     private EmailServiceWrapper mailServiceWrapper;
 
     @Mock
-    private EmailService emailService;
+    private JavaEmailService emailService;
 
     @Mock
     private GatekeeperEmailProperties emailProperties;
@@ -103,6 +103,7 @@ public class EmailServiceWrapperTest {
         when(emailProperties.getTeam()).thenReturn(teamEmail);
         when(emailProperties.getOpsEmails()).thenReturn(opsEmail);
         when(emailProperties.isSendAccessRequestedEmail()).thenReturn(true);
+        when(emailProperties.isUseSES()).thenReturn(false);
         when(emailProperties.getChangeDisclaimer()).thenReturn("test");
     }
 

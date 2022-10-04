@@ -65,6 +65,11 @@ public class GatekeeperProperties {
          */
         private boolean sendAccessRequestedEmail;
 
+        /**
+        * Whether or not use use AWS Simple Email Service
+        */
+        private boolean useSES;
+
         public String getApproverEmails() {
             return approverEmails;
         }
@@ -107,6 +112,15 @@ public class GatekeeperProperties {
 
         public EmailProperties setSendAccessRequestedEmail(boolean sendAccessRequestedEmail) {
             this.sendAccessRequestedEmail = sendAccessRequestedEmail;
+            return this;
+        }
+
+        public boolean isUseSES() {
+            return useSES;
+        }
+
+        public EmailProperties setUseSES(boolean useSES) {
+            this.useSES = useSES;
             return this;
         }
 

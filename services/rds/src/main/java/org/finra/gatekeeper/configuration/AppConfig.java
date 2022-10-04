@@ -21,7 +21,7 @@ import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.services.db.EnvVarDBCredentialsService;
-import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.JavaEmailService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class AppConfig implements ApplicationContextAware {
     @Bean
     public freemarker.template.Configuration freemarkerConfig() {
         Configuration configuration = new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_29);
-        configuration.setClassForTemplateLoading(EmailService.class, "/emails");
+        configuration.setClassForTemplateLoading(JavaEmailService.class, "/emails");
         configuration.setDefaultEncoding("UTF-8");
         configuration.setLocale(Locale.US);
         configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);

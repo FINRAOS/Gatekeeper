@@ -22,6 +22,8 @@ import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -62,6 +64,10 @@ public class AwsSessionFactory {
          return AmazonSNSClientBuilder
                  .standard()
                  .build();
+    }
+
+    public AmazonSimpleEmailService createSimpleEmailServiceSession(){
+        return AmazonSimpleEmailServiceClientBuilder.standard().build();
     }
 
     private AWSStaticCredentialsProvider setCredentials(BasicSessionCredentials basicSessionCredentials){

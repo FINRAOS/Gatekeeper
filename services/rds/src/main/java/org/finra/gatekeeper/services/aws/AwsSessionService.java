@@ -26,6 +26,8 @@ import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -137,7 +139,6 @@ public class AwsSessionService {
         AmazonEC2Client ec2 = awsSessionFactory.createEC2Session(creds);
         ec2.setRegion(Region.getRegion(Regions.fromName(environment.getRegion())));
         return ec2;
-
     }
 
     public AmazonSNS getSNSSession(){
@@ -146,4 +147,5 @@ public class AwsSessionService {
     public AWSLambda getAwsLambda(String region){
         return awsSessionFactory.createLambdaSession(region);
     }
+    public AmazonSimpleEmailService getSimpleEmailServiceSession(){ return awsSessionFactory.createSimpleEmailServiceSession(); }
 }

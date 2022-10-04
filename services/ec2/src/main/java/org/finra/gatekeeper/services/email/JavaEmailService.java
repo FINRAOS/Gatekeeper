@@ -38,16 +38,16 @@ import java.util.Map;
  * Service for email message related activity
  */
 @Component
-public class EmailService {
+public class JavaEmailService {
 
-    private final Logger logger = LoggerFactory.getLogger(EmailService.class);
+    private final Logger logger = LoggerFactory.getLogger(JavaEmailService.class);
     private final String charset = "US-ASCII";
 
     private final JavaMailSender javaMailSender;
     private final Configuration freemarkerConfig;
 
     @Autowired
-    public EmailService(JavaMailSender javaMailSender, Configuration freemarkerConfig){
+    public JavaEmailService(JavaMailSender javaMailSender, Configuration freemarkerConfig){
         this.javaMailSender = javaMailSender;
         this.freemarkerConfig = freemarkerConfig;
     }

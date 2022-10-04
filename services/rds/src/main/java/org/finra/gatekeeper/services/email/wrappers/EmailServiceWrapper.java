@@ -22,7 +22,8 @@ import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.AWSEmailService;
+import org.finra.gatekeeper.services.email.JavaEmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,22 +43,26 @@ public class EmailServiceWrapper {
 
     private final Logger logger  = LoggerFactory.getLogger(EmailServiceWrapper.class);
 
-    private EmailService emailService;
+    private JavaEmailService javaEmailService;
+    private AWSEmailService awsEmailService;
 
     private String approverEmails;
     private String opsEmails;
     private String teamEmail;
     private String mailFrom;
     private boolean sendAccessRequestedEmail;
+    private boolean useSES;
 
     @Autowired
-    public EmailServiceWrapper(EmailService emailService, GatekeeperProperties gatekeeperProperties){
-        this.emailService = emailService;
+    public EmailServiceWrapper(JavaEmailService javaEmailService, AWSEmailService awsEmailService, GatekeeperProperties gatekeeperProperties){
+        this.javaEmailService = javaEmailService;
+        this.awsEmailService = awsEmailService;
         this.approverEmails = gatekeeperProperties.getEmail().getApproverEmails();
         this.opsEmails = gatekeeperProperties.getEmail().getOpsEmails();
         this.teamEmail = gatekeeperProperties.getEmail().getTeam();
         this.mailFrom = gatekeeperProperties.getEmail().getFrom();
         this.sendAccessRequestedEmail = gatekeeperProperties.getEmail().isSendAccessRequestedEmail();
+        this.useSES = gatekeeperProperties.getEmail().isUseSES();
     }
 
     /*
@@ -86,7 +91,8 @@ public class EmailServiceWrapper {
             if(other != null){
                 other.forEach((k, v) -> params.put(k.toString(), v));
             }
-            emailService.sendEmail(email, mailFrom, cc, subject, templateName, params);
+            sendEmail(email, mailFrom, cc, subject, templateName, params);
+
         }catch(Exception ex){
             logger.info("Unable to push emails out to recipients " + email + " with cc " + cc + " using subject: " + subject
                     + " with template: " + templateName + "\n Access Request: " + request.toString());
@@ -114,7 +120,7 @@ public class EmailServiceWrapper {
     public void notifyExpired(AccessRequest request){
         logger.info("notify users that their time is up " + request.getUsers());
         request.getUsers().forEach(user -> {
-            emailHelper(user.getEmail(), null, "Your Access has expired", "accessExpired", request);
+            emailHelper(user.getEmail(), null, "Gatekeeper: Your Access has expired", "accessExpired", request);
         });
     }
 
@@ -142,17 +148,17 @@ public class EmailServiceWrapper {
 
     public void notifyCanceled(AccessRequest request){
         logger.info("Notify user and approvers that request was canceled");
-        emailHelper(approverEmails, request.getRequestorEmail(), "Access Request " + request.getId() + " was canceled", "requestCanceled", request);
+        emailHelper(approverEmails, request.getRequestorEmail(), "Gatekeeper: Access Request " + request.getId() + " was canceled", "requestCanceled", request);
     }
 
     public void notifyRejected(AccessRequest request){
         logger.info("Notify the submitter that the request was rejected");
-        emailHelper(request.getRequestorEmail(), null, "Access Request " + request.getId() + " was denied", "accessDenied", request);
+        emailHelper(request.getRequestorEmail(), null, "Gatekeeper: Access Request " + request.getId() + " was denied", "accessDenied", request);
     }
 
     public void notifyApproved(AccessRequest request){
         logger.info("Notify the submitter that the request was approved");
-        emailHelper(request.getRequestorEmail(), null, "Access Request " + request.getId() + " was granted", "accessGranted", request);
+        emailHelper(request.getRequestorEmail(), null, "Gatekeeper: Access Request " + request.getId() + " was granted", "accessGranted", request);
     }
 
     public void notifyOfCredentials(AccessRequest request, User user, RoleType roleType, String password, Map<String, Map<RoleType, List<String>>> schemaTables){
@@ -179,8 +185,8 @@ public class EmailServiceWrapper {
 
             contentMap.put("schemaTables", convertedSchemaTables);
 
-            emailService.sendEmail(user.getEmail(), mailFrom, null, "Gatekeeper: ["+request.getId()+"] You have been granted " + roleType.getDbRole() + " access", "userGrant", contentMap);
-            emailService.sendEmail(user.getEmail(), mailFrom, null, "Gatekeeper: ["+request.getId()+"] Your temporary credentials for role " + roleType.getDbRole(), "credentials", contentMap);
+            sendEmail(user.getEmail(), mailFrom, null, "Gatekeeper: ["+request.getId()+"] You have been granted " + roleType.getDbRole() + " access", "userGrant", contentMap);
+            sendEmail(user.getEmail(), mailFrom, null, "Gatekeeper: ["+request.getId()+"] Your temporary credentials for role " + roleType.getDbRole(), "credentials", contentMap);
 
         }catch(Exception e){
             logger.error("Error sending the team an email",e);
@@ -196,11 +202,25 @@ public class EmailServiceWrapper {
             param.put("stacktrace", stacktrace);
             Map<String, Object> contentMap = new HashMap<String,Object>();
             contentMap.put("request", request);
-            emailService.sendEmailWithAttachment(teamEmail, mailFrom,null, "Failure executing process", "failure",contentMap, "Exception.txt","exception",  param, "text/plain");
+            if(useSES) {
+                awsEmailService.sendEmailWithAttachment(teamEmail, mailFrom,null, "Gatekeeper: Failure executing process", "failure",contentMap, "Exception.txt","exception",  param, "text/plain");
+            }else{
+                javaEmailService.sendEmailWithAttachment(teamEmail, mailFrom,null, "Gatekeeper: Failure executing process", "failure",contentMap, "Exception.txt","exception",  param, "text/plain");
+            }
         }catch(Exception e){
             logger.error("Error sending the team an email",e);
         }
 
+    }
+    /**
+     * Helper Method for sending emails to the right email service
+     */
+    private void sendEmail(String to, String from, String cc, String emailSubject, String template, Map<String, Object> contentMap) throws Exception{
+        if(useSES) {
+            awsEmailService.sendEmail(to, from, cc, emailSubject, template, contentMap);
+        }else{
+            javaEmailService.sendEmail(to, from, cc, emailSubject, template, contentMap);
+        }
     }
 
     /**

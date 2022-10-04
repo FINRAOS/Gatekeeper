@@ -122,6 +122,11 @@ gatekeeper:
 log:
   filename: application.log
 
+management:
+  health:
+    mail:
+      enabled: false
+
 spring:
   profiles.active: local
   loader.path:
@@ -173,8 +178,8 @@ spring:
       base: ${gatekeeper.auth.ldap.base}
       password: ${gatekeeper.auth.ldap.userPassword}
   mail:
-    host: ${gatekeeper.email.host}
-    port: ${gatekeeper.email.port}
+    host: ${gatekeeper.email.host:localhost}
+    port: ${gatekeeper.email.port:25}
 
   jpa:
     hibernate:

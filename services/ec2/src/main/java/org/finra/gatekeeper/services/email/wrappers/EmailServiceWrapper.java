@@ -20,7 +20,8 @@ import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.email.EmailService;
+import org.finra.gatekeeper.services.email.AWSEmailService;
+import org.finra.gatekeeper.services.email.JavaEmailService;
 import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
 import org.finra.gatekeeper.services.email.model.GatekeeperWindowsNotification;
 import org.slf4j.Logger;
@@ -44,11 +45,14 @@ public class EmailServiceWrapper {
 
     private final GatekeeperEmailProperties emailProperties;
 
-    private final EmailService emailService;
+    private final JavaEmailService javaEmailService;
+
+    private final AWSEmailService awsEmailService;
 
     @Autowired
-    public EmailServiceWrapper(EmailService emailService, GatekeeperEmailProperties gatekeeperEmailProperties){
-        this.emailService = emailService;
+    public EmailServiceWrapper(JavaEmailService javaEmailService, AWSEmailService awsEmailService, GatekeeperEmailProperties gatekeeperEmailProperties){
+        this.javaEmailService = javaEmailService;
+        this.awsEmailService = awsEmailService;
         this.emailProperties = gatekeeperEmailProperties;
     }
 
@@ -78,7 +82,7 @@ public class EmailServiceWrapper {
             if(other != null){
                 other.forEach((k, v) -> params.put(k.toString(), v));
             }
-            emailService.sendEmail(email, emailProperties.getFrom(), cc, subject, templateName, params);
+            sendEmail(email, emailProperties.getFrom(), cc, subject, templateName, params);
         }catch(Exception ex){
             logger.info("Unable to push emails out to recipients " + email + " with cc " + cc + " using subject: " + subject
                     + " with template: " + templateName + "\n Access Request: " + request.toString());
@@ -105,7 +109,7 @@ public class EmailServiceWrapper {
     public void notifyExpired(AccessRequest request){
         logger.info("notify users that their time is up " + request.getUsers());
         request.getUsers().forEach(user -> {
-            emailHelper(user.getEmail(), null, "Your Access has expired", "accessExpired", request);
+            emailHelper(user.getEmail(), null, "Gatekeeper: Your Access has expired", "accessExpired", request);
         });
     }
 
@@ -133,17 +137,17 @@ public class EmailServiceWrapper {
 
     public void notifyCanceled(AccessRequest request){
         logger.info("Notify user and approvers that request was canceled");
-        emailHelper(emailProperties.getApproverEmails(), request.getRequestorEmail(), "Access Request " + request.getId() + " was canceled", "requestCanceled", request);
+        emailHelper(emailProperties.getApproverEmails(), request.getRequestorEmail(), "Gatekeeper: Access Request " + request.getId() + " was canceled", "requestCanceled", request);
     }
 
     public void notifyRejected(AccessRequest request){
         logger.info("Notify the submitter that the request was rejected");
-        emailHelper(request.getRequestorEmail(), null, "Access Request " + request.getId() + " was denied", "accessDenied", request);
+        emailHelper(request.getRequestorEmail(), null, "Gatekeeper: Access Request " + request.getId() + " was denied", "accessDenied", request);
     }
 
     public void notifyApproved(AccessRequest request){
         logger.info("Notify the submitter that the request was approved");
-        emailHelper(request.getRequestorEmail(), null, "Access Request " + request.getId() + " was granted", "accessGranted", request);
+        emailHelper(request.getRequestorEmail(), null, "Gatekeeper: Access Request " + request.getId() + " was granted", "accessGranted", request);
     }
 
     public void notifyOfCredentials(AccessRequest request, GatekeeperLinuxNotification notification){
@@ -159,10 +163,10 @@ public class EmailServiceWrapper {
             contentMap.put("changeDisclaimer", emailProperties.getChangeDisclaimer());
 
             //Send out just the username
-            emailHelper(notification.getUser().getEmail(), null, "Access Request " + request.getId() + " - Your temporary username", "username", request, contentMap);
+            emailHelper(notification.getUser().getEmail(), null, "Gatekeeper: Access Request " + request.getId() + " - Your temporary username", "username", request, contentMap);
             
             //Send out just the pem
-            emailService.sendEmailWithAttachment(notification.getUser().getEmail(), emailProperties.getFrom(), null,"Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
+            sendEmailWithAttachment(notification.getUser().getEmail(), emailProperties.getFrom(), null,"Gatekeeper: Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
 
         }catch(Exception e){
             logger.error("Error sending the team an email",e);
@@ -176,7 +180,7 @@ public class EmailServiceWrapper {
             Map<String, Object> contentMap = new HashMap<String,Object>();
             contentMap.put("instances", notification.getCancelledInstances());
 
-            emailHelper(notification.getUser().getEmail(),  null, "Could not add user", "processCancelled", request, notification.getUser(), contentMap);
+            emailHelper(notification.getUser().getEmail(),  null, "Gatekeeper: Could not add user", "processCancelled", request, notification.getUser(), contentMap);
 
         }catch(Exception e){
             logger.error("Error sending the team an email",e);
@@ -192,11 +196,33 @@ public class EmailServiceWrapper {
             param.put("stacktrace", stacktrace);
             Map<String, Object> contentMap = new HashMap<String,Object>();
             contentMap.put("request", request);
-            emailService.sendEmailWithAttachment(emailProperties.getTeam(), emailProperties.getFrom(),null, "Failure executing process", "failure",contentMap, "Exception.txt","exception",  param, "text/plain");
+            sendEmailWithAttachment(emailProperties.getTeam(), emailProperties.getFrom(),null, "Gatekeeper: Failure executing process", "failure",contentMap, "Exception.txt","exception",  param, "text/plain");
         }catch(Exception e){
             logger.error("Error sending the team an email",e);
         }
 
+    }
+
+    /**
+     * Helper Method for sending emails to the right email service
+     */
+    private void sendEmail(String to, String from, String cc, String emailSubject, String template, Map<String, Object> contentMap) throws Exception{
+        if(emailProperties.isUseSES()) {
+            awsEmailService.sendEmail(to, from, cc, emailSubject, template, contentMap);
+        }else{
+            javaEmailService.sendEmail(to, from, cc, emailSubject, template, contentMap);
+        }
+    }
+
+    /**
+     * Helper Method for sending emails with attachments to the right email service
+     */
+    private void sendEmailWithAttachment(String to, String from, String cc, String emailSubject, String template, Map<String, Object> contentMap, String attachmentName, String attachmentTemplate, Map<String, Object> attachmentMap, String mimeType) throws Exception{
+        if(emailProperties.isUseSES()) {
+            awsEmailService.sendEmailWithAttachment(to, from, cc, emailSubject, template, contentMap, attachmentName, attachmentTemplate, attachmentMap, mimeType);
+        }else{
+            javaEmailService.sendEmailWithAttachment(to, from, cc, emailSubject, template, contentMap, attachmentName, attachmentTemplate, attachmentMap, mimeType);
+        }
     }
 
     /**
