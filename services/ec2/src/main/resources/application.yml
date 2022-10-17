@@ -71,8 +71,10 @@ gatekeeper:
   accountInfoEndpoint: account-info.mycompany.com
   accountInfoUri: accounts
 
-
-
+management:
+  health:
+    mail:
+      enabled: false
 
 spring:
   activiti:
@@ -122,8 +124,8 @@ spring:
       base: ${gatekeeper.auth.ldap.base}
       password: ${gatekeeper.auth.ldap.userPassword}
   mail:
-    host: ${gatekeeper.email.host}
-    port: ${gatekeeper.email.port}
+    host: ${gatekeeper.email.host:localhost}
+    port: ${gatekeeper.email.port:25}
 
   jpa:
     hibernate:

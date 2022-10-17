@@ -16,7 +16,7 @@
 
     <properties>
         <aws.sdk.version>1.11.800</aws.sdk.version>
-        <freemarker.version>2.3.20</freemarker.version>
+        <freemarker.version>2.3.29</freemarker.version>
         <commons.version>3.4</commons.version>
     </properties>
 
@@ -49,6 +49,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
@@ -63,6 +67,11 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-sts</artifactId>
+            <version>${aws.sdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-ses</artifactId>
             <version>${aws.sdk.version}</version>
         </dependency>
         <dependency>

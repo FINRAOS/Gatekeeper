@@ -14,14 +14,31 @@
  * limitations under the License.
  */
 
-package org.finra.gatekeeper.configuration.properties;
+package org.finra.gatekeeper.common.properties;
 
+import freemarker.template.Configuration;
+import freemarker.template.TemplateExceptionHandler;
+import org.finra.gatekeeper.common.services.email.JavaEmailService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
+
+import java.util.Locale;
 
 @Component
 @ConfigurationProperties(prefix="gatekeeper.email")
 public class GatekeeperEmailProperties {
+    @Bean
+    public Configuration freemarkerConfig() {
+        Configuration configuration = new Configuration(Configuration.VERSION_2_3_29);
+        configuration.setClassForTemplateLoading(JavaEmailService.class, "/emails");
+        configuration.setDefaultEncoding("UTF-8");
+        configuration.setLocale(Locale.US);
+        configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+
+        return configuration;
+    }
+
     /**
      * The Email addresses (or Distribution List) for the approvers
      */
@@ -47,6 +64,12 @@ public class GatekeeperEmailProperties {
      * Whether or not to send Access Requested emails
      */
     private boolean sendAccessRequestedEmail;
+
+
+    /**
+     * Whether or not use use AWS Simple Email Service
+     */
+    private boolean useSES;
 
     public GatekeeperEmailProperties() {
     }
@@ -101,6 +124,14 @@ public class GatekeeperEmailProperties {
 
     public GatekeeperEmailProperties setSendAccessRequestedEmail(boolean sendAccessRequestedEmail) {
         this.sendAccessRequestedEmail = sendAccessRequestedEmail;
+        return this;
+    }
+    public boolean isUseSES() {
+        return useSES;
+    }
+
+    public GatekeeperEmailProperties setUseSES(boolean useSES) {
+        this.useSES = useSES;
         return this;
     }
 

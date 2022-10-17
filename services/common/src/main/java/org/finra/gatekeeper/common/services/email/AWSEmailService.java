@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2022. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,16 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.finra.gatekeeper.services.email;
+package org.finra.gatekeeper.common.services.email;
 
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.model.RawMessage;
+import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import org.finra.gatekeeper.common.services.aws.AwsSesSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
@@ -30,45 +35,38 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
+import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
-import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
  * Service for email message related activity
  */
 @Component
-public class EmailService {
+public class AWSEmailService {
+    private final Logger logger = LoggerFactory.getLogger(org.finra.gatekeeper.common.services.email.AWSEmailService.class);
+    private final String charset = "UTF-8";
 
-    private final Logger logger = LoggerFactory.getLogger(EmailService.class);
-    private final String charset = "US-ASCII";
-
-    private final JavaMailSender javaMailSender;
     private final Configuration freemarkerConfig;
-
+    private final AmazonSimpleEmailService ses;
     @Autowired
-    public EmailService(JavaMailSender javaMailSender, Configuration freemarkerConfig){
-        this.javaMailSender = javaMailSender;
+    public AWSEmailService(Configuration freemarkerConfig, AwsSesSessionService awsSesSessionService) {
         this.freemarkerConfig = freemarkerConfig;
+        this.ses = awsSesSessionService.getSES();
     }
 
-    private String generateEmailMessage(String template, Map params) throws Exception {
+    private String generateEmailMessage(String template, Map<String, Object> params) throws Exception {
         Template templateObj = freemarkerConfig.getTemplate(template + ".ftl");
 
-        Writer stringWriter = new StringWriter();
-        String result;
-
-        try {
+        try (StringWriter stringWriter = new StringWriter()) {
             templateObj.process(params, stringWriter);
-            result = stringWriter.toString();
-        } finally {
-            stringWriter.close();
+            return stringWriter.toString();
         }
-        return result;
     }
 
     private MimeMessage generateMimeMessage(String to, String from, String cc, String subject) throws MessagingException {
-        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessage mimeMessage = new JavaMailSenderImpl().createMimeMessage();
         MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, charset);
         InternetAddress fAddress = new InternetAddress(from);
         message.setTo(InternetAddress.parse(to, true));
@@ -118,7 +116,11 @@ public class EmailService {
             DataSource data = new ByteArrayDataSource(generateEmailMessage("attachments/"+attachmentTemplate, attachmentMap), mimeType);
             message.addAttachment(attachmentName, data);
         }
-        javaMailSender.send(mimeMessage);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        message.getMimeMessage().writeTo(outputStream);
+        ses.sendRawEmail(new SendRawEmailRequest(new RawMessage(ByteBuffer.wrap(outputStream.toByteArray()))));
+
         return mimeMessage;
     }
 }
