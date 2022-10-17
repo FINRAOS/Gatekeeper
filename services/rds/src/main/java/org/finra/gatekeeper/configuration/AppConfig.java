@@ -17,11 +17,8 @@
 
 package org.finra.gatekeeper.configuration;
 
-import freemarker.template.Configuration;
-import freemarker.template.TemplateExceptionHandler;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.services.db.EnvVarDBCredentialsService;
-import org.finra.gatekeeper.services.email.JavaEmailService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +28,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
-import java.util.Locale;
-
 /**
  * Configuration file used to set up beans like ClientConfiguration
  * or any other AWS clients such as S3, SQS, etc.
@@ -41,17 +36,6 @@ import java.util.Locale;
 public class AppConfig implements ApplicationContextAware {
     private final Logger logger = LoggerFactory.getLogger(AppConfig.class);
     private ApplicationContext context;
-
-    @Bean
-    public freemarker.template.Configuration freemarkerConfig() {
-        Configuration configuration = new freemarker.template.Configuration(freemarker.template.Configuration.VERSION_2_3_29);
-        configuration.setClassForTemplateLoading(JavaEmailService.class, "/emails");
-        configuration.setDefaultEncoding("UTF-8");
-        configuration.setLocale(Locale.US);
-        configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-
-        return configuration;
-    }
 
     @Bean(name="credentialsProvider")
     public GKUserCredentialsProvider credentialsProviderConfig(GatekeeperProperties gatekeeperProperties){

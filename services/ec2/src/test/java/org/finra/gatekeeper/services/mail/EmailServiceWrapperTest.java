@@ -16,11 +16,11 @@
 
 package org.finra.gatekeeper.services.mail;
 
-import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
+import org.finra.gatekeeper.common.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.email.JavaEmailService;
+import org.finra.gatekeeper.common.services.email.JavaEmailService;
 import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
 import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
 import org.finra.gatekeeper.services.keypairs.KeypairService;
@@ -124,7 +124,7 @@ public class EmailServiceWrapperTest {
         param.put("stacktrace", constructStackTrace(exception));
 
         mailServiceWrapper.notifyAdminsOfFailure(request, exception);
-        verify(emailService, times(1)).sendEmailWithAttachment(teamEmail, fromEmail, null, "Failure executing process", "failure", contentMap, "Exception.txt", "exception", param, "text/plain");
+        verify(emailService, times(1)).sendEmailWithAttachment(teamEmail, fromEmail, null, "Gatekeeper: Failure executing process", "failure", contentMap, "Exception.txt", "exception", param, "text/plain");
 
 
 
@@ -159,9 +159,9 @@ public class EmailServiceWrapperTest {
                 .setUser(testUser)
                 .setKey(privateKeyString)
                 .setCreateStatus(createStatus));
-        verify(emailService, times(1)).sendEmailWithAttachment(testUser.getEmail(), fromEmail, null, "Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
+        verify(emailService, times(1)).sendEmailWithAttachment(testUser.getEmail(), fromEmail, null, "Gatekeeper: Access Request " + request.getId() + " - Your temporary credential", "credentials", contentMap, "credential.pem", "privatekey", param, "application/x-pem-file");
         contentMap.put("approverDL", approverEmail);
-        verify(emailService, times(1)).sendEmail(testUserEmail, fromEmail, null, "Access Request " + request.getId() + " - Your temporary username", "username", contentMap);
+        verify(emailService, times(1)).sendEmail(testUserEmail, fromEmail, null, "Gatekeeper: Access Request " + request.getId() + " - Your temporary username", "username", contentMap);
 
     }
 
@@ -195,7 +195,7 @@ public class EmailServiceWrapperTest {
         contentMap.put("changeDisclaimer", "test");
 
         mailServiceWrapper.notifyExpired(request);
-        verify(emailService, times(1)).sendEmail(testUser.getEmail(), fromEmail, null, "Your Access has expired", "accessExpired", contentMap);
+        verify(emailService, times(1)).sendEmail(testUser.getEmail(), fromEmail, null, "Gatekeeper: Your Access has expired", "accessExpired", contentMap);
     }
 
     /**
@@ -228,7 +228,7 @@ public class EmailServiceWrapperTest {
         contentMap.put("changeDisclaimer", "test");
 
         mailServiceWrapper.notifyApproved(request);
-        verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Access Request 125 was granted", "accessGranted", contentMap);
+        verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Gatekeeper: Access Request 125 was granted", "accessGranted", contentMap);
     }
 
     /**
@@ -244,7 +244,7 @@ public class EmailServiceWrapperTest {
         contentMap.put("changeDisclaimer", "test");
 
         mailServiceWrapper.notifyCanceled(request);
-        verify(emailService, times(1)).sendEmail(approverEmail, fromEmail, requestEmail, "Access Request 125 was canceled", "requestCanceled", contentMap);
+        verify(emailService, times(1)).sendEmail(approverEmail, fromEmail, requestEmail, "Gatekeeper: Access Request 125 was canceled", "requestCanceled", contentMap);
     }
 
 
@@ -261,7 +261,7 @@ public class EmailServiceWrapperTest {
         contentMap.put("changeDisclaimer", "test");
 
         mailServiceWrapper.notifyRejected(request);
-        verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Access Request 125 was denied", "accessDenied", contentMap);
+        verify(emailService, times(1)).sendEmail(requestEmail, fromEmail, null, "Gatekeeper: Access Request 125 was denied", "accessDenied", contentMap);
     }
 
     private String constructStackTrace(Throwable exception) {

@@ -45,9 +45,4 @@ public class AwsSessionFactory {
                 .standard().withRegion(region)
                 .build();
     }
-
-    public AmazonSimpleEmailService createSimpleEmailServiceSession(){
-        return AmazonSimpleEmailServiceClientBuilder.standard().build();
-    }
-
 }

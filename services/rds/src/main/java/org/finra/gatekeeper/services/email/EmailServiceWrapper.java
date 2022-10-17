@@ -15,15 +15,16 @@
  *
  */
 
-package org.finra.gatekeeper.services.email.wrappers;
+package org.finra.gatekeeper.services.email;
 
+import org.finra.gatekeeper.common.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.email.AWSEmailService;
-import org.finra.gatekeeper.services.email.JavaEmailService;
+import org.finra.gatekeeper.common.services.email.AWSEmailService;
+import org.finra.gatekeeper.common.services.email.JavaEmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,15 +55,15 @@ public class EmailServiceWrapper {
     private boolean useSES;
 
     @Autowired
-    public EmailServiceWrapper(JavaEmailService javaEmailService, AWSEmailService awsEmailService, GatekeeperProperties gatekeeperProperties){
+    public EmailServiceWrapper(JavaEmailService javaEmailService, AWSEmailService awsEmailService, GatekeeperEmailProperties gatekeeperProperties){
         this.javaEmailService = javaEmailService;
         this.awsEmailService = awsEmailService;
-        this.approverEmails = gatekeeperProperties.getEmail().getApproverEmails();
-        this.opsEmails = gatekeeperProperties.getEmail().getOpsEmails();
-        this.teamEmail = gatekeeperProperties.getEmail().getTeam();
-        this.mailFrom = gatekeeperProperties.getEmail().getFrom();
-        this.sendAccessRequestedEmail = gatekeeperProperties.getEmail().isSendAccessRequestedEmail();
-        this.useSES = gatekeeperProperties.getEmail().isUseSES();
+        this.approverEmails = gatekeeperProperties.getApproverEmails();
+        this.opsEmails = gatekeeperProperties.getOpsEmails();
+        this.teamEmail = gatekeeperProperties.getTeam();
+        this.mailFrom = gatekeeperProperties.getFrom();
+        this.sendAccessRequestedEmail = gatekeeperProperties.isSendAccessRequestedEmail();
+        this.useSES = gatekeeperProperties.isUseSES();
     }
 
     /*

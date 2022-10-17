@@ -25,7 +25,7 @@ import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
-import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
+import org.finra.gatekeeper.services.email.EmailServiceWrapper;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.passwords.PasswordGenerationService;
 import org.slf4j.Logger;

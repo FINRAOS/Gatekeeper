@@ -66,10 +66,6 @@ public class AwsSessionFactory {
                  .build();
     }
 
-    public AmazonSimpleEmailService createSimpleEmailServiceSession(){
-        return AmazonSimpleEmailServiceClientBuilder.standard().build();
-    }
-
     private AWSStaticCredentialsProvider setCredentials(BasicSessionCredentials basicSessionCredentials){
         return new AWSStaticCredentialsProvider(basicSessionCredentials);
     }

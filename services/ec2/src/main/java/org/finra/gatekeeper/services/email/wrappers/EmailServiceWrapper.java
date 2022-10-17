@@ -16,12 +16,12 @@
 
 package org.finra.gatekeeper.services.email.wrappers;
 
-import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
+import org.finra.gatekeeper.common.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;
 import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
 import org.finra.gatekeeper.services.accessrequest.model.User;
-import org.finra.gatekeeper.services.email.AWSEmailService;
-import org.finra.gatekeeper.services.email.JavaEmailService;
+import org.finra.gatekeeper.common.services.email.AWSEmailService;
+import org.finra.gatekeeper.common.services.email.JavaEmailService;
 import org.finra.gatekeeper.services.email.model.GatekeeperLinuxNotification;
 import org.finra.gatekeeper.services.email.model.GatekeeperWindowsNotification;
 import org.slf4j.Logger;

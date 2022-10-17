@@ -130,6 +130,4 @@ public class AwsSessionService {
     public AmazonSNS getSnsSession() {
         return awsSessionFactory.createSnsSession();
     }
-    public AmazonSimpleEmailService getSimpleEmailServiceSession(){ return awsSessionFactory.createSimpleEmailServiceSession(); }
-
 }

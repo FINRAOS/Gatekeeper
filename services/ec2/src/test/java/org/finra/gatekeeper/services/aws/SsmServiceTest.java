@@ -18,7 +18,7 @@ package org.finra.gatekeeper.services.aws;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClient;
 import com.amazonaws.services.simplesystemsmanagement.model.*;
-import org.finra.gatekeeper.configuration.properties.GatekeeperEmailProperties;
+import org.finra.gatekeeper.common.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.configuration.properties.GatekeeperSsmProperties;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.accessrequest.model.AWSInstance;

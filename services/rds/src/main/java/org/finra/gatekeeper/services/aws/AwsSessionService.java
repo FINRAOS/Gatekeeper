@@ -147,5 +147,4 @@ public class AwsSessionService {
     public AWSLambda getAwsLambda(String region){
         return awsSessionFactory.createLambdaSession(region);
     }
-    public AmazonSimpleEmailService getSimpleEmailServiceSession(){ return awsSessionFactory.createSimpleEmailServiceSession(); }
 }

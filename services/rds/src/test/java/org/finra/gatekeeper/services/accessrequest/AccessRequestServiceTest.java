@@ -49,7 +49,7 @@ import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.db.DatabaseConnectionService;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
 import org.finra.gatekeeper.services.auth.GatekeeperRdsRole;
-import org.finra.gatekeeper.services.email.wrappers.EmailServiceWrapper;
+import org.finra.gatekeeper.services.email.EmailServiceWrapper;
 import org.finra.gatekeeper.services.group.service.GatekeeperGroupAuthService;
 import org.hibernate.query.internal.NativeQueryImpl;
 import org.junit.Assert;
@@ -62,7 +62,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.persistence.EntityManager;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
