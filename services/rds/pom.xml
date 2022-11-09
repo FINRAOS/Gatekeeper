@@ -38,6 +38,7 @@
 		<freemarker.version>2.3.29</freemarker.version>
 		<h2.version>1.4.185</h2.version>
 		<mongodb.version>3.12.10</mongodb.version>
+		<redshift.version>1.2.55.1083</redshift.version>
 		<java.version>11</java.version>
 		<mysql.version>6.0.5</mysql.version>
 		<postgres.version>42.2.1</postgres.version>
@@ -110,6 +111,11 @@
 			<version>${mongodb.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.amazon.redshift</groupId>
+			<artifactId>redshift-jdbc42-no-awssdk</artifactId>
+			<version>${redshift.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 		</dependency>
@@ -155,6 +161,11 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-ses</artifactId>
+			<version>${aws.sdk.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-redshift</artifactId>
 			<version>${aws.sdk.version}</version>
 		</dependency>
 		<dependency>

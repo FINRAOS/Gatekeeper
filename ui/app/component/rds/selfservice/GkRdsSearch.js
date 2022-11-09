@@ -43,7 +43,8 @@ class GkRdsSearch extends Directive{
             {name: 'RDS', key: 'RDS'},
             {name: 'Aurora (Regional)', key: 'AURORA_REGIONAL'},
             {name: 'Aurora (Global)', key: 'AURORA_GLOBAL'},
-            {name: 'DocumentDB (Regional)', key: 'DOCUMENTDB_REGIONAL'}, 
+            {name: 'DocumentDB (Regional)', key: 'DOCUMENTDB_REGIONAL'},
+            {name: 'Redshift', key: 'REDSHIFT'},  
         ];
 
         vm.rdsService = gkRDSService;
