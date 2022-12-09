@@ -101,6 +101,7 @@ gatekeeper:
       aurora-mysql: mySQLDBConnection
       aurora-postgresql: postgresDBConnection
       docdb: documentDBConnection
+      redshift: redshiftDBConnection
     assumeMinServerVersion: assumeMinServerVersion=9.4
     sslParams: ssl=${gatekeeper.db.ssl}&sslmode=${gatekeeper.db.sslMode}&sslrootcert=${gatekeeper.db.sslCert}
     postgres:
@@ -116,6 +117,8 @@ gatekeeper:
       replicaSet: rs0
       readPreference: secondaryPreferred
       retryWrites: false
+    redshift:
+      ssl: connectTimeout=5000&useSSL=true&requireSSL=true&serverSslCert=${gatekeeper.db.ssl}
     gkUser: gatekeeper
     gkPass: ${GATEKEEPER_RDS_USER_PASSWORD}
 

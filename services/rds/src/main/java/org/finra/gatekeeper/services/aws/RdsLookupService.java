@@ -19,7 +19,12 @@ package org.finra.gatekeeper.services.aws;
 
 import com.amazonaws.services.rds.AmazonRDSClient;
 import com.amazonaws.services.rds.model.*;
+import com.amazonaws.services.redshift.AmazonRedshiftClient;
+import com.amazonaws.services.redshift.model.Cluster;
+import com.amazonaws.services.redshift.model.DescribeClustersRequest;
+import com.amazonaws.services.redshift.model.DescribeClustersResult;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
+import org.finra.gatekeeper.exception.GatekeeperException;
 import org.finra.gatekeeper.rds.model.DbUser;
 import org.finra.gatekeeper.rds.model.RoleType;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
@@ -87,6 +92,8 @@ public class RdsLookupService {
                 return doFilterCluster(environment, searchString, DatabaseType.DOCUMENTDB_REGIONAL, "docdb");
             case AURORA_GLOBAL:
                 return doFilterClusterGlobal(environment, searchString, DatabaseType.AURORA_GLOBAL, "aurora");
+            case REDSHIFT:
+                return doFilterRedshift(environment, searchString);
             default:
                 return Collections.emptyList();
         }
@@ -138,6 +145,12 @@ public class RdsLookupService {
             case "RDS": {
                 DescribeDBInstancesResult result = amazonRDSClient.describeDBInstances(new DescribeDBInstancesRequest().withDBInstanceIdentifier(instanceName));
                 gatekeeperRDSInstances = loadToGatekeeperRDSInstance(environment, amazonRDSClient, result.getDBInstances(), securityGroupIds);
+                }
+                break;
+            case "REDSHIFT": {
+                AmazonRedshiftClient amazonRedshiftClient = awsSessionService.getRedshiftSession(environment);
+                DescribeClustersResult result = amazonRedshiftClient.describeClusters(new DescribeClustersRequest().withClusterIdentifier(instanceName));
+                gatekeeperRDSInstances = loadToGatekeeperRDSInstanceRedshift(environment, result.getClusters(), securityGroupIds);
                 }
                 break;
             default:
@@ -193,6 +206,11 @@ public class RdsLookupService {
                         || globalCluster.getGlobalClusterIdentifier().toLowerCase().contains(searchString.toLowerCase()), type, engine);
     }
 
+    private List<GatekeeperRDSInstance> doFilterRedshift(AWSEnvironment environment, String searchString) {
+        // Get all instances that match the given search string
+        return loadInstancesRedshift(environment, instance -> (instance.getClusterIdentifier().toLowerCase().contains(searchString.toLowerCase())));
+    }
+
     private String getApplicationTagforInstanceArn(AmazonRDSClient client, String arn){
         ListTagsForResourceRequest request = new ListTagsForResourceRequest();
         Optional<Tag> applicationTag = Optional.ofNullable(client.listTagsForResource(request.withResourceName(arn)).getTagList()
@@ -202,6 +220,16 @@ public class RdsLookupService {
 
         return applicationTag.isPresent() ? applicationTag.get().getValue() : "NONE";
     }
+
+    private String getApplicationTagforRedshift(List<com.amazonaws.services.redshift.model.Tag> tags){
+        Optional<com.amazonaws.services.redshift.model.Tag> applicationTag = Optional.ofNullable(tags
+                .stream().filter(tag -> tag.getKey().equalsIgnoreCase(gatekeeperProperties.getAppIdentityTag()))
+                .findFirst())
+                .orElse(Optional.empty());
+
+        return applicationTag.isPresent() ? applicationTag.get().getValue() : "NONE";
+    }
+
     /**
      * Loads the DB instances from a aws fetch call for RDS databases into a list of Gatekeeper RDS Objects
      * @param instances
@@ -382,7 +410,71 @@ public class RdsLookupService {
 
         return gatekeeperRDSInstances;
     }
-    
+
+    private List<GatekeeperRDSInstance> loadToGatekeeperRDSInstanceRedshift(AWSEnvironment environment, List<Cluster> instances, List<String> securityGroupIds){
+        ArrayList<GatekeeperRDSInstance> gatekeeperRDSInstances = new ArrayList<>();
+        instances.forEach(item -> {
+            String application = getApplicationTagforRedshift(item.getTags());
+            boolean enabled = false;
+            String status = item.getClusterStatus();
+            Integer port = item.getEndpoint().getPort();
+            List<String> availableRoles = null;
+            String dbName = item.getDBName();
+            String address = item.getEndpoint().getAddress() + ":" + port;
+
+            if(item.getClusterStatus().equalsIgnoreCase(STATUS_AVAILABLE)
+                    || item.getClusterStatus().equalsIgnoreCase(STATUS_BACKING_UP)) {
+                enabled = item.getVpcSecurityGroups().stream()
+                        .anyMatch(sg -> securityGroupIds.contains(sg.getVpcSecurityGroupId()));
+
+                if(!enabled){
+                    status = STATUS_MISSING_SGS;
+                }
+
+                if(enabled) {
+                    try {
+                        String dbStatus = databaseConnectionService.checkDb(item, environment);
+                        status = !dbStatus.isEmpty() ? dbStatus : status;
+                        enabled = dbStatus.isEmpty(); // if there's no message back from the DB enabled is still true
+                    }catch(GKUnsupportedDBException e){
+                        logger.error(STATUS_UNSUPPORTED_DB_ENGINE, e);
+                        status = STATUS_UNSUPPORTED_DB_ENGINE;
+                        enabled = false;
+                    }
+
+                    if(enabled){
+                        // get available roles for DB
+                        try {
+                            availableRoles = databaseConnectionService.getAvailableRolesForDb(item, environment);
+                            Collections.sort(availableRoles);
+                            logger.info("Found the following roles on " + item.getClusterIdentifier() + " (" + availableRoles +").");
+                        } catch (Exception e) {
+                            logger.error(STATUS_COULD_NOT_FETCH_ROLES, e);
+                            if (e.getMessage().contains("password")) {
+                                status = STATUS_UNABLE_TO_LOGIN;
+                            } else {
+                                status = STATUS_COULD_NOT_FETCH_ROLES;
+                            }
+                            enabled = false;
+                        }
+                    }
+                }
+            }
+            String clusterArn = null;
+            try {
+                clusterArn = getRedshiftArn(environment, item.getClusterIdentifier());
+            } catch (GatekeeperException gatekeeperException) {
+                logger.error("Failed to construct clusterArn for '" + item.getClusterIdentifier() + "': " + gatekeeperException.getMessage());
+            }
+            //Only get AD Groups from the current SDLC
+            Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
+            gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getClusterIdentifier(), item.getClusterIdentifier(),
+                    dbName, "redshift", status, clusterArn, address, application, availableRoles, enabled, DatabaseType.REDSHIFT, adGroups));
+        });
+
+        return gatekeeperRDSInstances;
+    }
+
     private Set<GatekeeperADGroupEntry> filterBySdlc(AWSEnvironment environment, String application) {
         Set<GatekeeperADGroupEntry> adGroups = new HashSet<>();
         Set<GatekeeperADGroupEntry> allAdGroups = rdsGroupLookupService.getLdapAdGroups().get(application);
@@ -530,6 +622,34 @@ public class RdsLookupService {
         return gatekeeperRDSInstances;
     }
 
+    private List<GatekeeperRDSInstance> loadInstancesRedshift(AWSEnvironment environment, Predicate<? super Cluster> filter) {
+        logger.info("Refreshing Redshift Cluster Data");
+        long startTime = System.currentTimeMillis();
+        DescribeClustersRequest describeClustersRequest = new DescribeClustersRequest();
+        List<String> securityGroupIds = sgLookupService.fetchSgsForAccountRegion(environment);
+        AmazonRedshiftClient amazonRedshiftClient = awsSessionService.getRedshiftSession(environment);
+        DescribeClustersResult result = amazonRedshiftClient.describeClusters();
+
+        List<GatekeeperRDSInstance> gatekeeperRDSInstances = loadToGatekeeperRDSInstanceRedshift(environment,
+                result.getClusters()
+                        .stream()
+                        .filter(filter)
+                        .collect(Collectors.toList()), securityGroupIds);
+
+        //At a certain point (Usually ~100 instances) amazon starts paging the rds results, so we need to get each page, which is keyed off by a marker.
+        while(result.getMarker() != null) {
+            result = amazonRedshiftClient.describeClusters(describeClustersRequest.withMarker(result.getMarker()));
+            gatekeeperRDSInstances.addAll(loadToGatekeeperRDSInstanceRedshift(environment,
+                    result.getClusters()
+                            .stream()
+                            .filter(filter)
+                            .collect(Collectors.toList()), securityGroupIds));
+        }
+        logger.info("Refreshed instance data in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
+
+        return gatekeeperRDSInstances;
+    }
+
     private Map<RoleType, List<String>> unavailableMap(){
         HashMap<RoleType, List<String>> empty = new HashMap<>();
         for(RoleType r : RoleType.values()){
@@ -560,5 +680,10 @@ public class RdsLookupService {
         });
 
         return theWriterCluster.get();
+    }
+
+    private String getRedshiftArn(AWSEnvironment environment, String clusterName) throws GatekeeperException {
+        String accountID = awsSessionService.getAccountID(environment.getAccount());
+        return "arn:aws:redshift:" + environment.getRegion() + ":" + accountID + ":cluster:" + clusterName;
     }
 }
