@@ -464,6 +464,7 @@ public class RdsLookupService {
             try {
                 clusterArn = getRedshiftArn(environment, item.getClusterIdentifier());
             } catch (GatekeeperException gatekeeperException) {
+                logger.error("Failed to construct clusterArn for '" + item.getClusterIdentifier() + "': " + gatekeeperException.getMessage());
             }
             //Only get AD Groups from the current SDLC
             Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
