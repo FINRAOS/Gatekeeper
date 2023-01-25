@@ -19,7 +19,10 @@ package org.finra.gatekeeper.controllers;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
+import org.finra.gatekeeper.configuration.properties.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRoleService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,14 +38,17 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final GatekeeperRoleService gatekeeperRoleService;
     private final GatekeeperApprovalProperties approvalPolicy;
+    private final GatekeeperOverrideProperties overridePolicy;
     @Autowired
     public AuthController(GatekeeperRoleService gatekeeperRoleService,
-                          GatekeeperApprovalProperties gatekeeperApprovalProperties){
+                          GatekeeperApprovalProperties gatekeeperApprovalProperties,GatekeeperOverrideProperties gatekeeperOverrideProperties){
         this.gatekeeperRoleService = gatekeeperRoleService;
         this.approvalPolicy = gatekeeperApprovalProperties;
+        this.overridePolicy = gatekeeperOverrideProperties;
     }
 
     @RequestMapping(value="/getRole", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
@@ -54,6 +60,11 @@ public class AuthController {
         result.put("role", gatekeeperRoleService.getRole());
         result.put("email", user.getEmail());
         result.put("approvalThreshold", approvalPolicy.getApprovalPolicy(gatekeeperRoleService.getRole()));
+        result.put("maxHours", overridePolicy.getMaxHours());
+        logger.info("Retrieving override policy for user: " + user.getUserId());
+        result.put("overridePolicy", overridePolicy.getOverrides(gatekeeperRoleService.getRole()).getOverridePolicy());
+        logger.info("User " + user.getUserId() + "'s override policy: " + result.get("overridePolicy"));
+
         switch(gatekeeperRoleService.getRole()){
             case APPROVER:
             case SUPPORT:

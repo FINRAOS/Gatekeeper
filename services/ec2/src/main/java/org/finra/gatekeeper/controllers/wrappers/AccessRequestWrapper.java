@@ -38,6 +38,8 @@ public class AccessRequestWrapper {
     @JsonAlias("requestor_email")
     private String requestorEmail;
     private String account;
+    @JsonAlias("account_sdlc")
+    private String accountSdlc;
     private String region;
     @JsonAlias("request_reason")
     private String requestReason;
@@ -77,6 +79,15 @@ public class AccessRequestWrapper {
 
     public AccessRequestWrapper setAccount(String account){
         this.account = account;
+        return this;
+    }
+
+    public String getAccountSdlc() {
+        return accountSdlc;
+    }
+
+    public AccessRequestWrapper setAccountSdlc(String accountSdlc) {
+        this.accountSdlc = accountSdlc;
         return this;
     }
 

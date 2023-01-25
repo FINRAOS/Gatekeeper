@@ -118,6 +118,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
     }
 
+    
     /**
      * Called from the UI to clear out the AWS Instances if a change in region or account is made.
      */
@@ -211,7 +212,25 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
         }
 
     }
+    getMaximumHours(){
+        let thresholds = vm.global.ec2OverridePolicy;
+        let max = vm.global.ec2MaxHours;
+        let overrideExists = false;
+        if(vm.forms.awsInstanceForm && vm.forms.awsInstanceForm.selectedAccount) {
+            if(thresholds[vm.forms.awsInstanceForm.selectedAccount.sdlc]) {
+                let overrideVal = thresholds[vm.forms.awsInstanceForm.selectedAccount.sdlc];
+                if(overrideExists === false) {
+                    overrideExists = true;
+                    max = overrideVal;
+                }
+                if (overrideVal < max) {
+                    max = overrideVal;
+                }
+            }
+        }
 
+        return max;
+    }
     grantAccess(){
         let vm = this;
         if(vm.forms.grantForm.$valid) {
@@ -229,6 +248,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                     vm[GRANT].post(vm.forms.grantForm.grantValue,
                         vm.usersTable.selected,
                         vm.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(),
+                        vm.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(),
                         vm.forms.awsInstanceForm.selectedRegion.name,
                         vm.awsTable.selected,
                         justification.ticketId,

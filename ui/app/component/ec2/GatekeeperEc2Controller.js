@@ -99,6 +99,10 @@ class GatekeeperEc2Controller extends GatekeeperController{
             vm.global.userInfo.userId = data.userId;
             vm.global.userInfo.user = data.name;
             vm.global.userInfo.email = data.email;
+            vm.global.ec2MaxHours = data.maxHours;
+            vm.global.ec2OverridePolicy = data.overridePolicy;
+
+
             if([ROLES.approver, ROLES.support, ROLES.auditor].indexOf(data.role) === -1 && data.memberships.length === 0 ){
                 vm.global.userInfo.role = ROLES.unauthorized;
             }else{
