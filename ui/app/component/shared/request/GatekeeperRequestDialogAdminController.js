@@ -35,31 +35,91 @@ class GatekeeperRequestDialogAdminController extends GatekeeperRequestDialogCont
     }
 
     approveRequest(){
-        VM.called = true;
-        VM[REQUEST].approve(VM.row).then((resp)=>{
-            let msg = "Request " + VM.row.id + " successfully granted!";
-            VM.toast(msg);
-            dialog.hide();
-            VM[ROOTSCOPE].$emit("requestsUpdated");
-        }).catch(()=>{
-            let msg = "There was an error while attempting to grant access for request " + VM.row.id;
-            VM.dialog(msg);
-            dialog.hide();
-        });
+        let title = 'Confirm Request Approval';
+        let message = 'Are you sure you would like to approve the request?';
+        let button = 'Approve Request'
+        
+        let config = {
+            clickOutsideToClose: true,
+            title: 'Confirm Request Approval',
+            template: require("./template/confirm.tpl.html"),
+            parent: angular.element(document.body),
+            multiple: true,
+            skipHide: true,
+            locals: {
+                title: title,
+                message: message,
+                button: button
+            },
+            controller: ['$scope', '$mdDialog', 'title', 'message', 'button', function ($scope, $mdDialog, title, message, button) {
+                $scope.title = title;
+                $scope.message = message;
+                $scope.button = button;
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+                $scope.action = function () {
+                    dialog.hide();
+                    VM.called = true;
+                    VM[REQUEST].approve(VM.row).then((resp)=>{
+                        let msg = "Request " + VM.row.id + " successfully granted!";
+                        VM.toast(msg);
+                        dialog.hide();
+                        VM[ROOTSCOPE].$emit("requestsUpdated");
+                    }).catch(()=>{
+                        let msg = "There was an error while attempting to grant access for request " + VM.row.id;
+                        VM.dialog(msg);
+                        dialog.hide();
+                    });              
+                };
+            }
+            ]
+        };
+        return dialog.show(config)
     }
 
     rejectRequest(){
-        VM.called = true;
-        VM[REQUEST].reject(VM.row).then((resp)=>{
-            let msg = "Request " + VM.row.id + " successfully rejected!";
-            VM.toast(msg);
-            dialog.hide();
-            VM[ROOTSCOPE].$emit("requestsUpdated");
-        }).catch(()=>{
-            let msg = "There was an error while attempting to reject access for request " + VM.row.id;
-            VM.dialog(msg);
-            dialog.hide();
-        });
+        let title = 'Confirm Request Rejection';
+        let message = 'Are you sure you would like to reject the request?';
+        let button = 'Reject Request'
+        
+        let config = {
+            clickOutsideToClose: true,
+            title: 'Confirm Request Approval',
+            template: require("./template/confirm.tpl.html"),
+            parent: angular.element(document.body),
+            multiple: true,
+            skipHide: true,
+            locals: {
+                title: title,
+                message: message,
+                button: button
+            },
+            controller: ['$scope', '$mdDialog', 'title', 'message', 'button', function ($scope, $mdDialog, title, message, button) {
+                $scope.title = title;
+                $scope.message = message;
+                $scope.button = button;
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+                $scope.action = function () {
+                    dialog.hide();
+                    VM.called = true;
+                    VM[REQUEST].reject(VM.row).then((resp)=>{
+                        let msg = "Request " + VM.row.id + " successfully rejected!";
+                        VM.toast(msg);
+                        dialog.hide();
+                        VM[ROOTSCOPE].$emit("requestsUpdated");
+                    }).catch(()=>{
+                        let msg = "There was an error while attempting to reject access for request " + VM.row.id;
+                        VM.dialog(msg);
+                        dialog.hide();
+                    });           
+                };
+            }
+            ]
+        };
+        return dialog.show(config)
     }
 }
 
