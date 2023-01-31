@@ -36,6 +36,19 @@ public class PasswordGenerationService {
     }
 
     private String getStrongPassword(int length) {
-        return RandomStringUtils.random(length, 0, 0, true, true, null, rand);
+        String randomNumber = RandomStringUtils.randomNumeric(1);
+        String randomUpper = RandomStringUtils.randomAlphabetic(1).toUpperCase();
+        String randomLower = RandomStringUtils.randomAlphabetic(1).toLowerCase();
+        String randomPassword = RandomStringUtils.random(length - 3, 0, 0, true, true, null, rand);
+        randomPassword = insertRandomly(randomPassword, randomNumber);
+        randomPassword = insertRandomly(randomPassword, randomUpper);
+        randomPassword = insertRandomly(randomPassword, randomLower);
+        return randomPassword;
     }
+    private String insertRandomly(String password, String character){
+        int split = (int)Math.floor(Math.random() * password.length());
+        String combined = password.substring(0, split + 1) + character + password.substring(split + 1);
+        return combined;
+    }
+
 }

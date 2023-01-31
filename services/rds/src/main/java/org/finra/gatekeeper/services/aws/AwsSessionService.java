@@ -23,6 +23,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.redshift.AmazonRedshiftClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
@@ -127,6 +128,10 @@ public class AwsSessionService {
         return sb.toString();
     }
 
+    public String getAccountID(String alias) throws GatekeeperException {
+        return accountInformationService.getAccountByAlias(alias).getAccountId();
+    }
+
     public AmazonRDSClient getRDSSession(AWSEnvironment environment){
         BasicSessionCredentials creds = credentialCache.getUnchecked(environment);
         AmazonRDSClient rds = awsSessionFactory.createRdsSession(creds);
@@ -141,6 +146,12 @@ public class AwsSessionService {
         return ec2;
     }
 
+    public AmazonRedshiftClient getRedshiftSession(AWSEnvironment environment) {
+        BasicSessionCredentials creds = credentialCache.getUnchecked(environment);
+        AmazonRedshiftClient redshift = awsSessionFactory.createRedshiftSession(creds);
+        redshift.setRegion(Region.getRegion(Regions.fromName(environment.getRegion())));
+        return redshift;
+    }
     public AmazonSNS getSNSSession(){
         return awsSessionFactory.createSNSSession();
     }

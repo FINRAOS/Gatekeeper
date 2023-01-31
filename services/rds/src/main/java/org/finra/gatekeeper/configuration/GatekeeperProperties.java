@@ -326,6 +326,7 @@ public class GatekeeperProperties {
         private PostgresDbProperties postgres;
         private MySqlDbProperties mysql;
         private DocumentDbProperties documentdb;
+        private RedshiftDbProperties redshift;
 
         public static class PostgresDbProperties{
             private Boolean ssl;
@@ -436,6 +437,18 @@ public class GatekeeperProperties {
             }
         }
 
+        public static class RedshiftDbProperties {
+            private String ssl;
+
+            public String getSsl() {
+                return ssl;
+            }
+
+            public RedshiftDbProperties setSsl(String ssl) {
+                this.ssl = ssl;
+                return this;
+            }
+        }
         public String getGkUser() {
             return gkUser;
         }
@@ -505,6 +518,15 @@ public class GatekeeperProperties {
 
         public GatekeeperDbProperties setDocumentdb(DocumentDbProperties documentdb) {
             this.documentdb = documentdb;
+            return this;
+        }
+
+        public RedshiftDbProperties getRedshift() {
+            return redshift;
+        }
+
+        public GatekeeperDbProperties setRedshift(RedshiftDbProperties redshift) {
+            this.redshift = redshift;
             return this;
         }
 
