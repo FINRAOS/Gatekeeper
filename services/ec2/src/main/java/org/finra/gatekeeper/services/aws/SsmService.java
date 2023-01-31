@@ -342,8 +342,9 @@ public class SsmService {
                 .withInstanceIds(instanceIds)
                 .withCommandId(commandId);
         ssmClient.cancelCommand(cancelCommandRequest);
-        for(String instance : results.keySet()){
-            String status = results.get(instance);
+        for(Map.Entry<String, String> entry : results.entrySet()){
+            String instance = entry.getKey();
+            String status = entry.getValue();
             if(status.equals(CommandStatus.InProgress.toString())
                     || status.equals(CommandStatus.Pending.toString())
                     || status.equals(CommandStatus.Cancelling.toString())){
