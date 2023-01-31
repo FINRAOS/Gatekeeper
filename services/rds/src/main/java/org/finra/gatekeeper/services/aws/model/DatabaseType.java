@@ -17,5 +17,5 @@
 package org.finra.gatekeeper.services.aws.model;
 
 public enum DatabaseType {
-    RDS, AURORA_REGIONAL, AURORA_GLOBAL, DOCUMENTDB_REGIONAL
+    RDS, AURORA_REGIONAL, AURORA_GLOBAL, DOCUMENTDB_REGIONAL, REDSHIFT
 }

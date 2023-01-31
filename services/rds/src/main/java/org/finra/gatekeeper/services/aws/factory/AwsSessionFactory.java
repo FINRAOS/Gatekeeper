@@ -6,6 +6,7 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.redshift.AmazonRedshiftClient;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
@@ -33,6 +34,10 @@ public class AwsSessionFactory {
 
     public AmazonEC2Client createEC2Session(BasicSessionCredentials basicSessionCredentials){
         return new AmazonEC2Client(basicSessionCredentials, clientConfiguration);
+    }
+
+    public AmazonRedshiftClient createRedshiftSession(BasicSessionCredentials basicSessionCredentials){
+        return new AmazonRedshiftClient(basicSessionCredentials, clientConfiguration);
     }
 
     public AmazonSNS createSNSSession(){

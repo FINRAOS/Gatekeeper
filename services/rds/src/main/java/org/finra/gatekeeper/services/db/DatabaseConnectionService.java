@@ -20,6 +20,7 @@ package org.finra.gatekeeper.services.db;
 import com.amazonaws.services.rds.model.DBCluster;
 import com.amazonaws.services.rds.model.DBInstance;
 import com.amazonaws.services.rds.model.Endpoint;
+import com.amazonaws.services.redshift.model.Cluster;
 import org.finra.gatekeeper.common.services.account.AccountInformationService;
 import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.exception.GatekeeperException;
@@ -193,6 +194,21 @@ public class DatabaseConnectionService {
         return issues.stream().collect(Collectors.joining(","));
     }
 
+    public String checkDb(Cluster db, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        List<String> issues = databaseConnectionFactory.getConnection("redshift").checkDb(
+                new RdsQuery()
+                        .withAccount(account.getAlias())
+                        .withAccountId(account.getAccountId())
+                        .withRegion(awsEnvironment.getRegion())
+                        .withSdlc(awsEnvironment.getSdlc())
+                        .withAddress(getAddress(String.format("%s:%s", db.getEndpoint().getAddress(), db.getEndpoint().getPort().toString()), db.getDBName()))
+                        .withDbInstanceName(db.getClusterIdentifier())
+                        .withDbEngine("redshift")
+        );
+        return issues.stream().collect(Collectors.joining(","));
+    }
+
     public List<DbUser> getUsersForDb(GatekeeperRDSInstance db, AWSEnvironment awsEnvironment) throws Exception {
         Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
         return databaseConnectionFactory.getConnection(db.getEngine()).getUsers(
@@ -230,6 +246,18 @@ public class DatabaseConnectionService {
                 .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
                 .withDbInstanceName(db.getDBClusterIdentifier())
                 .withDbEngine(db.getEngine()));
+    }
+
+    public List<String> getAvailableRolesForDb(Cluster db, AWSEnvironment awsEnvironment) throws Exception {
+        Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
+        return databaseConnectionFactory.getConnection("redshift").getAvailableRoles( new RdsQuery()
+                .withAccount(account.getAlias())
+                .withAccountId(account.getAccountId())
+                .withRegion(awsEnvironment.getRegion())
+                .withSdlc(awsEnvironment.getSdlc())
+                .withAddress(getAddress(String.format("%s:%s", db.getEndpoint().getAddress(), db.getEndpoint().getPort().toString()), db.getDBName()))
+                .withDbInstanceName(db.getClusterIdentifier())
+                .withDbEngine("redshift"));
     }
 
     /**
