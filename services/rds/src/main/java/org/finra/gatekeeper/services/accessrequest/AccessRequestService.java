@@ -509,6 +509,23 @@ public class AccessRequestService {
         return getActiveRequests();
     }
 
+    /**
+     * Updates the approver comment of the Request
+     * @param requestId - the AccessRequest object id
+     * @param approverComments - The comments from the approver
+     * @return - The updated list of Active Access Requests
+     */
+    public List<ActiveAccessRequestWrapper> updateRequest(Long requestId, String approverComments ) {
+        AccessRequest accessRequest = accessRequestRepository.getAccessRequestById(requestId);
+        accessRequest.setApproverComments(approverComments);
+        GatekeeperUserEntry user = gatekeeperRoleService.getUserProfile();
+        accessRequest.setActionedByUserId(user.getUserId());
+        accessRequest.setActionedByUserName(user.getName());
+        accessRequestRepository.save(accessRequest);
+        logger.info("Access Request " + accessRequest.getId() + " had its approver comment updated by " + user.getName() + " (" + user.getUserId() +"). ");
+        return getActiveRequests();
+    }
+
     private List<? extends AccessRequestWrapper> filterResults(List<? extends AccessRequestWrapper> results) {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRdsRole.APPROVER)
                 || gatekeeperRoleService.getRole().equals(GatekeeperRdsRole.AUDITOR)

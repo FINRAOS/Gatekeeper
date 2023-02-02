@@ -21,12 +21,11 @@ let REQUEST = Symbol();
 let vm;
 
 class GatekeeperRequestHistoryController {
-    constructor(gkRequestService){
+    constructor(gkRequestService, $rootScope){
         vm = this;
         this[REQUEST] = gkRequestService;
         this.noData = "Currently there are no request history items";
         this.fetched = false;
-
         this.headerLabel = "Request History";
         this.requestTable = {
             selection:'dialog',
@@ -69,9 +68,7 @@ class GatekeeperRequestHistoryController {
             responseHandler: function(){
 
             }
-
         };
-
     }
 
     filterEnvironment(input, row){
@@ -92,7 +89,6 @@ class GatekeeperRequestHistoryController {
         this.requestTable.promise = this[REQUEST].getCompleted();
         this.requestTable.promise.then((response)=>{
             this.fetched = true;
-            let data = [];
             this.requestTable.data = response.data;
             this.requestTable.responseHandler(this.requestTable.data);
             this.setAccountOptions(this.requestTable.data);

@@ -109,6 +109,11 @@ public class AccessRequestController {
         return accessRequestService.cancelRequest(request.getTaskId(), request.getId());
     }
 
+    @RequestMapping(value = "/updateRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object updateRequest(@RequestBody ActiveAccessRequestWrapper request) {
+        return accessRequestService.updateRequest(request.getId(), request.getApproverComments());
+    }
+
     @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> getConfig() {
         return gatekeeperPropertiesService.getJustificationConfig();
