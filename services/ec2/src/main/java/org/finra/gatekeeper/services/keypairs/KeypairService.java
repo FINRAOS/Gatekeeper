@@ -46,10 +46,9 @@ public class KeypairService {
         KeyPairGenerator keyGen = null;
         try {
             keyGen = KeyPairGenerator.getInstance("RSA", "BC");
-        } catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             e.printStackTrace();
-        } catch (NoSuchProviderException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e.getCause());
         }
         keyGen.initialize(2048);
         KeyPair keyPair = keyGen.genKeyPair();

@@ -60,7 +60,6 @@ public class AccessRequestController {
     }
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Account> getAccounts() throws Exception {
-        ObjectMapper om = new ObjectMapper();
         return accountInformationService.getAccounts();
     }
 

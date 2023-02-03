@@ -97,7 +97,7 @@ public class MySQLDBConnection implements DBConnection {
             logger.info("Checking the gatekeeper setup for " + address);
             JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
             String roleCheckResult = template.queryForObject(checkGrants, String.class);
-            if(!roleCheckResult.contains("CREATE USER")){
+            if (roleCheckResult != null && !roleCheckResult.contains("CREATE USER")) {
                 issues.add("gatekeeper is missing CREATE USER");
             }
         }catch(SQLException e){
