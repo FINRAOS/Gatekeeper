@@ -138,11 +138,9 @@ public class DocumentDBConnection implements DBConnection {
     public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws MongoException {
         String address = rdsQuery.getAddress();
         Map<RoleType, List<String>> results = new HashMap<>();
-        MongoClient client = null;
 
         logger.info("Getting available schema information for " + address);
-        try {
-            client = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        try (MongoClient client = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery))) {
             ArrayList<Document> jsonRoles = (ArrayList<Document>) client.getDatabase("admin").runCommand(new Document("rolesInfo", 1)).get("roles");
             Map<String, List<Document>> roles = new HashMap<>();
             for (Document role : jsonRoles){
@@ -156,12 +154,8 @@ public class DocumentDBConnection implements DBConnection {
                 results.put(roleType, !schemas.isEmpty() ? schemas : Collections.singletonList("No Schemas are available for role " + roleType.getDbRole() + " at this time."));
             }
             logger.info("Retrieved available schema information for database " + address);
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             logger.error("Could not retrieve available role information for database " + address, ex);
-        }finally{
-            if(client != null) {
-                client.close();
-            }
         }
         return results;
     }
