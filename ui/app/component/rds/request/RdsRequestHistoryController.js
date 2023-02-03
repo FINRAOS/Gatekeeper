@@ -16,11 +16,15 @@
  */
 
 import GatekeeperRequestHistoryController from '../../shared/request/GatekeeperRequestHistoryController';
+import RdsRequestHistoryAdminController from './RdsRequestHistoryAdminController';
 
 class RdsRequestHistoryController extends GatekeeperRequestHistoryController{
-    constructor(gkRequestService){
-        super(gkRequestService);
-
+    constructor(gkRequestService, $rootScope){
+        super(gkRequestService, $rootScope);
+        let isApprover = $rootScope.userInfo.isApprover;
+        if(isApprover){
+            this.requestTable.templateController = RdsRequestHistoryAdminController;
+        }
         this.requestTable.template = require('./template/request.tpl.html');
 
         this.requestTable.headers = [
