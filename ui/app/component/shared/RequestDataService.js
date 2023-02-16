@@ -58,7 +58,7 @@ class RequestDataService extends DataService{
         return this.http.put(this.getApi()+"/"+this.cancelRequest, request);
     }
 
-    updateRequest(request){
+    update(request){
         return this.http.put(this.getApi()+"/"+this.updateRequest, request);
     }
 }

@@ -24,7 +24,7 @@ class RdsRequestHistoryAdminController extends GatekeeperRequestDialogAdminContr
 
         let update = {
             label:'Update',
-            action:this.updateApproverComment,
+            action:this.updateRequest,
             style:'md-raised md-primary'
         };
 

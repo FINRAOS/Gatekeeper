@@ -131,7 +131,7 @@ class GatekeeperRequestDialogAdminController extends GatekeeperRequestDialogCont
         return (VM.row.approverComments === approverComments) || !VM.row.approverComments;
     }
 
-    updateApproverComment(){
+    updateRequest(){
         let title = 'Confirm Approver Comment Update';
         let message = 'Are you sure you would like to update the approver comment for this request?';
         let button = 'Update'
@@ -158,7 +158,7 @@ class GatekeeperRequestDialogAdminController extends GatekeeperRequestDialogCont
                 $scope.action = function () {
                     dialog.hide();
                     VM.called = true;
-                    VM[REQUEST].updateRequest(VM.row).then((resp)=>{
+                    VM[REQUEST].update(VM.row).then((resp)=>{
                         let msg = "Request " + VM.row.id + " approver comment successfully updated!";
                         VM.toast(msg);
                         dialog.hide();
@@ -174,6 +174,7 @@ class GatekeeperRequestDialogAdminController extends GatekeeperRequestDialogCont
         };
         return dialog.show(config)
     }
+
 }
 
 export default GatekeeperRequestDialogAdminController
