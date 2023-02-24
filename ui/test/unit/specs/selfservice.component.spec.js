@@ -376,7 +376,7 @@ describe('GateKeeper UI self service component', function () {
             expect($mdDialog.show).toHaveBeenCalled();
             if(pressOk){
                 expect(gkGrantService.post).toHaveBeenCalledWith(controller.forms.grantForm.grantValue, controller.usersTable.selected,
-                    controller.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), controller.forms.awsInstanceForm.selectedRegion.name, controller.awsTable.selected, justification.ticketId, justification.explanation, controller.forms.awsInstanceForm.selectedPlatform);
+                    controller.forms.awsInstanceForm.selectedAccount.alias.toLowerCase(), controller.forms.awsInstanceForm.selectedAccount.sdlc.toLowerCase(), controller.forms.awsInstanceForm.selectedRegion.name, controller.awsTable.selected, justification.ticketId, justification.explanation, controller.forms.awsInstanceForm.selectedPlatform);
             }else{
                 expect(gkGrantService.post).not.toHaveBeenCalled();
             }

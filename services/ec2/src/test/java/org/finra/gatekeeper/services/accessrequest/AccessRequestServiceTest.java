@@ -32,6 +32,7 @@ import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.account.model.Region;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
+import org.finra.gatekeeper.configuration.properties.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.services.auth.GatekeeperRole;
 import org.finra.gatekeeper.services.aws.SnsService;
 import org.finra.gatekeeper.services.aws.SsmService;
@@ -142,6 +143,9 @@ public class AccessRequestServiceTest {
     private GatekeeperApprovalProperties approvalPolicy;
 
     @Mock
+    private GatekeeperOverrideProperties overridePolicy;
+
+    @Mock
     private Task ownerOneTask;
 
     @Mock
@@ -207,6 +211,9 @@ public class AccessRequestServiceTest {
         when(approvalPolicy.getApprovalPolicy(GatekeeperRole.DEV)).thenReturn(mockDev);
         when(approvalPolicy.getApprovalPolicy(GatekeeperRole.OPS)).thenReturn(mockOps);
         when(approvalPolicy.getApprovalPolicy(GatekeeperRole.SUPPORT)).thenReturn(mockSupp);
+
+//        when(overridePolicy.getMaxHours()).thenReturn(300);
+        when(overridePolicy.getMaxHoursForRequest(any(), any())).thenReturn(300);
 
         List<AWSInstance> instances = new ArrayList<>();
         when(awsInstance.getApplication()).thenReturn("TestApp");
