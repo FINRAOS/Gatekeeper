@@ -28,6 +28,7 @@ import org.finra.gatekeeper.common.services.account.model.Account;
 import org.finra.gatekeeper.common.services.eventlogging.RequestEventLogger;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.finra.gatekeeper.configuration.properties.GatekeeperApprovalProperties;
+import org.finra.gatekeeper.configuration.properties.GatekeeperOverrideProperties;
 import org.finra.gatekeeper.controllers.AccessRequestController;
 import org.finra.gatekeeper.controllers.wrappers.AccessRequestWrapper;
 import org.finra.gatekeeper.controllers.wrappers.ActiveAccessRequestWrapper;
@@ -75,6 +76,7 @@ public class AccessRequestService {
     private final HistoryService historyService;
     private final GatekeeperApprovalProperties approvalPolicy;
     private final AccountInformationService accountInformationService;
+    private final GatekeeperOverrideProperties overridePolicy;
     private final EmailServiceWrapper emailServiceWrapper;
     private final SsmService ssmService;
     private final SnsService snsService;
@@ -147,6 +149,7 @@ public class AccessRequestService {
                                 RuntimeService runtimeService,
                                 HistoryService historyService,
                                 AccountInformationService accountInformationService,
+                                GatekeeperOverrideProperties overridePolicy,
                                 EmailServiceWrapper emailServiceWrapper,
                                 SsmService ssmService,
                                 SnsService snsService,
@@ -159,6 +162,7 @@ public class AccessRequestService {
         this.runtimeService = runtimeService;
         this.historyService = historyService;
         this.accountInformationService = accountInformationService;
+        this.overridePolicy = overridePolicy;
         this.emailServiceWrapper = emailServiceWrapper;
         this.ssmService = ssmService;
         this.snsService = snsService;
@@ -184,6 +188,14 @@ public class AccessRequestService {
         if(!invalidInstances.isEmpty()){
             throw new GatekeeperException(invalidInstances);
         }
+
+        Integer maxHours = gatekeeperRoleService.isApprover() ? overridePolicy.getMaxHours() : overridePolicy.getMaxHoursForRequest(gatekeeperRoleService.getRole(), request.getAccountSdlc());
+        logger.info("Maximum hours allowed for user " + requestor.getUserId() + ": " + maxHours);
+
+        if(request.getHours() > maxHours){
+            throw new GatekeeperException("Hours requested (" + request.getHours() + ") exceeded the maximum of " + maxHours + " for instances " + request.getInstances() + " on account " + request.getAccount());
+        }
+
         //throw gk in front of all the user id's
         request.getUsers().forEach(u -> u.setUserId("gk-" + u.getUserId()));
 

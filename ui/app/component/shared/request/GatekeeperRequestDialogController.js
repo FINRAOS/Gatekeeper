@@ -36,6 +36,7 @@ class GatekeeperRequestDialogController{
             action: this.cancelRequest,
             style: 'md-raised md-primary'
         };
+
         this.isAdmin = false;
         this.actions = [close];
         this.row = row;
@@ -96,22 +97,52 @@ class GatekeeperRequestDialogController{
     }
 
     cancelRequest(){
-        VM.called = true;
-        VM[REQUEST].cancel(VM.row).then((resp)=>{
-            let msg = "Request " + VM.row.id + " has been successfully canceled!";
-            VM.toast(msg);
-            dialog.hide();
-            VM[ROOTSCOPE].$emit("requestsUpdated");
-        }).catch(()=>{
-            let msg = "There was an error while attempting to cancel access request " + VM.row.id;
-            VM.dialog(msg);
-            dialog.hide();
-        });
+        let title = 'Confirm Request Cancelation';
+        let message = 'Are you sure you would like to cancel the request?';
+        let button = 'Cancel Request'
+        
+        let config = {
+            clickOutsideToClose: true,
+            title: 'Confirm Request Cancelation',
+            template: require("./template/confirm.tpl.html"),
+            parent: angular.element(document.body),
+            multiple: true,
+            skipHide: true,
+            locals: {
+                title: title,
+                message: message,
+                button: button
+            },
+            controller: ['$scope', '$mdDialog', 'title', 'message', 'button', function ($scope, $mdDialog, title, message, button) {
+                $scope.title = title;
+                $scope.message = message;
+                $scope.button = button;
+                $scope.cancel = function () {
+                    $mdDialog.cancel();
+                };
+                $scope.action = function () {
+                    dialog.hide();
+                    VM.called = true;
+                    VM[REQUEST].cancel(VM.row).then((resp)=>{
+                        let msg = "Request " + VM.row.id + " has been successfully canceled!";
+                        VM.toast(msg);
+                        dialog.hide();
+                        VM[ROOTSCOPE].$emit("requestsUpdated");
+                    }).catch(()=>{
+                        let msg = "There was an error while attempting to cancel access request " + VM.row.id;
+                        VM.dialog(msg);
+                        dialog.hide();
+                    });                
+                };
+            }
+            ]
+        };
+        return dialog.show(config)
     }
 
     closeDialog(){
         dialog.hide();
-    }
+    }    
 }
 
 export default GatekeeperRequestDialogController;

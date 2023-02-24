@@ -2,6 +2,10 @@
     <h1> Gatekeeper</h1>
     <h3 style="color:darkgreen;" > Access Requested </h3>
     <div><p>An access request has been created in gatekeeper for <b>${request.getHours()! 'Unknown'}</b> hours for the following users and <b>${request.getPlatform()! 'Unknown'}</b> instances in ${request.getAccount()}</p></div>
+    <div><h4>Requestor</h4></div>
+    <ul>
+        <li><b>${request.getRequestorName()}</b> -- ${request.getRequestorEmail()! 'Unknown'}</li>
+    </ul>
     <div><h4>Users</h4></div>
     <ul>
         <#list request.getUsers() as user>

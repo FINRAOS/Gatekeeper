@@ -60,7 +60,6 @@ public class AccessRequestController {
     }
     @RequestMapping(value = "/getAccounts", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Account> getAccounts() throws Exception {
-        ObjectMapper om = new ObjectMapper();
         return accountInformationService.getAccounts();
     }
 
@@ -107,6 +106,11 @@ public class AccessRequestController {
     @RequestMapping(value = "/cancelRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public Object cancelRequest(@RequestBody ActiveAccessRequestWrapper request) {
         return accessRequestService.cancelRequest(request.getTaskId(), request.getId());
+    }
+
+    @RequestMapping(value = "/updateRequest", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public Object updateRequest(@RequestBody ActiveAccessRequestWrapper request) {
+        return accessRequestService.updateRequest(request.getId(), request.getApproverComments());
     }
 
     @RequestMapping(value="/getConfig", method= RequestMethod.GET, produces= MediaType.APPLICATION_JSON_VALUE)

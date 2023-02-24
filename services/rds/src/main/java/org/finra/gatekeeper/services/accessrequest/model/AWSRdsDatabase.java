@@ -214,7 +214,6 @@ public class AWSRdsDatabase {
                 && Objects.equals(instanceId, that.instanceId)
                 && Objects.equals(endpoint, that.endpoint)
                 && Objects.equals(status, that.status)
-                && Objects.equals(endpoint, that.endpoint)
                 && Objects.equals(databaseType, that.databaseType);
     }
 

@@ -37,13 +37,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class AwsSessionFactory {
 
-    private final ClientConfiguration clientConfiguration;
-
-    @Autowired
-    public AwsSessionFactory(ClientConfiguration clientConfiguration){
-        this.clientConfiguration = clientConfiguration;
-    }
-
     public AmazonEC2 createEc2Session(BasicSessionCredentials basicSessionCredentials, String region){
         return AmazonEC2ClientBuilder
                 .standard()

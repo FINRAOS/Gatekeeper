@@ -160,7 +160,7 @@ public class RdsLookupService {
 
         logger.info("Fetched Instance in " + ((double)(System.currentTimeMillis() - startTime) / 1000) + " Seconds");
 
-        Optional<GatekeeperRDSInstance> gatekeeperRDSInstance = Optional.of(gatekeeperRDSInstances.get(0));
+        Optional<GatekeeperRDSInstance> gatekeeperRDSInstance = gatekeeperRDSInstances.stream().findFirst();
         return gatekeeperRDSInstance;
     }
 

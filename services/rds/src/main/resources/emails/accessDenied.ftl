@@ -2,6 +2,10 @@
 <h1> Gatekeeper</h1>
 <h3 style="color:darkred;" > Your Access Request was denied </h3>
 <div><p>Your access request for <b>${request.getDays()! 'Unknown'}</b> days was denied for the following users and databases in ${request.getAccount()}</p></div>
+<div><h4>Requestor</h4></div>
+<ul>
+    <li><b>${request.getRequestorName()}</b> -- ${request.getRequestorEmail()! 'Unknown'}</li>
+</ul>
 <div><h4>Users</h4></div>
 <ul>
     <#list request.getUsers() as user>

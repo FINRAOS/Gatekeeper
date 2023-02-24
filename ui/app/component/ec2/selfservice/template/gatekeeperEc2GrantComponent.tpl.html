@@ -45,7 +45,7 @@
             <div layout="row">
                 <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
                 <md-input-container id="containerGkInputGrant" layout-align="end end" layout="column" flex="none">
-                    <input id="gkInputGrant" aria-label="Hours" class=".md-display-1" min="1" max="168" type="number" ng-model="gkSelfServiceCtrl.forms.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
+                    <input id="gkInputGrant" aria-label="Hours" class=".md-display-1" min="1" max="{{gkSelfServiceCtrl.getMaximumHours()}}" type="number" ng-model="gkSelfServiceCtrl.forms.grantForm.grantValue" ng-change="gkSelfServiceCtrl.checkIfApprovalNeeded()" required>
                 </md-input-container>
                 <p  layout-align="end start" layout="column" class="md-title" flex="initial">Hours.</p>
                 <div layout="column" layout-align="end start" >

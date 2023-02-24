@@ -31,6 +31,7 @@ class RequestDataService extends DataService{
         this.rejectRequest = 'rejectRequest';
         this.cancelRequest = 'cancelRequest';
         this.getRequests = 'requests';
+        this.updateRequest = 'updateRequest';
     }
 
     getActive(){
@@ -57,6 +58,9 @@ class RequestDataService extends DataService{
         return this.http.put(this.getApi()+"/"+this.cancelRequest, request);
     }
 
+    update(request){
+        return this.http.put(this.getApi()+"/"+this.updateRequest, request);
+    }
 }
 
 export default RequestDataService;
