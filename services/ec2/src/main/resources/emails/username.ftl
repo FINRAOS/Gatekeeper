@@ -1,6 +1,6 @@
 <html>
     <h1> Gatekeeper</h1>
-    <h3 style="color:darkgreen;" > Here is your temporary username </h3>
+    <h3 style="color:darkgreen;" > Request [${request.getId()?long?c}] - Here is your temporary username </h3>
     <div><p>Hello <b>${user.getName()}</b>
 
         You have been granted temporary access as user: <b>${user.getUserId()}</b> <b> </b> to the following <b>${request.getPlatform()! 'Unknown'}</b> instances in ${request.getAccount()}</p></div>

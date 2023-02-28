@@ -1,6 +1,7 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3 style="color:darkgreen;" > Your Access Request was approved </h3>
+    <h3 style="color:darkgreen;" > Request ID: ${request.getId()?long?c} </h3>
     <div><p>Your access request for <b>${request.getDays()! 'Unknown'}</b> days was approved for the following users and instances in ${request.getAccount()}</p></div>
     <div><h4>Requestor</h4></div>
     <ul>

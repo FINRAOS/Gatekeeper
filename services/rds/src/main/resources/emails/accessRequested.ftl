@@ -1,6 +1,7 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3 style="color:darkgreen;" > Access Requested </h3>
+    <h3 style="color:darkgreen;" > Request ID: ${request.getId()?long?c} </h3>
     <div><p>An access request has been created in gatekeeper for <b>${request.getDays()! 'Unknown'}</b> days for the following users and instances in ${request.getAccount()}</p></div>
     <div><h4>Requestor</h4></div>
     <ul>

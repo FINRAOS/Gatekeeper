@@ -1,6 +1,7 @@
 <html>
 <h1> Gatekeeper</h1>
 <h3 style="color:darkred;" > Your Access Request was denied </h3>
+<h3 style="color:darkred;" > Request ID: ${request.getId()?long?c} </h3>
 <div><p>Your access request for <b>${request.getHours()! 'Unknown'}</b> hours was denied for the following users and <b>${request.getPlatform()! 'Unknown'}</b> instances in ${request.getAccount()}</p></div>
 <div><h4>Requestor</h4></div>
 <ul>
