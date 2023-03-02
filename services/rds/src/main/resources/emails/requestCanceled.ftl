@@ -1,7 +1,8 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3 style="color:darkgreen;" > Access Request Canceled </h3>
-    <div><p>Access request with ID: <b>${request.getId()}</b> for <b>${request.getDays()! 'Unknown'}</b> days has been canceled for the following users and instances in ${request.getAccount()}</p></div>
+    <h3 style="color:darkgreen;" > Request ID: ${request.getId()?long?c} </h3>
+    <div><p>Access request with ID: <b>${request.getId()?long?c}</b> for <b>${request.getDays()! 'Unknown'}</b> days has been canceled for the following users and instances in ${request.getAccount()}</p></div>
     <div><h4>Users</h4></div>
     <ul>
         <#list request.getUsers() as user>

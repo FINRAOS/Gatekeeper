@@ -238,6 +238,8 @@ public class MySQLDBConnection implements DBConnection {
             conn.execute(generateQuery(privs, userRole, schema)) ;
             logger.info("Done!");
         });
+        logger.info("Granting select on mysql.user");
+        conn.execute("GRANT SELECT ON mysql.user TO " + userRole);
 
         logger.info("Successfully Created " + userRole + " with "+ role + " for the following schemas " + schemasToGrant);
     }

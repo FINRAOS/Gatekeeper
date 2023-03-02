@@ -1,7 +1,8 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3 style="color:darkred;" > Requesting Manual removal for Access Request</h3>
-    <div><p>The system was unable to revoke temporary access for Access Request ${request.getId()} to the below databases for the following users in ${request.getAccount()}</p></div>
+    <h3 style="color:darkred;" > Request ID: ${request.getId()?long?c} </h3>
+    <div><p>The system was unable to revoke temporary access for Access Request ${request.getId()?long?c} to the below databases for the following users in ${request.getAccount()}</p></div>
 
     <div><h4>Users</h4></div>
     <ul>

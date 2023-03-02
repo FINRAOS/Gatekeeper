@@ -1,6 +1,7 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3 style="color:darkred;" > Your Access has expired </h3>
+    <h3 style="color:darkred;" > Request ID: ${request.getId()?long?c} </h3>
     <div><p>Your access for <b>${request.getDays()! 'Unknown'}</b> days has expired for the following databases in ${request.getAccount()}</p></div>
     <ul>
         <#list request.getAwsRdsInstances() as db>

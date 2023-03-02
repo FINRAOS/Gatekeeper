@@ -1,6 +1,7 @@
 <html>
 <h1> Gatekeeper</h1>
 <h3 style="color:darkred;" > Your Access Request was denied </h3>
+<h3 style="color:darkred;" > Request ID: ${request.getId()?long?c} </h3
 <div><p>Your access request for <b>${request.getDays()! 'Unknown'}</b> days was denied for the following users and databases in ${request.getAccount()}</p></div>
 <div><h4>Requestor</h4></div>
 <ul>
