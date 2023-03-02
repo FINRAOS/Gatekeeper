@@ -81,6 +81,7 @@ gatekeeper:
           prod: 7
   auth:
     userIdHeader: useraccount
+    userMembershipsGroupHeader: groups
     approverGroup: GATEKEEPER_RDS_APPROVER
     auditorGroup: GATEKEEPER_AUDITOR
     dbaGroupsPattern: COMPANY_([a-zA-Z]+)_ADBA

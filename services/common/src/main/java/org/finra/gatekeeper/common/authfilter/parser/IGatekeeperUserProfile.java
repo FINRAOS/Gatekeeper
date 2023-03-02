@@ -18,7 +18,9 @@
 package org.finra.gatekeeper.common.authfilter.parser;
 
 import java.security.Principal;
+import java.util.Set;
 
 public interface IGatekeeperUserProfile extends Principal {
     public String getSource();
+    public Set<String> getMemberships();
 }

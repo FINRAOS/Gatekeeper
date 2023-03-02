@@ -70,6 +70,17 @@ public class GatekeeperAuthProperties {
      */
     private String userMembershipsPattern;
 
+
+    /**
+     * Whether to use headers for users membership
+     */
+    private boolean useHeadersForMembership;
+
+    /**
+     * The header to look for the user's Group Headers (authentication mechanism should inject this header)
+     */
+    private String userMembershipsGroupHeader;
+
     /**
      * Ldap Specific settings go here
      */
@@ -165,6 +176,23 @@ public class GatekeeperAuthProperties {
         return this;
     }
 
+    public boolean isUseHeadersForMembership() {
+        return useHeadersForMembership;
+    }
+
+    public GatekeeperAuthProperties setUseHeadersForMembership(boolean useHeadersForMembership) {
+        this.useHeadersForMembership = useHeadersForMembership;
+        return this;
+    }
+
+    public String getuserMembershipsGroupHeader() {
+        return userMembershipsGroupHeader;
+    }
+
+    public GatekeeperAuthProperties setuserMembershipsGroupHeader(String userMembershipsGroupHeader) {
+        this.userMembershipsGroupHeader = userMembershipsGroupHeader;
+        return this;
+    }
     public static class GatekeeperLdapProperties {
         /**
          * Is this LDAP configuration Active Directory-based?

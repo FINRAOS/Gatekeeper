@@ -43,6 +43,8 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
     private String ldapTag;
     @Value("${gatekeeper.health.ldapAccountCheck}")
     private String ldapAccountCheck;
+    @Value("${gatekeeper.auth.useHeadersForMembership}")
+    private boolean useHeadersForMembership;
 
     final Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier;
 
@@ -75,7 +77,11 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
     }
 
     public Set<String> getMemberships(){
-        return userMembershipCache.getUnchecked(gatekeeperUserProfileSupplier.get().getName()).get();
+        return useHeadersForMembership ? getMembershipsFromHeader() : userMembershipCache.getUnchecked(gatekeeperUserProfileSupplier.get().getName()).get();
+    }
+
+    private Set<String> getMembershipsFromHeader(){
+        return gatekeeperUserProfileSupplier.get().getMemberships();
     }
 
     public boolean isMember(String applicationName) {

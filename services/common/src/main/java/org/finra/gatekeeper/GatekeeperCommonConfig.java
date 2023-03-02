@@ -56,6 +56,7 @@ public class GatekeeperCommonConfig {
     private final Logger logger = LoggerFactory.getLogger(GatekeeperCommonConfig.class);
 
     private final String userIdHeader;
+    private final String userMembershipsGroupHeader;
     private final String userFullNameHeader;
     private final String userEmailHeader;
     private final String userMembershipsHeader;
@@ -94,6 +95,7 @@ public class GatekeeperCommonConfig {
 
         //LDAP
         this.userIdHeader = gatekeeperAuthProperties.getUserIdHeader();
+        this.userMembershipsGroupHeader = gatekeeperAuthProperties.getuserMembershipsGroupHeader();
         this.userFullNameHeader = gatekeeperAuthProperties.getUserFullNameHeader();
         this.userEmailHeader = gatekeeperAuthProperties.getUserEmailHeader();
         this.userMembershipsHeader = gatekeeperAuthProperties.getUserMembershipsHeader();
@@ -129,9 +131,9 @@ public class GatekeeperCommonConfig {
     public FilterRegistrationBean userProfileFilterRegistration() {
         FilterRegistrationBean userProfileFilterRegistration = new FilterRegistrationBean();
         if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
-            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader), contentSecurityPolicy));
+            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader, userMembershipsGroupHeader), contentSecurityPolicy));
         } else {
-            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader)));
+            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader, userMembershipsGroupHeader)));
         }
         userProfileFilterRegistration.setOrder(0);
         return userProfileFilterRegistration;

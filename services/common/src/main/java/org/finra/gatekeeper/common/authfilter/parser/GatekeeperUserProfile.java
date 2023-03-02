@@ -18,17 +18,27 @@
 package org.finra.gatekeeper.common.authfilter.parser;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class GatekeeperUserProfile implements IGatekeeperUserProfile {
 
     private String name;
     private String source;
-
+    private Set<String> memberships;
     public GatekeeperUserProfile(String name, String source) {
         if(name==null||source==null){
             throw new IllegalArgumentException("User Name and Source is required");
         }
         this.name = name.toUpperCase();
+        this.source = source;
+    }
+
+    public GatekeeperUserProfile(String name, String source, Set<String> memberships) {
+        if(name==null||source==null){
+            throw new IllegalArgumentException("User Name and Source is required");
+        }
+        this.name = name.toUpperCase();
+        this.memberships = memberships;
         this.source = source;
     }
 
@@ -40,6 +50,14 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
     @Override
     public String getSource() {
         return this.source;
+    }
+
+    @Override
+    public Set<String> getMemberships() { return memberships;}
+
+    public GatekeeperUserProfile setMemberships(Set<String> memberships) {
+        this.memberships = memberships;
+        return this;
     }
 
     @Override

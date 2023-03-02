@@ -32,6 +32,7 @@ gatekeeper:
 
   auth:
     userIdHeader: default
+    userMembershipsGroupHeader: groups
     approverGroup: DEFAULT_APPROVER
     supportGroup: DEFAULT_SUPPORT
     auditorGroup: DEFAULT_AUDITOR
