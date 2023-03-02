@@ -195,7 +195,7 @@ public class EmailServiceWrapperTest {
         contentMap.put("changeDisclaimer", "test");
 
         mailServiceWrapper.notifyExpired(request);
-        verify(emailService, times(1)).sendEmail(testUser.getEmail(), fromEmail, null, "Gatekeeper: Your Access has expired", "accessExpired", contentMap);
+        verify(emailService, times(1)).sendEmail(testUser.getEmail(), fromEmail, null, "Gatekeeper: Access Request " + request.getId() + " has expired", "accessExpired", contentMap);
     }
 
     /**
