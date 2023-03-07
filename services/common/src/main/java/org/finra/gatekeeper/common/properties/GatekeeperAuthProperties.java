@@ -80,10 +80,15 @@ public class GatekeeperAuthProperties {
      * The header to look for the user's Group Headers (authentication mechanism should inject this header)
      */
     private String userMembershipsGroupHeader;
-
     /**
-     * Ldap Specific settings go here
+     * The header to look for the user's Account ID (authentication mechanism should inject this header)
      */
+
+    private String userNameHeader;
+    /**
+     * The header to look for the user's name (authentication mechanism should inject this header)
+     */
+
     private GatekeeperLdapProperties ldap;
 
     public String getApproverGroup() {
@@ -193,6 +198,16 @@ public class GatekeeperAuthProperties {
         this.userMembershipsGroupHeader = userMembershipsGroupHeader;
         return this;
     }
+
+    public String getUserNameHeader() {
+        return userNameHeader;
+    }
+
+    public GatekeeperAuthProperties setUserNameHeader(String userNameHeader) {
+        this.userNameHeader = userNameHeader;
+        return this;
+    }
+
     public static class GatekeeperLdapProperties {
         /**
          * Is this LDAP configuration Active Directory-based?

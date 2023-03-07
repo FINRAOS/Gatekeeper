@@ -27,9 +27,13 @@ public class SSOParser implements UserParser {
 
     private final String userIdHeader;
     private final String groupsHeader;
+    private final String emailHeader;
+    private final String userNameHeader;
 
-    public SSOParser(String userIdHeader, String groupsHeader){
+    public SSOParser(String userIdHeader, String groupsHeader, String emailHeader, String userNameHeader){
         this.userIdHeader = userIdHeader;
+        this.userNameHeader = userNameHeader;
+        this.emailHeader = emailHeader;
         this.groupsHeader = groupsHeader;
 
     }
@@ -39,14 +43,17 @@ public class SSOParser implements UserParser {
     @Override
     public Optional<IGatekeeperUserProfile> parse(HttpServletRequest req) {
         Optional<IGatekeeperUserProfile> userProfile = Optional.empty();
-        String name = req.getHeader(userIdHeader);
-        if (name != null) {
-            if(groupsHeader != null) {
+        String userId = req.getHeader(userIdHeader);
+        if (userId != null) {
+            if(groupsHeader != null && userNameHeader != null && emailHeader != null) {
+                String name = req.getHeader(userNameHeader);
+                String email = req.getHeader(emailHeader);
                 Set<String> groups = new HashSet<>(Collections.list(req.getHeaders(groupsHeader)));
-                userProfile = Optional.of(new GatekeeperUserProfile(name, SOURCE_NAME, groups));
+
+                userProfile = Optional.of(new GatekeeperUserProfile(userId, name, email, groups, SOURCE_NAME));
 
             } else{
-                userProfile = Optional.of(new GatekeeperUserProfile(name, SOURCE_NAME));
+                userProfile = Optional.of(new GatekeeperUserProfile(userId, SOURCE_NAME));
             }
         }
 

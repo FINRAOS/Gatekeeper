@@ -21,6 +21,10 @@ import java.security.Principal;
 import java.util.Set;
 
 public interface IGatekeeperUserProfile extends Principal {
+    public String getUserId();
+    public String getName();
+    public String getEmail();
     public String getSource();
     public Set<String> getMemberships();
+
 }

@@ -28,6 +28,7 @@ import org.finra.gatekeeper.common.properties.GatekeeperAwsProperties;
 import org.finra.gatekeeper.common.properties.GatekeeperHeaderProperties;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperActiveDirectoryLDAPAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
+import org.finra.gatekeeper.common.services.user.auth.GatekeeperHeaderAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperOpenLDAPAuthorizationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ public class GatekeeperCommonConfig {
     private final String userEmailHeader;
     private final String userMembershipsHeader;
     private final String userMembershipsPattern;
+    private final String userNameHeader;
     private final String userBase;
     private final String base;
     private final String proxyHost;
@@ -99,6 +101,7 @@ public class GatekeeperCommonConfig {
         this.userFullNameHeader = gatekeeperAuthProperties.getUserFullNameHeader();
         this.userEmailHeader = gatekeeperAuthProperties.getUserEmailHeader();
         this.userMembershipsHeader = gatekeeperAuthProperties.getUserMembershipsHeader();
+        this.userNameHeader = gatekeeperAuthProperties.getUserNameHeader();
         this.userMembershipsPattern = gatekeeperAuthProperties.getUserMembershipsPattern();
         this.base = gatekeeperAuthProperties.getLdap().getBase();
         this.userBase = gatekeeperAuthProperties.getLdap().getUsersBase();
@@ -131,9 +134,9 @@ public class GatekeeperCommonConfig {
     public FilterRegistrationBean userProfileFilterRegistration() {
         FilterRegistrationBean userProfileFilterRegistration = new FilterRegistrationBean();
         if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
-            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader, userMembershipsGroupHeader), contentSecurityPolicy));
+            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader, userMembershipsGroupHeader, userEmailHeader, userNameHeader), contentSecurityPolicy));
         } else {
-            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader, userMembershipsGroupHeader)));
+            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader, userMembershipsGroupHeader, userEmailHeader, userNameHeader)));
         }
         userProfileFilterRegistration.setOrder(0);
         return userProfileFilterRegistration;
@@ -164,6 +167,11 @@ public class GatekeeperCommonConfig {
     @Bean
     public GatekeeperAuthorizationService gatekeeperLDAPAuthorizationService(LdapTemplate ldapTemplate,
                                                                              Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier){
+        //User Headers for Auth
+        if(gatekeeperAuthProperties.isUseHeadersForMembership()){
+            logger.info("Setting Authorization to work with Header Injection");
+            return new GatekeeperHeaderAuthorizationService(gatekeeperUserProfileSupplier);
+        }
         //Sets to AD if true
         if(gatekeeperAuthProperties.getLdap().getIsActiveDirectory()) {
             logger.info("Setting Authorization to work with Active Directory");

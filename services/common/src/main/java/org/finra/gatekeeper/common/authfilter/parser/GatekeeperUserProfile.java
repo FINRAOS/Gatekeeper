@@ -22,38 +22,54 @@ import java.util.Set;
 
 public class GatekeeperUserProfile implements IGatekeeperUserProfile {
 
+    private String userId;
     private String name;
+    private String email;
     private String source;
     private Set<String> memberships;
-    public GatekeeperUserProfile(String name, String source) {
-        if(name==null||source==null){
-            throw new IllegalArgumentException("User Name and Source is required");
+
+    public GatekeeperUserProfile(String userId, String source) {
+        if(userId==null||source==null){
+            throw new IllegalArgumentException("User userId and Source is required");
         }
-        this.name = name.toUpperCase();
+        this.userId = userId.toUpperCase();
         this.source = source;
     }
 
-    public GatekeeperUserProfile(String name, String source, Set<String> memberships) {
-        if(name==null||source==null){
-            throw new IllegalArgumentException("User Name and Source is required");
+    public GatekeeperUserProfile(String userId, String name, String email, Set<String> memberships,  String source) {
+        if(userId==null||source==null){
+            throw new IllegalArgumentException("User userId and Source is required");
         }
-        this.name = name.toUpperCase();
+        this.userId = userId.toUpperCase();
+        this.name = name;
+        this.email = email;
         this.memberships = memberships;
         this.source = source;
     }
 
     @Override
-    public String getName() {
-        return this.name;
+    public String getUserId() {
+        return this.userId;
     }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public Set<String> getMemberships() { return memberships;}
 
     @Override
     public String getSource() {
         return this.source;
     }
 
-    @Override
-    public Set<String> getMemberships() { return memberships;}
 
     public GatekeeperUserProfile setMemberships(Set<String> memberships) {
         this.memberships = memberships;
@@ -70,17 +86,17 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
         }
 
         GatekeeperUserProfile that = (GatekeeperUserProfile) o;
-        return Objects.equals(name, that.name) &&
+        return Objects.equals(userId, that.userId) &&
                 Objects.equals(source, that.source);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, source);
+        return Objects.hash(userId, source);
     }
 
     @Override
     public String toString() {
-        return "Name: " + this.name + ", Source: " + this.source;
+        return "userId: " + this.userId + ", Source: " + this.source;
     }
 }

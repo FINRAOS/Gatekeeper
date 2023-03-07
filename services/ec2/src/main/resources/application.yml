@@ -33,6 +33,8 @@ gatekeeper:
   auth:
     userIdHeader: default
     userMembershipsGroupHeader: groups
+    userNameHeader: name
+    userEmailHeader: mail
     approverGroup: DEFAULT_APPROVER
     supportGroup: DEFAULT_SUPPORT
     auditorGroup: DEFAULT_AUDITOR
