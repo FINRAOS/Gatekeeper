@@ -18,8 +18,6 @@
 package org.finra.gatekeeper.services.roles;
 
 import com.google.common.collect.Maps;
-import org.finra.gatekeeper.common.authfilter.parser.GatekeeperUserProfile;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
@@ -39,7 +37,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.ldap.core.LdapTemplate;
 
 import java.util.*;
-import java.util.function.Supplier;
 
 import static org.mockito.Mockito.*;
 

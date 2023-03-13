@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2023. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.finra.gatekeeper.common.authfilter.parser;
 import java.util.Objects;
 import java.util.Set;
 
-public class GatekeeperUserProfile implements IGatekeeperUserProfile {
+public class GatekeeperHeaderUserProfile implements IGatekeeperHeaderUserProfile {
 
     private String userId;
     private String name;
@@ -28,7 +28,7 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
     private String source;
     private Set<String> memberships;
 
-    public GatekeeperUserProfile(String userId, String source) {
+    public GatekeeperHeaderUserProfile(String userId, String source) {
         if(userId==null||source==null){
             throw new IllegalArgumentException("User userId and Source is required");
         }
@@ -36,7 +36,7 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
         this.source = source;
     }
 
-    public GatekeeperUserProfile(String userId, String name, String email, Set<String> memberships,  String source) {
+    public GatekeeperHeaderUserProfile(String userId, String name, String email, Set<String> memberships, String source) {
         if(userId==null||source==null){
             throw new IllegalArgumentException("User userId and Source is required");
         }
@@ -71,7 +71,7 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
     }
 
 
-    public GatekeeperUserProfile setMemberships(Set<String> memberships) {
+    public GatekeeperHeaderUserProfile setMemberships(Set<String> memberships) {
         this.memberships = memberships;
         return this;
     }
@@ -85,7 +85,7 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
             return false;
         }
 
-        GatekeeperUserProfile that = (GatekeeperUserProfile) o;
+        GatekeeperHeaderUserProfile that = (GatekeeperHeaderUserProfile) o;
         return Objects.equals(userId, that.userId) &&
                 Objects.equals(source, that.source);
     }

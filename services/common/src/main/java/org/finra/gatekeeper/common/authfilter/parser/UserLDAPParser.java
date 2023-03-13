@@ -17,14 +17,11 @@
 
 package org.finra.gatekeeper.common.authfilter.parser;
 
-import java.security.Principal;
-import java.util.Set;
 
-public interface IGatekeeperUserProfile extends Principal {
-    public String getUserId();
-    public String getName();
-    public String getEmail();
-    public String getSource();
-    public Set<String> getMemberships();
+import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
+public interface UserLDAPParser {
+
+    Optional<IGatekeeperLDAPUserProfile> parse(HttpServletRequest req);
 }

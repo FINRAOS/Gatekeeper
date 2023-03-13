@@ -69,13 +69,7 @@ public class GatekeeperAuthProperties {
      * This is a regex to extract user memberships from the header
      */
     private String userMembershipsPattern;
-
-
-    /**
-     * Whether to use headers for users membership
-     */
-    private boolean useHeadersForMembership;
-
+    
     /**
      * The header to look for the user's Group Headers (authentication mechanism should inject this header)
      */
@@ -88,6 +82,11 @@ public class GatekeeperAuthProperties {
     /**
      * The header to look for the user's name (authentication mechanism should inject this header)
      */
+
+    /**
+     * What Authorization Service to Use
+     */
+    private String authServiceType;
 
     private GatekeeperLdapProperties ldap;
 
@@ -181,12 +180,12 @@ public class GatekeeperAuthProperties {
         return this;
     }
 
-    public boolean isUseHeadersForMembership() {
-        return useHeadersForMembership;
+    public String getAuthServiceType() {
+        return authServiceType;
     }
 
-    public GatekeeperAuthProperties setUseHeadersForMembership(boolean useHeadersForMembership) {
-        this.useHeadersForMembership = useHeadersForMembership;
+    public GatekeeperAuthProperties setAuthServiceType(String authServiceType) {
+        this.authServiceType = authServiceType;
         return this;
     }
 

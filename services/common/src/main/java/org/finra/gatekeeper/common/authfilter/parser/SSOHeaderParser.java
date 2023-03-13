@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2023. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class SSOParser implements UserParser {
+public class SSOHeaderParser implements UserHeaderParser {
 
     private final String userIdHeader;
     private final String groupsHeader;
     private final String emailHeader;
     private final String userNameHeader;
 
-    public SSOParser(String userIdHeader, String groupsHeader, String emailHeader, String userNameHeader){
+    public SSOHeaderParser(String userIdHeader, String groupsHeader, String emailHeader, String userNameHeader){
         this.userIdHeader = userIdHeader;
         this.userNameHeader = userNameHeader;
         this.emailHeader = emailHeader;
@@ -41,8 +41,8 @@ public class SSOParser implements UserParser {
     public static final String SOURCE_NAME = "SSO";
 
     @Override
-    public Optional<IGatekeeperUserProfile> parse(HttpServletRequest req) {
-        Optional<IGatekeeperUserProfile> userProfile = Optional.empty();
+    public Optional<IGatekeeperHeaderUserProfile> parse(HttpServletRequest req) {
+        Optional<IGatekeeperHeaderUserProfile> userProfile = Optional.empty();
         String userId = req.getHeader(userIdHeader);
         if (userId != null) {
             if(groupsHeader != null && userNameHeader != null && emailHeader != null) {
@@ -50,10 +50,10 @@ public class SSOParser implements UserParser {
                 String email = req.getHeader(emailHeader);
                 Set<String> groups = new HashSet<>(Collections.list(req.getHeaders(groupsHeader)));
 
-                userProfile = Optional.of(new GatekeeperUserProfile(userId, name, email, groups, SOURCE_NAME));
+                userProfile = Optional.of(new GatekeeperHeaderUserProfile(userId, name, email, groups, SOURCE_NAME));
 
             } else{
-                userProfile = Optional.of(new GatekeeperUserProfile(userId, SOURCE_NAME));
+                userProfile = Optional.of(new GatekeeperHeaderUserProfile(userId, SOURCE_NAME));
             }
         }
 

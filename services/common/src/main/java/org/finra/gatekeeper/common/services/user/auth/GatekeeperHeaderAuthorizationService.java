@@ -17,7 +17,8 @@
 
 package org.finra.gatekeeper.common.services.user.auth;
 
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperHeaderUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperLDAPUserProfile;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +28,11 @@ import java.util.function.Supplier;
 
 public class GatekeeperHeaderAuthorizationService extends GatekeeperAuthorizationService {
     private final Logger logger = LoggerFactory.getLogger(GatekeeperHeaderAuthorizationService.class);
+    final Supplier<IGatekeeperHeaderUserProfile> gatekeeperUserProfileSupplier;
 
-    public GatekeeperHeaderAuthorizationService(Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier) {
-        super(gatekeeperUserProfileSupplier);
+    public GatekeeperHeaderAuthorizationService(Supplier<IGatekeeperHeaderUserProfile> gatekeeperHeaderUserProfileSupplier) {
+        super(null);
+        this.gatekeeperUserProfileSupplier = gatekeeperHeaderUserProfileSupplier;
         logger.info("Initialized GatekeeperHeaderAuthorizationService");
     }
 
@@ -42,5 +45,14 @@ public class GatekeeperHeaderAuthorizationService extends GatekeeperAuthorizatio
         String userId = gatekeeperUserProfileSupplier.get().getUserId();
         String email = gatekeeperUserProfileSupplier.get().getEmail();
         return new GatekeeperUserEntry(userId, null, email, name);
+    }
+
+    @Override
+    public Set<String> getMemberships(){
+        return  userMembershipCache.getUnchecked(gatekeeperUserProfileSupplier.get().getUserId()).get();
+    }
+    @Override
+    public GatekeeperUserEntry getUser(){
+        return userCache.getUnchecked(gatekeeperUserProfileSupplier.get().getUserId()).get();
     }
 }
