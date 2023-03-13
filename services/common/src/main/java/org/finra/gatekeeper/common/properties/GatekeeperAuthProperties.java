@@ -69,10 +69,25 @@ public class GatekeeperAuthProperties {
      * This is a regex to extract user memberships from the header
      */
     private String userMembershipsPattern;
+    
+    /**
+     * The header to look for the user's Group Headers (authentication mechanism should inject this header)
+     */
+    private String userMembershipsGroupHeader;
+    /**
+     * The header to look for the user's Account ID (authentication mechanism should inject this header)
+     */
+
+    private String userNameHeader;
+    /**
+     * The header to look for the user's name (authentication mechanism should inject this header)
+     */
 
     /**
-     * Ldap Specific settings go here
+     * What Authorization Service to Use
      */
+    private String authServiceType;
+
     private GatekeeperLdapProperties ldap;
 
     public String getApproverGroup() {
@@ -162,6 +177,33 @@ public class GatekeeperAuthProperties {
 
     public GatekeeperAuthProperties setUserMembershipsPattern(String userMembershipsPattern) {
         this.userMembershipsPattern = userMembershipsPattern;
+        return this;
+    }
+
+    public String getAuthServiceType() {
+        return authServiceType;
+    }
+
+    public GatekeeperAuthProperties setAuthServiceType(String authServiceType) {
+        this.authServiceType = authServiceType;
+        return this;
+    }
+
+    public String getuserMembershipsGroupHeader() {
+        return userMembershipsGroupHeader;
+    }
+
+    public GatekeeperAuthProperties setuserMembershipsGroupHeader(String userMembershipsGroupHeader) {
+        this.userMembershipsGroupHeader = userMembershipsGroupHeader;
+        return this;
+    }
+
+    public String getUserNameHeader() {
+        return userNameHeader;
+    }
+
+    public GatekeeperAuthProperties setUserNameHeader(String userNameHeader) {
+        this.userNameHeader = userNameHeader;
         return this;
     }
 

@@ -152,11 +152,15 @@ Gatekeeper requires some configuration for it to run in your environment, see be
 These parameters are used by both the EC2 and RDS Gatekeeeper services 
 
 #### Authorization
-Currently Gatekeeper only supports authorization through LDAP, the application expects authentication to be done via SSO, and looks for the username in a header.
+Currently Gatekeeper supports authorization through LDAP and Header Injection, the application expects authentication to be done via SSO, and looks for the username in a header.
 
 |Property                                               | Description                                                             | Type                                                          |
 |-------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-| gatekeeper.auth.userIdHeader                           | The header in which gatekeeper looks to extract the authenticated user | string                                                        |
+| gatekeeper.auth.authServiceType                        | The Authorization Type Gatekeeper should use. Valid Types are "OpenLDAP", "ActiveDirectory", and "Headers" | string 
+| gatekeeper.auth.userIdHeader                           | The header in which gatekeeper looks to extract the authenticated user (ex. The header "useraccount" might have a value of "username1323")| string                                                        |
+| gatekeeper.auth.userNameHeader                         | The header in which gatekeeper looks to extract the authenticated user's name (ex. The header "name" might have a value of "John Doe") | string                                                        |
+| gatekeeper.auth.userEmailHeader                        | The header in which gatekeeper looks to extract the authenticated user's mail (ex. The header "mail" might have a value of "JohnDoe@email.com")| string                                                        |
+| gatekeeper.auth.userMembershipsGroupHeader             | The header in which gatekeeper looks to extract the authenticated user's groups (ex. The header "group" might have a value of "GATEKEEPER_RDS_APPROVER, AWS_DATABASE_MANAGER, AWS_DATABASE_MEMBER") | string                                                        |
 | gatekeeper.header.contentSecurityPolicy 	             | (Optional) Content-Security-Policy header to be appended to "default-src 'self' 'unsafe-inline' 'unsafe-eval'; "      | string 	| 
 | gatekeeper.auth.ldap.isActiveDirectory                 | Whether your LDAP server is Microsoft Active Directory or not (Nested groups are not supported with Non-Active Directory LDAP servers) | boolean
 | gatekeeper.auth.ldap.objectClass                       | The Object class to look for users with (ex. posixAccount, person, user) | string 

@@ -28,8 +28,8 @@ public class GatekeeperUserEntry extends GatekeeperSearchUserEntry {
 
     private String dn;
 
-    public GatekeeperUserEntry(String accountId, String dn, String email, String name) {
-        super(accountId, email, name);
+    public GatekeeperUserEntry(String userId, String dn, String email, String name) {
+        super(userId, email, name);
         this.dn = dn;
     }
 

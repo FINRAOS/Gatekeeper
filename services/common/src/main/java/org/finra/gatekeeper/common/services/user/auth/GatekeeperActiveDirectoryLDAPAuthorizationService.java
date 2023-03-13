@@ -17,7 +17,7 @@
 
 package org.finra.gatekeeper.common.services.user.auth;
 
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperLDAPUserProfile;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.springframework.ldap.core.LdapTemplate;
@@ -35,7 +35,7 @@ public class GatekeeperActiveDirectoryLDAPAuthorizationService extends Gatekeepe
     private static final String LDAP_MATCHING_RULE_IN_CHAIN = "1.2.840.113556.1.4.1941";
 
     public GatekeeperActiveDirectoryLDAPAuthorizationService(LdapTemplate ldapTemplate,
-                                                             Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier,
+                                                             Supplier<IGatekeeperLDAPUserProfile> gatekeeperUserProfileSupplier,
                                                              GatekeeperAuthProperties gatekeeperAuthProperties) {
         super(ldapTemplate,gatekeeperUserProfileSupplier, gatekeeperAuthProperties);
     }

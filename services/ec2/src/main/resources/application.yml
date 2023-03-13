@@ -32,6 +32,10 @@ gatekeeper:
 
   auth:
     userIdHeader: default
+    userMembershipsGroupHeader: groups
+    userNameHeader: name
+    userEmailHeader: mail
+    authServiceType: OpenLDAP
     approverGroup: DEFAULT_APPROVER
     supportGroup: DEFAULT_SUPPORT
     auditorGroup: DEFAULT_AUDITOR

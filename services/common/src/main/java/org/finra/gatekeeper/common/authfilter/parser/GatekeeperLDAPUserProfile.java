@@ -19,22 +19,22 @@ package org.finra.gatekeeper.common.authfilter.parser;
 
 import java.util.Objects;
 
-public class GatekeeperUserProfile implements IGatekeeperUserProfile {
+public class GatekeeperLDAPUserProfile implements IGatekeeperLDAPUserProfile {
 
-    private String name;
+    private String userId;
     private String source;
 
-    public GatekeeperUserProfile(String name, String source) {
-        if(name==null||source==null){
-            throw new IllegalArgumentException("User Name and Source is required");
+    public GatekeeperLDAPUserProfile(String userId, String source) {
+        if(userId==null||source==null){
+            throw new IllegalArgumentException("User userId and Source is required");
         }
-        this.name = name.toUpperCase();
+        this.userId = userId.toUpperCase();
         this.source = source;
     }
 
     @Override
-    public String getName() {
-        return this.name;
+    public String getUserId() {
+        return this.userId;
     }
 
     @Override
@@ -51,18 +51,23 @@ public class GatekeeperUserProfile implements IGatekeeperUserProfile {
             return false;
         }
 
-        GatekeeperUserProfile that = (GatekeeperUserProfile) o;
-        return Objects.equals(name, that.name) &&
+        GatekeeperLDAPUserProfile that = (GatekeeperLDAPUserProfile) o;
+        return Objects.equals(userId, that.userId) &&
                 Objects.equals(source, that.source);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, source);
+        return Objects.hash(userId, source);
+    }
+
+    @Override
+    public String getName() {
+        return null;
     }
 
     @Override
     public String toString() {
-        return "Name: " + this.name + ", Source: " + this.source;
+        return "userId: " + this.userId + ", Source: " + this.source;
     }
 }

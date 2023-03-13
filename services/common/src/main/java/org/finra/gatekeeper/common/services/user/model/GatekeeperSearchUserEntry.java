@@ -25,8 +25,8 @@ public class GatekeeperSearchUserEntry {
     private String email;
     private String name;
 
-    public GatekeeperSearchUserEntry(String accountId, String email, String name) {
-        this.userId = accountId;
+    public GatekeeperSearchUserEntry(String userId, String email, String name) {
+        this.userId = userId;
         this.email = email;
         this.name = name;
     }

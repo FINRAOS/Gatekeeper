@@ -18,9 +18,9 @@
 package org.finra.gatekeeper.common.authfilter;
 
 
-import org.finra.gatekeeper.common.authfilter.parser.CompositeParser;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
-import org.finra.gatekeeper.common.authfilter.parser.UserParser;
+import org.finra.gatekeeper.common.authfilter.parser.CompositeLDAPParser;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperLDAPUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.UserLDAPParser;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -30,17 +30,17 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Optional;
 
-public class UserHeaderFilter implements Filter {
+public class UserHeaderLDAPFilter implements Filter {
 
-    private UserParser userProfileParser;
+    private UserLDAPParser userProfileParser;
 
     private String contentSecurityPolicy;
 
     private class UserProfileRequestWrapper extends HttpServletRequestWrapper {
 
-        private IGatekeeperUserProfile userProfile;
+        private IGatekeeperLDAPUserProfile userProfile;
 
-        public UserProfileRequestWrapper(HttpServletRequest req, IGatekeeperUserProfile userProfile) {
+        public UserProfileRequestWrapper(HttpServletRequest req, IGatekeeperLDAPUserProfile userProfile) {
             super(req);
             this.userProfile = userProfile;
         }
@@ -52,17 +52,17 @@ public class UserHeaderFilter implements Filter {
         }
     }
 
-    public UserHeaderFilter(UserParser userProfileParser, String contentSecurityPolicy) {
+    public UserHeaderLDAPFilter(UserLDAPParser userProfileParser, String contentSecurityPolicy) {
         this.userProfileParser = userProfileParser;
         this.contentSecurityPolicy = contentSecurityPolicy;
     }
 
-    public UserHeaderFilter(UserParser userProfileParser) {
+    public UserHeaderLDAPFilter(UserLDAPParser userProfileParser) {
         this.userProfileParser = userProfileParser;
     }
 
-    public UserHeaderFilter(UserParser... userProfileParsers) {
-        this.userProfileParser = new CompositeParser(userProfileParsers);
+    public UserHeaderLDAPFilter(UserLDAPParser... userProfileParsers) {
+        this.userProfileParser = new CompositeLDAPParser(userProfileParsers);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class UserHeaderFilter implements Filter {
                 "1; mode=block");
         httpRes.setHeader("X-Frame-Options",
                 "DENY");
-        Optional<IGatekeeperUserProfile> userProfile = userProfileParser.parse(httpReq);
+        Optional<IGatekeeperLDAPUserProfile> userProfile = userProfileParser.parse(httpReq);
         if (userProfile.isPresent()) {
             filterChain.doFilter(new UserProfileRequestWrapper(httpReq, userProfile.get()), httpRes);
         } else {

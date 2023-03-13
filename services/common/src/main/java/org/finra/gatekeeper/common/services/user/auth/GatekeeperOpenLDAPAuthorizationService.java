@@ -17,7 +17,7 @@
 
 package org.finra.gatekeeper.common.services.user.auth;
 
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperLDAPUserProfile;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.services.user.model.GatekeeperUserEntry;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class GatekeeperOpenLDAPAuthorizationService extends GatekeeperAuthorizat
     final String ldapObjectClass;
 
     public GatekeeperOpenLDAPAuthorizationService(LdapTemplate ldapTemplate,
-                                                             Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier,
+                                                             Supplier<IGatekeeperLDAPUserProfile> gatekeeperUserProfileSupplier,
                                                              GatekeeperAuthProperties gatekeeperAuthProperties) {
         super(gatekeeperUserProfileSupplier);
         this.ldapProperties = gatekeeperAuthProperties.getLdap();
