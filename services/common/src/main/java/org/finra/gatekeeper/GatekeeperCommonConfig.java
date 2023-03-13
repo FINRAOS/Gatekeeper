@@ -33,6 +33,7 @@ import org.finra.gatekeeper.common.services.user.auth.GatekeeperActiveDirectoryL
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperHeaderAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperOpenLDAPAuthorizationService;
+import org.finra.gatekeeper.common.services.user.model.GatekeeperAuthorizationTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.function.Supplier;
 
+import static org.finra.gatekeeper.common.services.user.model.GatekeeperAuthorizationTypes.HEADERS;
+
 @Component
 public class GatekeeperCommonConfig {
 
@@ -71,6 +74,7 @@ public class GatekeeperCommonConfig {
     private final String proxyHost;
     private final Integer proxyPort;
     private final String contentSecurityPolicy;
+    private final GatekeeperAuthorizationTypes authType;
 
     private final GatekeeperAuthProperties gatekeeperAuthProperties;
 
@@ -94,6 +98,8 @@ public class GatekeeperCommonConfig {
             logger.info("No valid proxy port configuration found. (was " + gatekeeperAwsProperties.getProxyPort() + "), so not setting proxyPort");
             this.proxyPort = null;
         }
+
+        this.authType = GatekeeperAuthorizationTypes.valueOf(gatekeeperAuthProperties.getAuthServiceType().toUpperCase());
 
         //Headers
         this.contentSecurityPolicy = gatekeeperHeaderProperties.getContentSecurityPolicy();
@@ -136,7 +142,7 @@ public class GatekeeperCommonConfig {
     @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
     public FilterRegistrationBean userProfileFilterRegistration() {
         FilterRegistrationBean userProfileFilterRegistration = new FilterRegistrationBean();
-        if(gatekeeperAuthProperties.getAuthServiceType().toUpperCase().equals("HEADERS")){
+        if(authType == HEADERS){
             if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
                 userProfileFilterRegistration.setFilter(new UserHeaderHeadersFilter(new SSOHeaderParser(userIdHeader, userMembershipsGroupHeader, userEmailHeader, userNameHeader), contentSecurityPolicy));
             } else {
@@ -187,17 +193,16 @@ public class GatekeeperCommonConfig {
     public GatekeeperAuthorizationService gatekeeperAuthorizationService(LdapTemplate ldapTemplate,
                                                                          Supplier<IGatekeeperLDAPUserProfile> gatekeeperLDAPUserProfileSupplier,
                                                                          Supplier<IGatekeeperHeaderUserProfile> gatekeeperHeaderUserProfileSupplier){
-        String authType = gatekeeperAuthProperties.getAuthServiceType().toUpperCase();
         switch (authType){
-            case "HEADERS" :
+            case HEADERS :
                 logger.info("Setting Authorization to work with Header Injection");
                 return new GatekeeperHeaderAuthorizationService(gatekeeperHeaderUserProfileSupplier);
-            case "ACTIVEDIRECTORY" :
+            case ACTIVEDIRECTORY :
                 logger.info("Setting Authorization to work with Active Directory");
                 return new GatekeeperActiveDirectoryLDAPAuthorizationService(ldapTemplate,
                         gatekeeperLDAPUserProfileSupplier,
                         gatekeeperAuthProperties);
-            case "OPENLDAP" :
+            case OPENLDAP :
                 logger.info("Setting Authorization to work with OpenLDAP");
                 return new GatekeeperOpenLDAPAuthorizationService(ldapTemplate,
                         gatekeeperLDAPUserProfileSupplier,
