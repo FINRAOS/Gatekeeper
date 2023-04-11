@@ -322,7 +322,7 @@ public class RdsLookupService {
             Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbiResourceId(), item.getDBInstanceIdentifier(),
                     dbName != null ? dbName : "", item.getEngine(), status,
-                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled, DatabaseType.RDS, adGroups));
+                    item.getDBInstanceArn(), item.getEndpoint().getAddress() + ":" + port, application, availableRoles, enabled, DatabaseType.RDS, adGroups, item.getIAMDatabaseAuthenticationEnabled()));
         });
 
         return gatekeeperRDSInstances;
@@ -405,7 +405,7 @@ public class RdsLookupService {
             //Only get AD Groups from the current SDLC
             Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getDbClusterResourceId(), item.getDBClusterIdentifier(),
-                    dbName, item.getEngine(), status, item.getDBClusterArn(), item.getEndpoint() + ":" + port, application, availableRoles, enabled, globalCluster, adGroups));
+                    dbName, item.getEngine(), status, item.getDBClusterArn(), item.getEndpoint() + ":" + port, application, availableRoles, enabled, globalCluster, adGroups, item.getIAMDatabaseAuthenticationEnabled()));
         });
 
         return gatekeeperRDSInstances;
@@ -469,7 +469,7 @@ public class RdsLookupService {
             //Only get AD Groups from the current SDLC
             Set<GatekeeperADGroupEntry> adGroups = filterBySdlc(environment, application);
             gatekeeperRDSInstances.add(new GatekeeperRDSInstance(item.getClusterIdentifier(), item.getClusterIdentifier(),
-                    dbName, "redshift", status, clusterArn, address, application, availableRoles, enabled, DatabaseType.REDSHIFT, adGroups));
+                    dbName, "redshift", status, clusterArn, address, application, availableRoles, enabled, DatabaseType.REDSHIFT, adGroups, false));
         });
 
         return gatekeeperRDSInstances;

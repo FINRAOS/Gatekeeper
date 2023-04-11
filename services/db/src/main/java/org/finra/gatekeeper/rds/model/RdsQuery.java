@@ -56,6 +56,11 @@ public class RdsQuery {
      */
     private String dbEngine;
 
+    /**
+     * Whether RDS IAM Auth is Enabled
+     */
+    private boolean rdsIAMAuth;
+
     public String getAccount() {
         return account;
     }
@@ -119,7 +124,16 @@ public class RdsQuery {
         return this;
     }
 
-    public RdsQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine) {
+    public boolean isRdsIAMAuth() {
+        return rdsIAMAuth;
+    }
+
+    public RdsQuery withRdsIAMAuth(boolean rdsIAMAuth) {
+        this.rdsIAMAuth = rdsIAMAuth;
+        return this;
+    }
+
+    public RdsQuery(String account, String accountId, String region, String sdlc, String address, String dbInstanceName, String dbEngine, boolean rdsIAMAuth) {
         this.account = account;
         this.accountId = accountId;
         this.region = region;
@@ -127,6 +141,7 @@ public class RdsQuery {
         this.address = address;
         this.dbInstanceName = dbInstanceName;
         this.dbEngine = dbEngine;
+        this.rdsIAMAuth = rdsIAMAuth;
     }
 
     public RdsQuery() {
