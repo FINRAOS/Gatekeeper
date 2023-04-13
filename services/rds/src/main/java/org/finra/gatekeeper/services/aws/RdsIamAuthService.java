@@ -17,14 +17,21 @@
 
 package org.finra.gatekeeper.services.aws;
 
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.rds.AmazonRDSClient;
+import com.amazonaws.services.rds.auth.GetIamAuthTokenRequest;
+import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.amazonaws.services.rds.model.*;
+import org.finra.gatekeeper.configuration.GatekeeperDynamoDBProperties;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 /**
@@ -36,9 +43,19 @@ public class RdsIamAuthService {
 
     private final AwsSessionService awsSessionService;
 
+    private final String table;
+    private final String primaryKey;
+    private final String tokenKey;
+    private final String ttlKey;
+    private final long validTokenPeriod = 60 * 14;
+
     @Autowired
-    public RdsIamAuthService(AwsSessionService awsSessionService) {
+    public RdsIamAuthService(AwsSessionService awsSessionService, GatekeeperDynamoDBProperties dynamoDBProperties) {
         this.awsSessionService = awsSessionService;
+        this.table = dynamoDBProperties.getTable();
+        this.primaryKey = dynamoDBProperties.getPrimaryKey();
+        this.tokenKey = dynamoDBProperties.getTokenKey();
+        this.ttlKey = dynamoDBProperties.getTtlKey();
     }
 
 
@@ -104,5 +121,27 @@ public class RdsIamAuthService {
         });
 
         return theWriterCluster.get();
+    }
+
+    public String fetchIamAuthToken(AWSEnvironment environment, String host, String port, String username){
+        DynamoDB dynamoDB = new DynamoDB(awsSessionService.getDynamoDBSession());
+        Table tokenTable = dynamoDB.getTable(table);
+        Item item = tokenTable.getItem(primaryKey, host );
+        if(item == null || item.getNumber(ttlKey).longValue() < Instant.now().getEpochSecond()){
+            logger.info("IAM RDS Token is expired. Generating new token.");
+            RdsIamAuthTokenGenerator generator = awsSessionService.getRdsIamAuthTokenGenerator(environment);
+            String authToken = generator.getAuthToken(
+                    GetIamAuthTokenRequest.builder()
+                            .hostname(host)
+                            .port(Integer.parseInt(port))
+                            .userName(username)
+                            .build());
+            Long expireTime = Instant.now().getEpochSecond() + validTokenPeriod;
+            Item newToken = new Item().withPrimaryKey(primaryKey, host).withString(tokenKey, authToken).withNumber(ttlKey, expireTime);
+            tokenTable.putItem(newToken);
+            return authToken;
+        }
+        logger.info("IAM RDS Token found. Using existing token.");
+        return item.getString(tokenKey);
     }
 }
