@@ -71,7 +71,7 @@ public class PostgresDBConnection implements DBConnection {
 
     public boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws SQLException {
         String address = rdsGrantAccessQuery.getAddress();
-        String user = rdsGrantAccessQuery.getUser();
+        String user = rdsGrantAccessQuery.getUser().toLowerCase();
         RoleType role = rdsGrantAccessQuery.getRole();
         String password = rdsGrantAccessQuery.getPassword();
         int length = rdsGrantAccessQuery.getTime();
@@ -118,7 +118,7 @@ public class PostgresDBConnection implements DBConnection {
 
     public boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws SQLException{
         String address = rdsRevokeAccessQuery.getAddress();
-        String user = rdsRevokeAccessQuery.getUser();
+        String user = rdsRevokeAccessQuery.getUser().toLowerCase();
         RoleType role = rdsRevokeAccessQuery.getRole();
 
         PGPoolingDataSource dataSource = null;

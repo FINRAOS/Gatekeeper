@@ -26,13 +26,13 @@ public class GatekeeperSearchUserEntry {
     private String name;
 
     public GatekeeperSearchUserEntry(String userId, String email, String name) {
-        this.userId = userId;
+        this.userId = userId.toLowerCase();
         this.email = email;
         this.name = name;
     }
 
     public String getUserId() {
-        return userId;
+        return userId.toLowerCase();
     }
 
     public String getEmail() {
