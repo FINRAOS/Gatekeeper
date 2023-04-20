@@ -31,6 +31,8 @@ import org.finra.gatekeeper.rds.interfaces.DBConnection;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.*;
 import org.finra.gatekeeper.services.aws.AwsSessionService;
+import org.finra.gatekeeper.services.aws.RdsIamAuthService;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.connections.model.LambdaDTO;
 import org.finra.gatekeeper.services.db.connections.model.LambdaPayload;
 import org.finra.gatekeeper.services.db.connections.model.LambdaQuery;
@@ -53,18 +55,20 @@ public class LambdaConnection  implements DBConnection{
 
     private final AwsSessionService awsSessionService;
     private final GKUserCredentialsProvider gkUserCredentialsProvider;
+    private RdsIamAuthService rdsIamAuthService;
     private final String gkUserName;
     private final Map<String, String> lambdaFunctions;
 
     @Autowired
     public LambdaConnection(AwsSessionService awsSessionService,
                             GatekeeperProperties gatekeeperProperties,
+                            RdsIamAuthService rdsIamAuthService,
                             @Qualifier("credentialsProvider") GKUserCredentialsProvider gkUserCredentialsProvider){
         this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.gkUserName = gatekeeperProperties.getDb().getGkUser();
         this.lambdaFunctions = gatekeeperProperties.getLambda().getFunctions();
         this.awsSessionService = awsSessionService;
-
+        this.rdsIamAuthService = rdsIamAuthService;
     }
 
     private Map invokeLambda(String uri, String method, String body, String region) {
@@ -139,6 +143,13 @@ public class LambdaConnection  implements DBConnection{
     }
 
     private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, TypeReference<T> clazz){
+        if(lambdaQuery.getRdsIAMAuth()){
+            AWSEnvironment environment = new AWSEnvironment(lambdaQuery.getAccount(), lambdaQuery.getRegion(), lambdaQuery.getSdlc());
+            String dbUrl = lambdaQuery.getAddress().split("/")[0];
+            String address= dbUrl.split(":")[0];
+            String port = dbUrl.split(":")[1];
+            rdsIamAuthService.fetchIamAuthToken(environment, address, port, gkUserName);
+        }
         LambdaDTO lambdaDTO = new LambdaDTO()
                 .withDbEngine(lambdaQuery.getDbEngine())
                 .withLambdaQuery(lambdaQuery);
