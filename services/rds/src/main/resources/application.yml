@@ -90,12 +90,6 @@ gatekeeper:
     dbaGroupsPattern: COMPANY_([a-zA-Z]+)_ADBA
     opsGroupsPattern: COMPANY_([a-zA-Z]+)_OPS
     devGroupsPattern: COMPANY_([a-zA-Z]+)_(DEV|QC|QA|PROD)_INSTALL_ENGINEER
-
-  dynamodb:
-    table: Gatekeeper-DynamoDB
-    primaryKey: DB
-    tokenKey: Token
-    ttlKey: ExpireTime
   email:
     from: Gatekeeper@company.com
     team: GK-Owners@company.com

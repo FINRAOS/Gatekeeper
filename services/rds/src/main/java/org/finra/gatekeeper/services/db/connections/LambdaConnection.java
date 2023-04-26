@@ -143,13 +143,6 @@ public class LambdaConnection  implements DBConnection{
     }
 
     private <T> T invokeHelper(LambdaQuery lambdaQuery, String uri, String method, TypeReference<T> clazz){
-        if(lambdaQuery.getRdsIAMAuth()){
-            AWSEnvironment environment = new AWSEnvironment(lambdaQuery.getAccount(), lambdaQuery.getRegion(), lambdaQuery.getSdlc());
-            String dbUrl = lambdaQuery.getAddress().split("/")[0];
-            String address= dbUrl.split(":")[0];
-            String port = dbUrl.split(":")[1];
-            rdsIamAuthService.fetchIamAuthToken(environment, address, port, gkUserName);
-        }
         LambdaDTO lambdaDTO = new LambdaDTO()
                 .withDbEngine(lambdaQuery.getDbEngine())
                 .withLambdaQuery(lambdaQuery);

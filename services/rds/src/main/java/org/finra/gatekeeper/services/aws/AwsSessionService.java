@@ -20,7 +20,6 @@ package org.finra.gatekeeper.services.aws;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.rds.AmazonRDSClient;
@@ -163,5 +162,4 @@ public class AwsSessionService {
     public AWSLambda getAwsLambda(String region){
         return awsSessionFactory.createLambdaSession(region);
     }
-    public AmazonDynamoDB getDynamoDBSession(){return awsSessionFactory.createDynamoDBSession();}
 }
