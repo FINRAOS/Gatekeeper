@@ -596,7 +596,7 @@ public class AccessRequestServiceTest {
         Assert.assertTrue(result.getResponse() instanceof AccessRequest);
         AccessRequest response = (AccessRequest)result.getResponse();
         Assert.assertEquals(response.getRequestorEmail(), "testEmail@finra.org");
-        Assert.assertEquals(response.getRequestorId(), "testUserId");
+        Assert.assertEquals(response.getRequestorId(), "testuserid");
         Assert.assertEquals(response.getRequestorName(), "testName");
         Assert.assertEquals(response.getRegion(), "testRegion");
         Assert.assertEquals(response.getAccount(), "TESTACCOUNT");
@@ -939,7 +939,7 @@ public class AccessRequestServiceTest {
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_GRANTED);
         verify(accessRequestRepository, times(1)).save(Mockito.any(AccessRequest.class));
-        verify(taskService,times(1)).setAssignee("taskOne","testUserId");
+        verify(taskService,times(1)).setAssignee("taskOne","testuserid");
         verify(taskService,times(1)).complete("taskOne",statusMap);
     }
 
@@ -954,7 +954,7 @@ public class AccessRequestServiceTest {
         Map<String,Object> statusMap = new HashMap<>();
         statusMap.put("requestStatus", RequestStatus.APPROVAL_REJECTED);
         verify(accessRequestRepository, times(1)).save(Mockito.any(AccessRequest.class));
-        verify(taskService,times(1)).setAssignee("taskOne","testUserId");
+        verify(taskService,times(1)).setAssignee("taskOne","testuserid");
         verify(taskService,times(1)).complete("taskOne",statusMap);
     }
 
