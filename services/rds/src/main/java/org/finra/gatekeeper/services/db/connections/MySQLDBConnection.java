@@ -183,21 +183,24 @@ public class MySQLDBConnection implements DBConnection {
         String dbUrl = url.split("/")[0];
         logger.info("Getting connection for " + dbUrl);
         logger.info("Creating Datasource connection for " + dbUrl);
+        //RDS IAM AUTH SECTION
         if(rdsQuery.isRdsIAMAuth()) {
-            String address = dbUrl.split(":")[0];
-            String port = dbUrl.split(":")[1];
+            //Address is 0  Port is 1
+            String[] splitUrl = dbUrl.split(":");
             AWSEnvironment environment = new AWSEnvironment(rdsQuery.getAccount(), rdsQuery.getRegion(), rdsQuery.getSdlc());
-            String iamToken = rdsIamAuthService.fetchIamAuthToken(environment, address, port, gkUserName);
+            String iamToken = rdsIamAuthService.fetchIamAuthToken(environment, splitUrl[0], splitUrl[1], gkUserName);
             try {
                 return new JdbcTemplate(connectHelper(url, iamToken));
             } catch (Exception e) {
                 if (e.getCause().toString().contains("Access denied for user 'gatekeeper")) {
                     logger.info("Failed to connect with IAM Auth. Attempting to connect with stored password.");
                 } else {
+                    //Throw error if it is non password related
                     throw e;
                 }
             }
         }
+        // DEFAULT TO REGULAR PASSWORD IF RDS IAM AUTH FAILS OR IS NOT ENABLED
         return new JdbcTemplate(connectHelper(url, gkUserPassword));
     }
 

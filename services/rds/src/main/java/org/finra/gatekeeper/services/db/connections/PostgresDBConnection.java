@@ -289,19 +289,21 @@ public class PostgresDBConnection implements DBConnection {
 
     private PGPoolingDataSource connect(String url, String gkUserPassword, RdsQuery rdsQuery) throws SQLException {
         String dbUrl = url.split("/")[0];
+        String dbAddress = dbUrl.split("/")[0];
         logger.info("Getting connection for " + dbUrl);
         logger.info("Creating Datasource connection for " + dbUrl);
         String pgUrl = dbUrl + "/postgres"; // url with postgres instead of whatever was on the AWS console
+        //RDS IAM AUTH SECTION
         if(rdsQuery.isRdsIAMAuth()){
-            String address= dbUrl.split(":")[0];
-            String port = dbUrl.split(":")[1];
+            //Address is 0  Port is 1
+            String[] splitUrl = dbUrl.split(":");
             AWSEnvironment environment = new AWSEnvironment(rdsQuery.getAccount(), rdsQuery.getRegion(), rdsQuery.getSdlc());
-            String iamToken = rdsIamAuthService.fetchIamAuthToken(environment, address, port, gkUserName);
+            String iamToken = rdsIamAuthService.fetchIamAuthToken(environment, splitUrl[0], splitUrl[1], gkUserName);
             try {
                 try {
                     return connectHelper(pgUrl, iamToken); // Try postgres first since it is a default db.
                 } catch (Exception e){
-                    logger.info("postgres database not present for " + dbUrl.split("/")[0] + " Attempting connection to " + url + " as fallback.");
+                    logger.info("postgres database not present for " + dbAddress + " Attempting connection to " + url + " as fallback.");
                     return connectHelper(url, iamToken); // Fall-back if postgres isn't there
                 }
             }
@@ -309,15 +311,16 @@ public class PostgresDBConnection implements DBConnection {
                 if(e.getCause().toString().contains("FATAL: password authentication failed for user \"gatekeeper\"")){
                     logger.info("Failed to connect with IAM Auth. Attempting to connect with stored password.");
                 } else {
+                    //Throw error if it is non password related
                     throw e;
                 }
             }
         }
-
+        // DEFAULT TO REGULAR PASSWORD IF RDS IAM AUTH FAILS OR IS NOT ENABLED
         try {
             return connectHelper(pgUrl, gkUserPassword); // Try postgres first since it is a default db.
         } catch (Exception e){
-            logger.info("postgres database not present for " + dbUrl.split("/")[0] + " Attempting connection to " + url + " as fallback.");
+            logger.info("postgres database not present for " + dbAddress + " Attempting connection to " + url + " as fallback.");
             return connectHelper(url, gkUserPassword); // Fall-back if postgres isn't there
         }
     }

@@ -45,7 +45,7 @@ public class RdsIamAuthService {
 
 
     public boolean isRdsIamAuthEnabled(AWSEnvironment environment, String dbInstanceIdentifier, String instanceName, String instanceType) {
-        logger.info(dbInstanceIdentifier);
+        logger.info("Checking to see if RDS IAM Auth is enabled for instance: " + dbInstanceIdentifier);
         Long startTime = System.currentTimeMillis();
         AmazonRDSClient amazonRDSClient = awsSessionService.getRDSSession(environment);
 
