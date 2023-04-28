@@ -31,8 +31,6 @@ import org.finra.gatekeeper.rds.interfaces.DBConnection;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.*;
 import org.finra.gatekeeper.services.aws.AwsSessionService;
-import org.finra.gatekeeper.services.aws.RdsIamAuthService;
-import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.db.connections.model.LambdaDTO;
 import org.finra.gatekeeper.services.db.connections.model.LambdaPayload;
 import org.finra.gatekeeper.services.db.connections.model.LambdaQuery;
@@ -55,20 +53,18 @@ public class LambdaConnection  implements DBConnection{
 
     private final AwsSessionService awsSessionService;
     private final GKUserCredentialsProvider gkUserCredentialsProvider;
-    private RdsIamAuthService rdsIamAuthService;
     private final String gkUserName;
     private final Map<String, String> lambdaFunctions;
 
     @Autowired
     public LambdaConnection(AwsSessionService awsSessionService,
                             GatekeeperProperties gatekeeperProperties,
-                            RdsIamAuthService rdsIamAuthService,
                             @Qualifier("credentialsProvider") GKUserCredentialsProvider gkUserCredentialsProvider){
         this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.gkUserName = gatekeeperProperties.getDb().getGkUser();
         this.lambdaFunctions = gatekeeperProperties.getLambda().getFunctions();
         this.awsSessionService = awsSessionService;
-        this.rdsIamAuthService = rdsIamAuthService;
+
     }
 
     private Map invokeLambda(String uri, String method, String body, String region) {

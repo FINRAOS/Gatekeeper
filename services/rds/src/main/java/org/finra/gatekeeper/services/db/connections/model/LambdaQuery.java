@@ -23,7 +23,6 @@ public class LambdaQuery {
     //Rds Grant Access
     private String password = "";
     private Integer time = 0;
-    private boolean rdsIAMAuth;
 
     public LambdaQuery(RdsQuery rdsQuery){
         this.account = rdsQuery.getAccount();
@@ -33,7 +32,6 @@ public class LambdaQuery {
         this.address = rdsQuery.getAddress();
         this.dbInstanceName = rdsQuery.getDbInstanceName();
         this.dbEngine = rdsQuery.getDbEngine();
-        this.rdsIAMAuth = rdsQuery.isRdsIAMAuth();
     }
 
     public LambdaQuery(RdsCheckUsersTableQuery rdsQuery){
@@ -45,7 +43,6 @@ public class LambdaQuery {
         this.address = rdsQuery.getAddress();
         this.dbInstanceName = rdsQuery.getDbInstanceName();
         this.dbEngine = rdsQuery.getDbEngine();
-        this.rdsIAMAuth = rdsQuery.isRdsIAMAuth();
     }
 
     public LambdaQuery(RdsRevokeAccessQuery rdsQuery){
@@ -58,7 +55,6 @@ public class LambdaQuery {
         this.address = rdsQuery.getAddress();
         this.dbInstanceName = rdsQuery.getDbInstanceName();
         this.dbEngine = rdsQuery.getDbEngine();
-        this.rdsIAMAuth = rdsQuery.isRdsIAMAuth();
     }
 
     public LambdaQuery(RdsGrantAccessQuery rdsQuery){
@@ -73,7 +69,6 @@ public class LambdaQuery {
         this.address = rdsQuery.getAddress();
         this.dbInstanceName = rdsQuery.getDbInstanceName();
         this.dbEngine = rdsQuery.getDbEngine();
-        this.rdsIAMAuth = rdsQuery.isRdsIAMAuth();
     }
 
     public String getAccount() {
@@ -181,15 +176,6 @@ public class LambdaQuery {
 
     public LambdaQuery withTime(Integer time) {
         this.time = time;
-        return this;
-    }
-
-    public boolean getRdsIAMAuth() {
-        return rdsIAMAuth;
-    }
-
-    public LambdaQuery withRdsIAMAuth(boolean rdsIAMAuth) {
-        this.rdsIAMAuth = rdsIAMAuth;
         return this;
     }
 }
