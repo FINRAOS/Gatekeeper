@@ -39,13 +39,12 @@ public class GatekeeperRDSInstance {
     private List<String> availableRoles;
     private DatabaseType databaseType;
 
-
-
     private Set<GatekeeperADGroupEntry> applicationRoles;
     private boolean enabled;
+    private boolean iamDatabaseAuthentication;
 
     public GatekeeperRDSInstance(String instanceId, String name, String dbName, String engine, String status, String arn, String endpoint,
-                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType, Set<GatekeeperADGroupEntry> applicationRoles){
+                                 String application, List<String> availableRoles, Boolean enabled, DatabaseType databaseType, Set<GatekeeperADGroupEntry> applicationRoles, boolean iamDatabaseAuthentication){
         this.instanceId = instanceId;
         this.name = name;
         this.dbName = dbName;
@@ -58,6 +57,7 @@ public class GatekeeperRDSInstance {
         this.enabled = enabled;
         this.databaseType = databaseType;
         this.applicationRoles = applicationRoles;
+        this.iamDatabaseAuthentication = iamDatabaseAuthentication;
     }
 
     public String getInstanceId() {
@@ -165,6 +165,15 @@ public class GatekeeperRDSInstance {
     public void setApplicationRoles(Set<GatekeeperADGroupEntry> applicationRoles) {
         this.applicationRoles = applicationRoles;
     }
+
+    public boolean getIamDatabaseAuthentication() {
+        return iamDatabaseAuthentication;
+    }
+
+    public GatekeeperRDSInstance setIamDatabaseAuthentication(boolean iamDatabaseAuthentication) {
+        this.iamDatabaseAuthentication = iamDatabaseAuthentication;
+        return this;
+    }
     @Override
     public boolean equals(Object o){
         if(this == o){
@@ -186,7 +195,8 @@ public class GatekeeperRDSInstance {
                 && Objects.equals(this.application, that.getApplication())
                 && Objects.equals(this.availableRoles, that.getAvailableRoles())
                 && Objects.equals(this.enabled, that.getEnabled())
-                && Objects.equals(this.databaseType, that.getDatabaseType());
+                && Objects.equals(this.databaseType, that.getDatabaseType())
+                && Objects.equals(this.iamDatabaseAuthentication, that.getIamDatabaseAuthentication());
     }
 
     @Override

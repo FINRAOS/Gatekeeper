@@ -22,6 +22,8 @@ import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.rds.interfaces.DBConnection;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.*;
+import org.finra.gatekeeper.services.aws.RdsIamAuthService;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.postgresql.ds.PGPoolingDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,7 @@ public class PostgresDBConnection implements DBConnection {
 
     private final Logger logger = LoggerFactory.getLogger(PostgresDBConnection.class);
     private final GKUserCredentialsProvider gkUserCredentialsProvider;
+    private RdsIamAuthService rdsIamAuthService;
     private final String EXPIRATION_TIMESTAMP = "yyyy-MM-dd HH:mm:ss";
     private final String getSchemas = "SELECT distinct table_schema||'.'||table_name FROM information_schema.role_table_grants "
     + "where grantee = ? order by table_schema||'.'||table_name";
@@ -58,8 +61,10 @@ public class PostgresDBConnection implements DBConnection {
 
     @Autowired
     public PostgresDBConnection(GatekeeperProperties gatekeeperProperties,
+                                RdsIamAuthService rdsIamAuthService,
                                 @Qualifier("credentialsProvider") GKUserCredentialsProvider gkUserCredentialsProvider){
         this.gkUserCredentialsProvider = gkUserCredentialsProvider;
+        this.rdsIamAuthService = rdsIamAuthService;
         GatekeeperProperties.GatekeeperDbProperties db = gatekeeperProperties.getDb();
         GatekeeperProperties.GatekeeperDbProperties.PostgresDbProperties postgres = db.getPostgres();
         this.gkUserName = db.getGkUser();
@@ -79,7 +84,7 @@ public class PostgresDBConnection implements DBConnection {
         PGPoolingDataSource dataSource = null;
 
         try {
-            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery));
+            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery), rdsGrantAccessQuery);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
 
             String expirationTime = LocalDateTime.now().plusDays(length).format(DateTimeFormatter.ofPattern(EXPIRATION_TIMESTAMP));
@@ -123,7 +128,7 @@ public class PostgresDBConnection implements DBConnection {
 
         PGPoolingDataSource dataSource = null;
         try {
-            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery));
+            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery), rdsRevokeAccessQuery);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             logger.info("Removing " + user + " from " + address + " if they exist.");
             if(role != null) {
@@ -149,7 +154,7 @@ public class PostgresDBConnection implements DBConnection {
     public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws SQLException{
         String address = rdsQuery.getAddress();
         Map<RoleType, List<String>> results = new HashMap<>();
-        PGPoolingDataSource dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        PGPoolingDataSource dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
 
         logger.info("Getting available schema information for " + address);
@@ -180,7 +185,7 @@ public class PostgresDBConnection implements DBConnection {
 
         try{
             logger.info("Checking the gatekeeper setup for " + address);
-            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             Boolean createRolePermCheckResult = conn.queryForObject(gkUserCreateRoleCheck, Boolean.class);
             List<String> roleCheckResult = conn.queryForList(gkRoleCheck, String.class);
@@ -224,7 +229,7 @@ public class PostgresDBConnection implements DBConnection {
         List<String> users = rdsCheckUsersTableQuery.getUsers();
         PGPoolingDataSource dataSource = null;
         try {
-            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsCheckUsersTableQuery));
+            dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsCheckUsersTableQuery), rdsCheckUsersTableQuery);
             JdbcTemplate conn = new JdbcTemplate(dataSource);
             StringBuilder sb = new StringBuilder();
             users.forEach(user -> {
@@ -249,7 +254,7 @@ public class PostgresDBConnection implements DBConnection {
 
     public List<DbUser> getUsers(RdsQuery rdsQuery) throws SQLException{
         String address = rdsQuery.getAddress();
-        PGPoolingDataSource dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        PGPoolingDataSource dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
         List<DbUser> results;
         logger.info("Getting available schema information for " + address);
@@ -267,7 +272,7 @@ public class PostgresDBConnection implements DBConnection {
     public List<String> getAvailableRoles(RdsQuery rdsQuery) throws SQLException{
         String address = rdsQuery.getAddress();
 
-        PGPoolingDataSource dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        PGPoolingDataSource dataSource = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
         JdbcTemplate conn = new JdbcTemplate(dataSource);
         List<String> results;
         logger.info("Getting available roles for " + address);
@@ -282,15 +287,40 @@ public class PostgresDBConnection implements DBConnection {
         return results;
     }
 
-    private PGPoolingDataSource connect(String url, String gkUserPassword) throws SQLException {
+    private PGPoolingDataSource connect(String url, String gkUserPassword, RdsQuery rdsQuery) throws SQLException {
         String dbUrl = url.split("/")[0];
+        String dbAddress = dbUrl.split("/")[0];
         logger.info("Getting connection for " + dbUrl);
         logger.info("Creating Datasource connection for " + dbUrl);
         String pgUrl = dbUrl + "/postgres"; // url with postgres instead of whatever was on the AWS console
+        //RDS IAM AUTH SECTION
+        if(rdsQuery.isRdsIAMAuth()){
+            //Address is 0  Port is 1
+            String[] splitUrl = dbUrl.split(":");
+            AWSEnvironment environment = new AWSEnvironment(rdsQuery.getAccount(), rdsQuery.getRegion(), rdsQuery.getSdlc());
+            String iamToken = rdsIamAuthService.fetchIamAuthToken(environment, splitUrl[0], splitUrl[1], gkUserName);
+            try {
+                try {
+                    return connectHelper(pgUrl, iamToken); // Try postgres first since it is a default db.
+                } catch (Exception e){
+                    logger.info("postgres database not present for " + dbAddress + " Attempting connection to " + url + " as fallback.");
+                    return connectHelper(url, iamToken); // Fall-back if postgres isn't there
+                }
+            }
+            catch (Exception e){
+                if(e.getCause().toString().contains("FATAL: password authentication failed for user \"gatekeeper\"")){
+                    logger.info("Failed to connect with IAM Auth. Attempting to connect with stored password.");
+                } else {
+                    //Throw error if it is non password related
+                    throw e;
+                }
+            }
+        }
+        // DEFAULT TO REGULAR PASSWORD IF RDS IAM AUTH FAILS OR IS NOT ENABLED
         try {
             return connectHelper(pgUrl, gkUserPassword); // Try postgres first since it is a default db.
         } catch (Exception e){
-            logger.info("postgres database not present for " + dbUrl.split("/")[0] + " Attempting connection to " + url + " as fallback.");
+            logger.info("postgres database not present for " + dbAddress + " Attempting connection to " + url + " as fallback.");
             return connectHelper(url, gkUserPassword); // Fall-back if postgres isn't there
         }
     }
