@@ -28,7 +28,6 @@ import org.finra.gatekeeper.rds.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
-import org.finra.gatekeeper.services.aws.RdsIamAuthService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
 import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
@@ -52,26 +51,22 @@ public class DatabaseConnectionService {
 
     private AccountInformationService accountInformationService;
     private DatabaseConnectionFactory databaseConnectionFactory;
-    private RdsIamAuthService rdsIamAuthService;
 
     @Autowired
-    public DatabaseConnectionService(DatabaseConnectionFactory databaseConnectionFactory, AccountInformationService accountInformationService, RdsIamAuthService rdsIamAuthService){
+    public DatabaseConnectionService(DatabaseConnectionFactory databaseConnectionFactory, AccountInformationService accountInformationService){
         this.databaseConnectionFactory = databaseConnectionFactory;
         this.accountInformationService = accountInformationService;
-        this.rdsIamAuthService = rdsIamAuthService;
     }
 
     public Boolean grantAccess(AWSRdsDatabase db, AWSEnvironment awsEnvironment, String user, RoleType roleType, String password, Integer timeDays) throws GKUnsupportedDBException{
         Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
         boolean status = false;
-        boolean rdsIAMAuth = rdsIamAuthService.isRdsIamAuthEnabled(awsEnvironment, db.getInstanceId(), db.getName(), db.getDatabaseType().toString());
-
         //initialize a map that will show the status of dbs in the request
         logger.info("Granting access to " + db + " for user {" + user + "} ");
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine()).grantAccess(
                     new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), account.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine(), rdsIAMAuth)
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                     .withUser(user)
                     .withPassword(password)
                     .withRole(roleType)
@@ -91,12 +86,11 @@ public class DatabaseConnectionService {
         Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
         //initialize a map that will show the status of dbs in the request
         boolean status = false;
-        boolean rdsIAMAuth = rdsIamAuthService.isRdsIamAuthEnabled(awsEnvironment, db.getInstanceId(), db.getName(), db.getDatabaseType().toString());
         logger.info("Revoking access on " + db.getName() + "(" + db.getEndpoint() + ")");
         try{
             status = databaseConnectionFactory.getConnection(db.getEngine())
                     .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine(), rdsIAMAuth)
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                             .withUser(user)
                             .withRole(roleType));
             logger.info("User " + user + " removed from " + db.getName() + "(" + db.getInstanceId() + ")? " + status);
@@ -132,7 +126,7 @@ public class DatabaseConnectionService {
         for(DbUser user:  users){
             boolean outcome = databaseConnectionFactory.getConnection(db.getEngine())
                     .revokeAccess(new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine(), db.getIamDatabaseAuthentication())
+                            getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                             .withUser(user.getUsername()));
             if(!outcome){
                 usersNotRemoved.add(user.getUsername());
@@ -153,16 +147,13 @@ public class DatabaseConnectionService {
                     .withSdlc(awsEnvironment.getSdlc())
                     .withAddress(getAddress(database.getEndpoint(), database.getDbName()))
                     .withDbInstanceName(database.getName())
-                    .withDbEngine(database.getEngine())
-                    .withRdsIAMAuth(database.getIamDatabaseAuthentication())
-        );
+                    .withDbEngine(database.getEngine()));
     }
-
 
     //This is usually called through the Activiti workflow
     public Map<RoleType, List<String>> getAvailableSchemasForDb(AWSRdsDatabase database, AWSEnvironment awsEnvironment) throws Exception {
         Account account = accountInformationService.getAccountByAlias(awsEnvironment.getAccount());
-        boolean rdsIAMAuth = rdsIamAuthService.isRdsIamAuthEnabled(awsEnvironment, database.getInstanceId(), database.getName(), database.getDatabaseType().toString());        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(
+        return databaseConnectionFactory.getConnection(database.getEngine()).getAvailableTables(
                 new RdsQuery()
                         .withAccount(account.getAlias())
                         .withAccountId(account.getAccountId())
@@ -170,9 +161,7 @@ public class DatabaseConnectionService {
                         .withSdlc(awsEnvironment.getSdlc())
                         .withAddress(getAddress(database.getEndpoint(), database.getDbName()))
                         .withDbInstanceName(database.getName())
-                        .withDbEngine(database.getEngine())
-                        .withRdsIAMAuth(rdsIAMAuth)
-                );
+                        .withDbEngine(database.getEngine()));
     }
 
     public String checkDb(DBInstance db, AWSEnvironment awsEnvironment) throws GKUnsupportedDBException{
@@ -186,7 +175,6 @@ public class DatabaseConnectionService {
                         .withAddress(getAddress(db.getEndpoint(), db.getDBName()))
                         .withDbInstanceName(db.getDBInstanceIdentifier())
                         .withDbEngine(db.getEngine())
-                        .withRdsIAMAuth(db.getIAMDatabaseAuthenticationEnabled())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -202,7 +190,6 @@ public class DatabaseConnectionService {
                         .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
                         .withDbInstanceName(db.getDBClusterIdentifier())
                         .withDbEngine(db.getEngine())
-                        .withRdsIAMAuth(db.getIAMDatabaseAuthenticationEnabled())
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -218,7 +205,6 @@ public class DatabaseConnectionService {
                         .withAddress(getAddress(String.format("%s:%s", db.getEndpoint().getAddress(), db.getEndpoint().getPort().toString()), db.getDBName()))
                         .withDbInstanceName(db.getClusterIdentifier())
                         .withDbEngine("redshift")
-                        .withRdsIAMAuth(false)
         );
         return issues.stream().collect(Collectors.joining(","));
     }
@@ -234,7 +220,6 @@ public class DatabaseConnectionService {
                         .withAddress(getAddress(db.getEndpoint(), db.getDbName()))
                         .withDbInstanceName(db.getName())
                         .withDbEngine(db.getEngine())
-                        .withRdsIAMAuth(db.getIamDatabaseAuthentication())
         );
 
     }
@@ -248,9 +233,7 @@ public class DatabaseConnectionService {
                 .withSdlc(awsEnvironment.getSdlc())
                 .withAddress(getAddress(db.getEndpoint(), db.getDBName()))
                 .withDbInstanceName(db.getDBInstanceIdentifier())
-                .withDbEngine(db.getEngine())
-                .withRdsIAMAuth(db.getIAMDatabaseAuthenticationEnabled())
-        );
+                .withDbEngine(db.getEngine()));
     }
 
     public List<String> getAvailableRolesForDb(DBCluster db, AWSEnvironment awsEnvironment) throws Exception {
@@ -262,9 +245,7 @@ public class DatabaseConnectionService {
                 .withSdlc(awsEnvironment.getSdlc())
                 .withAddress(getAddress(String.format("%s:%s", db.getEndpoint(), db.getPort()), db.getDatabaseName()))
                 .withDbInstanceName(db.getDBClusterIdentifier())
-                .withDbEngine(db.getEngine())
-                .withRdsIAMAuth(db.getIAMDatabaseAuthenticationEnabled())
-        );
+                .withDbEngine(db.getEngine()));
     }
 
     public List<String> getAvailableRolesForDb(Cluster db, AWSEnvironment awsEnvironment) throws Exception {
@@ -276,9 +257,7 @@ public class DatabaseConnectionService {
                 .withSdlc(awsEnvironment.getSdlc())
                 .withAddress(getAddress(String.format("%s:%s", db.getEndpoint().getAddress(), db.getEndpoint().getPort().toString()), db.getDBName()))
                 .withDbInstanceName(db.getClusterIdentifier())
-                .withDbEngine("redshift")
-                .withRdsIAMAuth(false)
-        );
+                .withDbEngine("redshift"));
     }
 
     /**
@@ -294,14 +273,12 @@ public class DatabaseConnectionService {
                 userWithRoles.add(user.getUserId()+"_"+RoleType.valueOf(role.getRole().toUpperCase()).getShortSuffix());
             });
         });
-        boolean rdsIAMAuth = rdsIamAuthService.isRdsIamAuthEnabled(awsEnvironment, db.getInstanceId(), db.getName(), db.getDatabaseType().toString());
-
         List<String> outcome = new ArrayList<>();
         try {
             outcome = databaseConnectionFactory.getConnection(db.getEngine())
                     .checkIfUsersHasTables(
                             new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), awsEnvironment.getRegion(), awsEnvironment.getSdlc(),
-                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine(), rdsIAMAuth)
+                                    getAddress(db.getEndpoint(), db.getDbName()), db.getName(), db.getEngine())
                                         .withUsers(userWithRoles));
         }catch(Exception ex){
             logger.error("Failed to check users on database: ", ex);

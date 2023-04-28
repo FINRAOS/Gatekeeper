@@ -23,11 +23,12 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.rds.AmazonRDSClient;
-import com.amazonaws.services.rds.auth.RdsIamAuthTokenGenerator;
 import com.amazonaws.services.redshift.AmazonRedshiftClient;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
+import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClient;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -41,6 +42,7 @@ import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
@@ -135,12 +137,6 @@ public class AwsSessionService {
         AmazonRDSClient rds = awsSessionFactory.createRdsSession(creds);
         rds.setRegion(Region.getRegion(Regions.fromName(environment.getRegion())));
         return rds;
-    }
-
-    public RdsIamAuthTokenGenerator getRdsIamAuthTokenGenerator(AWSEnvironment environment){
-        BasicSessionCredentials creds = credentialCache.getUnchecked(environment);
-        RdsIamAuthTokenGenerator generator = awsSessionFactory.createRdsIamAuthTokenGenerator(creds, environment.getRegion());
-        return generator;
     }
 
     public AmazonEC2Client getEC2Session(AWSEnvironment environment){
