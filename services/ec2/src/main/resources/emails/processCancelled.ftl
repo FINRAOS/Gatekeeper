@@ -1,6 +1,7 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3  style="color:darkred;"> Temporary account could not be created </h3>
+    <h3 style="color:darkred;" > Request ID: ${request.getId()?long?c} </h3>
     <div>
         <p>Hello <b>${user.getName()}</b>. A temporary account could not be created on the following <b>${request.getPlatform()! 'Unknown'}</b> instances in ${request.getAccount()} </p>
     </div>

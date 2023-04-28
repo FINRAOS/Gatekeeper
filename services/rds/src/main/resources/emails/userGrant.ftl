@@ -1,6 +1,6 @@
 <html>
     <h1> Gatekeeper</h1>
-    <h3 style="color:darkgreen;" > Request [${request.getId()}] | Role: ${role.getRoleDescription()} - Temporary Access Granted</h3>
+    <h3 style="color:darkgreen;" > Request [${request.getId()?long?c}] | Role: ${role.getRoleDescription()} - Temporary Access Granted</h3>
     <div><p>Hello <b>${user.getName()}</b>
 
         You have been granted temporary access as <b>${role.getRoleDescription()}</b> for ${request.getDays()} days to the following databases / schemas below:

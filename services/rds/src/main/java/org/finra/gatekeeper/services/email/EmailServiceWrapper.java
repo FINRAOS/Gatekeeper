@@ -121,7 +121,7 @@ public class EmailServiceWrapper {
     public void notifyExpired(AccessRequest request){
         logger.info("notify users that their time is up " + request.getUsers());
         request.getUsers().forEach(user -> {
-            emailHelper(user.getEmail(), null, "Gatekeeper: Your Access has expired", "accessExpired", request);
+            emailHelper(user.getEmail(), null, "Gatekeeper: Access Request " + request.getId() + " has expired", "accessExpired", request);
         });
     }
 

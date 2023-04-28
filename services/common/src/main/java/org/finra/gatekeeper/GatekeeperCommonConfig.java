@@ -20,15 +20,20 @@ package org.finra.gatekeeper;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
 import org.apache.commons.lang3.StringUtils;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
-import org.finra.gatekeeper.common.authfilter.parser.SSOParser;
-import org.finra.gatekeeper.common.authfilter.UserHeaderFilter;
+import org.finra.gatekeeper.common.authfilter.UserHeaderHeadersFilter;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperHeaderUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperLDAPUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.SSOHeaderParser;
+import org.finra.gatekeeper.common.authfilter.parser.SSOLDAPParser;
+import org.finra.gatekeeper.common.authfilter.UserHeaderLDAPFilter;
 import org.finra.gatekeeper.common.properties.GatekeeperAuthProperties;
 import org.finra.gatekeeper.common.properties.GatekeeperAwsProperties;
 import org.finra.gatekeeper.common.properties.GatekeeperHeaderProperties;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperActiveDirectoryLDAPAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperAuthorizationService;
+import org.finra.gatekeeper.common.services.user.auth.GatekeeperHeaderAuthorizationService;
 import org.finra.gatekeeper.common.services.user.auth.GatekeeperOpenLDAPAuthorizationService;
+import org.finra.gatekeeper.common.services.user.model.GatekeeperAuthorizationTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,21 +55,26 @@ import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.function.Supplier;
 
+import static org.finra.gatekeeper.common.services.user.model.GatekeeperAuthorizationTypes.HEADERS;
+
 @Component
 public class GatekeeperCommonConfig {
 
     private final Logger logger = LoggerFactory.getLogger(GatekeeperCommonConfig.class);
 
     private final String userIdHeader;
+    private final String userMembershipsGroupHeader;
     private final String userFullNameHeader;
     private final String userEmailHeader;
     private final String userMembershipsHeader;
     private final String userMembershipsPattern;
+    private final String userNameHeader;
     private final String userBase;
     private final String base;
     private final String proxyHost;
     private final Integer proxyPort;
     private final String contentSecurityPolicy;
+    private final GatekeeperAuthorizationTypes authType;
 
     private final GatekeeperAuthProperties gatekeeperAuthProperties;
 
@@ -89,14 +99,18 @@ public class GatekeeperCommonConfig {
             this.proxyPort = null;
         }
 
+        this.authType = GatekeeperAuthorizationTypes.valueOf(gatekeeperAuthProperties.getAuthServiceType().toUpperCase());
+
         //Headers
         this.contentSecurityPolicy = gatekeeperHeaderProperties.getContentSecurityPolicy();
 
         //LDAP
         this.userIdHeader = gatekeeperAuthProperties.getUserIdHeader();
+        this.userMembershipsGroupHeader = gatekeeperAuthProperties.getuserMembershipsGroupHeader();
         this.userFullNameHeader = gatekeeperAuthProperties.getUserFullNameHeader();
         this.userEmailHeader = gatekeeperAuthProperties.getUserEmailHeader();
         this.userMembershipsHeader = gatekeeperAuthProperties.getUserMembershipsHeader();
+        this.userNameHeader = gatekeeperAuthProperties.getUserNameHeader();
         this.userMembershipsPattern = gatekeeperAuthProperties.getUserMembershipsPattern();
         this.base = gatekeeperAuthProperties.getLdap().getBase();
         this.userBase = gatekeeperAuthProperties.getLdap().getUsersBase();
@@ -128,10 +142,18 @@ public class GatekeeperCommonConfig {
     @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
     public FilterRegistrationBean userProfileFilterRegistration() {
         FilterRegistrationBean userProfileFilterRegistration = new FilterRegistrationBean();
-        if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
-            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader), contentSecurityPolicy));
-        } else {
-            userProfileFilterRegistration.setFilter(new UserHeaderFilter(new SSOParser(userIdHeader)));
+        if(authType == HEADERS){
+            if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
+                userProfileFilterRegistration.setFilter(new UserHeaderHeadersFilter(new SSOHeaderParser(userIdHeader, userMembershipsGroupHeader, userEmailHeader, userNameHeader), contentSecurityPolicy));
+            } else {
+                userProfileFilterRegistration.setFilter(new UserHeaderHeadersFilter(new SSOHeaderParser(userIdHeader, userMembershipsGroupHeader, userEmailHeader, userNameHeader)));
+            }
+        }else{
+            if(contentSecurityPolicy != null && !contentSecurityPolicy.isEmpty()) {
+                userProfileFilterRegistration.setFilter(new UserHeaderLDAPFilter(new SSOLDAPParser(userIdHeader), contentSecurityPolicy));
+            } else {
+                userProfileFilterRegistration.setFilter(new UserHeaderLDAPFilter(new SSOLDAPParser(userIdHeader)));
+            }
         }
         userProfileFilterRegistration.setOrder(0);
         return userProfileFilterRegistration;
@@ -140,10 +162,18 @@ public class GatekeeperCommonConfig {
     /* Request scoped bean to create autowireable UserProfile object */
     @Bean
     @Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
-    public IGatekeeperUserProfile userProfile() {
+    public IGatekeeperLDAPUserProfile userLDAPProfile() {
         HttpServletRequest req = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         Principal p = req.getUserPrincipal();
-        return (IGatekeeperUserProfile) p;
+        return (IGatekeeperLDAPUserProfile) p;
+    }
+
+    @Bean
+    @Scope(value = "request", proxyMode = ScopedProxyMode.TARGET_CLASS)
+    public IGatekeeperHeaderUserProfile userHeaderProfile() {
+        HttpServletRequest req = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        Principal p = req.getUserPrincipal();
+        return (IGatekeeperHeaderUserProfile) p;
     }
 
     @Bean
@@ -160,21 +190,26 @@ public class GatekeeperCommonConfig {
     }
 
     @Bean
-    public GatekeeperAuthorizationService gatekeeperLDAPAuthorizationService(LdapTemplate ldapTemplate,
-                                                                             Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier){
-        //Sets to AD if true
-        if(gatekeeperAuthProperties.getLdap().getIsActiveDirectory()) {
-            logger.info("Setting Authorization to work with Active Directory");
-            return new GatekeeperActiveDirectoryLDAPAuthorizationService(ldapTemplate,
-                    gatekeeperUserProfileSupplier,
-                    gatekeeperAuthProperties);
+    public GatekeeperAuthorizationService gatekeeperAuthorizationService(LdapTemplate ldapTemplate,
+                                                                         Supplier<IGatekeeperLDAPUserProfile> gatekeeperLDAPUserProfileSupplier,
+                                                                         Supplier<IGatekeeperHeaderUserProfile> gatekeeperHeaderUserProfileSupplier){
+        switch (authType){
+            case HEADERS :
+                logger.info("Setting Authorization to work with Header Injection");
+                return new GatekeeperHeaderAuthorizationService(gatekeeperHeaderUserProfileSupplier);
+            case ACTIVEDIRECTORY :
+                logger.info("Setting Authorization to work with Active Directory");
+                return new GatekeeperActiveDirectoryLDAPAuthorizationService(ldapTemplate,
+                        gatekeeperLDAPUserProfileSupplier,
+                        gatekeeperAuthProperties);
+            case OPENLDAP :
+                logger.info("Setting Authorization to work with OpenLDAP");
+                return new GatekeeperOpenLDAPAuthorizationService(ldapTemplate,
+                        gatekeeperLDAPUserProfileSupplier,
+                        gatekeeperAuthProperties);
+            default:
+                throw new RuntimeException("Invalid auth type provided. Available types are 'Headers', 'ActiveDirectory', or 'OpenLDAP'. Was provided: " + authType);
         }
-
-        logger.info("Setting Authorization to work with OpenLDAP");
-        //Defaults to OpenLDAP otherwise
-        return new GatekeeperOpenLDAPAuthorizationService(ldapTemplate,
-                    gatekeeperUserProfileSupplier,
-                    gatekeeperAuthProperties);
     }
 
 }

@@ -1,6 +1,7 @@
 <html>
     <h1> Gatekeeper</h1>
     <h3 style="color:darkred;" > Your Access has expired </h3>
+    <h3 style="color:darkred;" > Request ID: ${request.getId()?long?c} </h3>
     <div><p>Your access for <b>${request.getHours()! 'Unknown'}</b> hours has expired for the following <b>${request.getPlatform()! 'Unknown'}</b> instances in ${request.getAccount()}</p></div>
     <ul>
         <#list request.getInstances() as instance>

@@ -23,15 +23,15 @@ import org.slf4j.LoggerFactory;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
-public class CompositeParser implements UserParser {
+public class CompositeLDAPParser implements UserLDAPParser {
 
-    private static final Logger logger = LoggerFactory.getLogger(UserParser.class);
-    public UserParser[] userProfileParsers;
+    private static final Logger logger = LoggerFactory.getLogger(UserLDAPParser.class);
+    public UserLDAPParser[] userProfileParsers;
 
-    public CompositeParser(UserParser... userProfileParsers) {
+    public CompositeLDAPParser(UserLDAPParser... userProfileParsers) {
         if (userProfileParsers == null) {
             throw new NullPointerException(
-                    "CompositeParser must accept at least 1 UserProfileParser");
+                    "CompositeLDAPParser must accept at least 1 UserProfileParser");
         } else if (userProfileParsers.length == 0) {
             logger.warn("No UserProfileParser's were found");
         }
@@ -39,9 +39,9 @@ public class CompositeParser implements UserParser {
     }
 
     @Override
-    public Optional<IGatekeeperUserProfile> parse(HttpServletRequest req) {
-        Optional<IGatekeeperUserProfile> userProfile = Optional.empty();
-        for (UserParser parser : userProfileParsers) {
+    public Optional<IGatekeeperLDAPUserProfile> parse(HttpServletRequest req) {
+        Optional<IGatekeeperLDAPUserProfile> userProfile = Optional.empty();
+        for (UserLDAPParser parser : userProfileParsers) {
             userProfile = parser.parse(req);
             if (userProfile.isPresent()) {
                 return userProfile;

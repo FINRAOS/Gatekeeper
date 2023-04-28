@@ -17,26 +17,11 @@
 
 package org.finra.gatekeeper.common.authfilter.parser;
 
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
-public class SSOParser implements UserParser {
+public interface UserLDAPParser {
 
-    private final String userIdHeader;
-
-    public SSOParser(String userIdHeader){
-        this.userIdHeader = userIdHeader;
-    }
-
-    public static final String SOURCE_NAME = "SSO";
-
-    @Override
-    public Optional<IGatekeeperUserProfile> parse(HttpServletRequest req) {
-        Optional<IGatekeeperUserProfile> userProfile = Optional.empty();
-        String name = req.getHeader(userIdHeader);
-        if (name != null) {
-            userProfile = Optional.of(new GatekeeperUserProfile(name, SOURCE_NAME));
-        }
-        return userProfile;
-    }
+    Optional<IGatekeeperLDAPUserProfile> parse(HttpServletRequest req);
 }

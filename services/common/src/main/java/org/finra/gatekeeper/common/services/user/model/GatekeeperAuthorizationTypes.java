@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2023. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  * limitations under the License.
  *
  */
+package org.finra.gatekeeper.common.services.user.model;
 
-package org.finra.gatekeeper.common.authfilter.parser;
-
-import java.security.Principal;
-
-public interface IGatekeeperUserProfile extends Principal {
-    public String getSource();
+/**
+ * Enums for Gatekeeper Authorization Types
+ */
+public enum GatekeeperAuthorizationTypes {
+    OPENLDAP, ACTIVEDIRECTORY, HEADERS
 }

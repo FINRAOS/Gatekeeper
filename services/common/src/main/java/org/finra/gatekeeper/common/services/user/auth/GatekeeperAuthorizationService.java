@@ -19,7 +19,7 @@ package org.finra.gatekeeper.common.services.user.auth;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperLDAPUserProfile;
 import org.finra.gatekeeper.common.services.health.interfaces.DeepHealthCheckItem;
 import org.finra.gatekeeper.common.services.health.model.DeepHealthCheckTargetDTO;
 import org.finra.gatekeeper.common.services.health.model.enums.DeepHealthCheckTargetStatus;
@@ -33,9 +33,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
-public abstract class GatekeeperAuthorizationService implements IGatekeeperUserAuthorizationService, DeepHealthCheckItem {
+ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserAuthorizationService, DeepHealthCheckItem {
 
     @Value("${gatekeeper.auth.ldap.server}")
     private String endpoint;
@@ -44,7 +43,7 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
     @Value("${gatekeeper.health.ldapAccountCheck}")
     private String ldapAccountCheck;
 
-    final Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier;
+    final Supplier<IGatekeeperLDAPUserProfile> gatekeeperUserProfileSupplier;
 
     /* User Cache */
     final LoadingCache<String, Optional<GatekeeperUserEntry>> userCache = CacheBuilder.newBuilder()
@@ -59,7 +58,7 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
             });
 
     /* User -> Application Cache */
-    private final LoadingCache<String, Optional<Set<String>>> userMembershipCache = CacheBuilder.newBuilder()
+    final LoadingCache<String, Optional<Set<String>>> userMembershipCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .concurrencyLevel(10)
             .expireAfterWrite(10, TimeUnit.MINUTES)
@@ -70,12 +69,12 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
                 }
             });
 
-    GatekeeperAuthorizationService(Supplier<IGatekeeperUserProfile> gatekeeperUserProfileSupplier) {
+    GatekeeperAuthorizationService(Supplier<IGatekeeperLDAPUserProfile> gatekeeperUserProfileSupplier) {
         this.gatekeeperUserProfileSupplier = gatekeeperUserProfileSupplier;
     }
 
     public Set<String> getMemberships(){
-        return userMembershipCache.getUnchecked(gatekeeperUserProfileSupplier.get().getName()).get();
+        return  userMembershipCache.getUnchecked(gatekeeperUserProfileSupplier.get().getUserId()).get();
     }
 
     public boolean isMember(String applicationName) {
@@ -83,7 +82,7 @@ public abstract class GatekeeperAuthorizationService implements IGatekeeperUserA
     }
 
     public GatekeeperUserEntry getUser(){
-        return userCache.getUnchecked(gatekeeperUserProfileSupplier.get().getName()).get();
+        return userCache.getUnchecked(gatekeeperUserProfileSupplier.get().getUserId()).get();
     }
 
     public DeepHealthCheckTargetDTO doHealthCheck(){

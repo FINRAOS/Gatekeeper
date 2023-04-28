@@ -1,6 +1,6 @@
 <html>
     <h1>Workflow Encountered A Problem!</h1>
-    <div><h3>Request ID: ${request.getId()}</h3></div>
+    <div><h3>Request ID: ${request.getId()?long?c}</h3></div>
     <div><h3>Account: ${request.getAccount()}</h3></div>
 
     <div><h4>Requestor Information</h4></div>

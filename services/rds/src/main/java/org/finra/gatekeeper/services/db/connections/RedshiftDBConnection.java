@@ -62,7 +62,7 @@ public class RedshiftDBConnection implements DBConnection {
 
     public boolean grantAccess(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
         String address = rdsGrantAccessQuery.getAddress();
-        String user = rdsGrantAccessQuery.getUser();
+        String user = rdsGrantAccessQuery.getUser().toLowerCase();
         RoleType role = rdsGrantAccessQuery.getRole();
         String password = rdsGrantAccessQuery.getPassword();
         int length = rdsGrantAccessQuery.getTime();
@@ -103,7 +103,7 @@ public class RedshiftDBConnection implements DBConnection {
     }
 
     public boolean revokeAccess(RdsRevokeAccessQuery rdsRevokeAccessQuery) throws Exception{
-        String user = rdsRevokeAccessQuery.getUser();
+        String user = rdsRevokeAccessQuery.getUser().toLowerCase();
         String address = rdsRevokeAccessQuery.getAddress();
         RoleType role = rdsRevokeAccessQuery.getRole();
 

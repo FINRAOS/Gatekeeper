@@ -17,11 +17,9 @@
 
 package org.finra.gatekeeper.common.authfilter.parser;
 
+import java.security.Principal;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
-
-public interface UserParser {
-
-    Optional<IGatekeeperUserProfile> parse(HttpServletRequest req);
+public interface IGatekeeperLDAPUserProfile extends Principal {
+    public String getSource();
+    public String getUserId();
 }

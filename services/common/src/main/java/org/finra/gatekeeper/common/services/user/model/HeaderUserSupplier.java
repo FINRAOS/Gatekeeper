@@ -1,5 +1,5 @@
 /*
- * Copyright 2018. Gatekeeper Contributors
+ * Copyright 2023. Gatekeeper Contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.finra.gatekeeper.common.services.user.model;
 
-import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperUserProfile;
+import org.finra.gatekeeper.common.authfilter.parser.IGatekeeperHeaderUserProfile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  */
 
 @Component
-public class UserSupplier implements Supplier<IGatekeeperUserProfile> {
+public class HeaderUserSupplier implements Supplier<IGatekeeperHeaderUserProfile> {
 
     /**
      * Supplies a UserProfile instance representing the currently active user.
@@ -43,7 +43,7 @@ public class UserSupplier implements Supplier<IGatekeeperUserProfile> {
      * @return the currently active UserProfile
      */
     @Override
-    public IGatekeeperUserProfile get() {
+    public IGatekeeperHeaderUserProfile get() {
         ServletRequestAttributes requestAttributes =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (requestAttributes != null) {
@@ -51,7 +51,7 @@ public class UserSupplier implements Supplier<IGatekeeperUserProfile> {
             if (request.getUserPrincipal() == null) {
                 throw new IllegalStateException("Could not determine user on request");
             }
-            return (IGatekeeperUserProfile) request.getUserPrincipal();
+            return (IGatekeeperHeaderUserProfile) request.getUserPrincipal();
         }
 
         throw new IllegalStateException("Could not determine user on request");
