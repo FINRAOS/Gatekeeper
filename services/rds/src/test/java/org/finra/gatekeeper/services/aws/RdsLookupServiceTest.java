@@ -460,6 +460,7 @@ public class RdsLookupServiceTest {
                         new VpcSecurityGroupMembership()
                             .withVpcSecurityGroupId(sg)
                 )
+                .withIAMDatabaseAuthenticationEnabled(false)
                 .withReadReplicaSourceDBInstanceIdentifier(readreplica)
                 .withOptionGroupMemberships(
                         new OptionGroupMembership().withOptionGroupName("test-og")
@@ -484,6 +485,7 @@ public class RdsLookupServiceTest {
                                 .withVpcSecurityGroupId(sg)
                 )
                 .withDBClusterMembers(members)
+                .withIAMDatabaseAuthenticationEnabled(false)
                 .withReplicationSourceIdentifier(readreplica);
 
     }
