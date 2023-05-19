@@ -22,7 +22,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select an Account</label>
-                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount" ng-change="gkSelfServiceCtrl.clearInstances()" required>
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount" ng-change="gkSelfServiceCtrl.clearInstances()" required ng-disabled="gkSelfServiceCtrl.fetching.aws">
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsAccounts | orderBy:['grouping','alias']">{{ opt.alias }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -30,7 +30,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select a Region</label>
-                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedRegion" ng-change="gkSelfServiceCtrl.clearInstances()" required>
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedRegion" ng-change="gkSelfServiceCtrl.clearInstances()" required ng-disabled="gkSelfServiceCtrl.fetching.aws">
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.forms.awsInstanceForm.selectedAccount.regions">{{ opt.name }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -38,7 +38,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select a Platform</label>
-                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedPlatform" ng-change="gkSelfServiceCtrl.clearInstances()" required>
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.selectedPlatform" ng-change="gkSelfServiceCtrl.clearInstances()" required ng-disabled="gkSelfServiceCtrl.fetching.aws">
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.platforms">{{ opt }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -46,7 +46,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Search by Tag</label>
-                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.searchTag">
+                    <md-select ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.searchTag" ng-disabled="gkSelfServiceCtrl.fetching.aws">
                         <md-option ng-value="opt" ng-repeat="opt in gkSelfServiceCtrl.awsSearchableTags">{{ opt }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -54,7 +54,7 @@
             <div layout="column">
                 <md-input-container class="md-block" md-no-float>
                     <label>Search EC2</label>
-                    <input id="gkInputAws" type="text" ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.searchText" md-maxlength="30" required md-no-asterisk>
+                    <input id="gkInputAws" type="text" ng-model="gkSelfServiceCtrl.forms.awsInstanceForm.searchText" md-maxlength="30" required ng-disabled="gkSelfServiceCtrl.fetching.aws" md-no-asterisk>
                 </md-input-container>
             </div>
             <div layout="column" layout-align="center center">
