@@ -91,7 +91,8 @@ public class ActiveAccessRequestWrapper extends AccessRequestWrapper{
                 .setApproverComments(accessRequest.getApproverComments())
                 .setRequestReason(accessRequest.getRequestReason())
                 .setPlatform(accessRequest.getPlatform())
-                .setTicketId(accessRequest.getTicketId());
+                .setTicketId(accessRequest.getTicketId())
+                .setNoUser(accessRequest.isNoUser());
     }
 
 

@@ -210,7 +210,8 @@ public class AccessRequestService {
                 .setInstances(request.getInstances())
                 .setTicketId(request.getTicketId())
                 .setRequestReason(request.getRequestReason())
-                .setPlatform(request.getPlatform());
+                .setPlatform(request.getPlatform())
+                .setNoUser(request.isNoUser());
 
         logger.info("Storing Access Request");
         accessRequestRepository.save(accessRequest);

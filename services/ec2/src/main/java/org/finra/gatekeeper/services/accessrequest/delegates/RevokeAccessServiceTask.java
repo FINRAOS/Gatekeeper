@@ -78,49 +78,9 @@ public class RevokeAccessServiceTask implements JavaDelegate {
     public void execute(DelegateExecution execution) throws Exception{
         Job job = managementService.createJobQuery().processInstanceId(execution.getProcessInstanceId()).singleResult();
         AccessRequest accessRequest = (AccessRequest)execution.getVariable("accessRequest");
-        try {
-            logger.info("Revoking access for Users, Attempts remaining: " + job.getRetries());
-            AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion());
-
-            List<String> instanceIds = accessRequest.getInstances().stream().map(instance -> instance.getInstanceId()).collect(Collectors.toList());
-
-            Map<String, String> instancesWithStatus = ssmService.checkInstancesWithSsm(env, instanceIds);
-
-            List<String> onlineInstances = instancesWithStatus.entrySet().stream()
-                    .filter(map -> map.getValue().equals("Online"))
-                    .map(map -> map.getKey())
-                    .collect(Collectors.toList());
-
-            //any non-online reported instances in SSM or any instances not represented by SSM in general.
-            List<AWSInstance> manualRemovalInstances = accessRequest.getInstances().stream()
-                    .filter(instance -> !instancesWithStatus.containsKey(instance.getInstanceId()) || !instancesWithStatus.get(instance.getInstanceId()).equals("Online"))
-                    .collect(Collectors.toList());
-
-            //if there were "offline instances", we will double check to make sure they are not terminated
-            List<String> offlineIds = manualRemovalInstances.stream()
-                    .map(AWSInstance::getInstanceId)
-                    .collect(Collectors.toList());
-
-            Map<String, Boolean> instancesThatStillExist = ec2LookupService.checkIfInstancesExistOrTerminated(env, offlineIds);
-
-            //any instance that comes up false in instancesThatStillExists is still around in AWS and needs a manual revocation.
-            manualRemovalInstances = manualRemovalInstances.stream()
-                    .filter(instance -> !instancesThatStillExist.get(instance.getInstanceId()))
-                    .collect(Collectors.toList());
-
-            //only revoke if there are instances reporting online to SSM
-            if(onlineInstances.size() > 0) {
-                accessRequest.getUsers().forEach(user -> {
-                    ssmService.deleteUserAccount(env, onlineInstances, user.getUserId(), accessRequest.getPlatform());
-                });
-            }
-
-            if(manualRemovalInstances.size() > 0){
-                logger.info("Could not revoke access for " + manualRemovalInstances + " send a notification to the ops team to investigate these instances");
-                emailServiceWrapper.notifyOps(accessRequest, manualRemovalInstances);
-            }
-
+        if(accessRequest.isNoUser() != null && accessRequest.isNoUser()){
             try {
+                logger.info("No users were requested with this request. Pushing to SNS Topic.");
                 // If an SNS topic is provided run the queries, otherwise lets skip this step.
                 if(snsService.isTopicSet()) {
                     snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
@@ -133,18 +93,76 @@ public class RevokeAccessServiceTask implements JavaDelegate {
                 logger.error("Error pushing to SNS topic upon request expiration. Request ID: " + accessRequest.getId());
             }
             RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessExpired, accessRequest);
+        } else{
+            try {
+                logger.info("Revoking access for Users, Attempts remaining: " + job.getRetries());
+                AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion());
 
-        }catch(Exception e){
-            //Since we avoid bad SSM configurations, this code generally only gets called if there's an exception because of something in our code.
-            //if this happens, we'll be notified us as well as the ops teams in case our maximum retry limit is hit. This should be
-            //super unlikely in the current state of the code.
-            if(job.getRetries() - 1 == 0){
-                logger.error("Maximum attempt limit reached. Notify Ops team for manual removal");
-                emailServiceWrapper.notifyOps(accessRequest);
-                emailServiceWrapper.notifyAdminsOfFailure(accessRequest,e);
-            }else{
-                throw e;
+                List<String> instanceIds = accessRequest.getInstances().stream().map(instance -> instance.getInstanceId()).collect(Collectors.toList());
+
+                Map<String, String> instancesWithStatus = ssmService.checkInstancesWithSsm(env, instanceIds);
+
+                List<String> onlineInstances = instancesWithStatus.entrySet().stream()
+                        .filter(map -> map.getValue().equals("Online"))
+                        .map(map -> map.getKey())
+                        .collect(Collectors.toList());
+
+                //any non-online reported instances in SSM or any instances not represented by SSM in general.
+                List<AWSInstance> manualRemovalInstances = accessRequest.getInstances().stream()
+                        .filter(instance -> !instancesWithStatus.containsKey(instance.getInstanceId()) || !instancesWithStatus.get(instance.getInstanceId()).equals("Online"))
+                        .collect(Collectors.toList());
+
+                //if there were "offline instances", we will double check to make sure they are not terminated
+                List<String> offlineIds = manualRemovalInstances.stream()
+                        .map(AWSInstance::getInstanceId)
+                        .collect(Collectors.toList());
+
+                Map<String, Boolean> instancesThatStillExist = ec2LookupService.checkIfInstancesExistOrTerminated(env, offlineIds);
+
+                //any instance that comes up false in instancesThatStillExists is still around in AWS and needs a manual revocation.
+                manualRemovalInstances = manualRemovalInstances.stream()
+                        .filter(instance -> !instancesThatStillExist.get(instance.getInstanceId()))
+                        .collect(Collectors.toList());
+
+                //only revoke if there are instances reporting online to SSM
+                if(onlineInstances.size() > 0) {
+                    accessRequest.getUsers().forEach(user -> {
+                        ssmService.deleteUserAccount(env, onlineInstances, user.getUserId(), accessRequest.getPlatform());
+                    });
+                }
+
+                if(manualRemovalInstances.size() > 0){
+                    logger.info("Could not revoke access for " + manualRemovalInstances + " send a notification to the ops team to investigate these instances");
+                    emailServiceWrapper.notifyOps(accessRequest, manualRemovalInstances);
+                }
+
+                try {
+                    // If an SNS topic is provided run the queries, otherwise lets skip this step.
+                    if(snsService.isTopicSet()) {
+                        snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
+                    } else {
+                        logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
+                    logger.error("Error pushing to SNS topic upon request expiration. Request ID: " + accessRequest.getId());
+                }
+                RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessExpired, accessRequest);
+
+            }catch(Exception e){
+                //Since we avoid bad SSM configurations, this code generally only gets called if there's an exception because of something in our code.
+                //if this happens, we'll be notified us as well as the ops teams in case our maximum retry limit is hit. This should be
+                //super unlikely in the current state of the code.
+                if(job.getRetries() - 1 == 0){
+                    logger.error("Maximum attempt limit reached. Notify Ops team for manual removal");
+                    emailServiceWrapper.notifyOps(accessRequest);
+                    emailServiceWrapper.notifyAdminsOfFailure(accessRequest,e);
+                }else{
+                    throw e;
+                }
             }
         }
+
     }
 }

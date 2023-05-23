@@ -86,44 +86,51 @@ public class GrantAccessServiceTask implements JavaDelegate {
         AccessRequest accessRequest = accessRequestService.updateInstanceStatus((AccessRequest) execution.getVariable("accessRequest"));
         logger.info("Granting Access to " + accessRequest);
         try {
-
-            // Prepare parameters
-            AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion());
-            logger.info("Environment for this access request is " + env.getAccount() + " ( " + env.getRegion() + " )");
-            List<String> instances = accessRequest.getInstances()
-                    .stream().filter(instance -> instance.getStatus().equals("Online"))
-                    .map(AWSInstance::getInstanceId)
-                    .collect(Collectors.toList());
-
-            // Do all of this for each user in the request
-            if(instances.size()>0) {
-                List<GatekeeperLinuxNotification> linuxNotifications = new ArrayList<>();
-                List<GatekeeperWindowsNotification> windowsNotifications = new ArrayList<>();
-
-                String platform = accessRequest.getPlatform();
-                switch(platform){
-                    case "Linux":
-                        linuxNotifications = createLinuxUser(accessRequest, env, instances, platform);
-                        break;
-                    case "Windows":
-                        windowsNotifications = createWindowsUser(accessRequest, env, instances, platform);
-                    break;
-                    default:
-                        throw new GatekeeperException("Unsupported platform " + platform);
-                }
-
-                // If an SNS topic is provided run the queries, otherwise lets skip this step.
+            //Handle No User Creation
+            if(accessRequest.isNoUser() != null && accessRequest.isNoUser()){
+                logger.info("No users were requested with this request. Pushing to SNS Topic.");
                 if(snsService.isTopicSet()) {
                     snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
                 } else {
                     logger.info("Skip querying of live request data as SNS topic ARN was not provided");
                 }
+            } else {
+                // Prepare parameters
+                AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion());
+                logger.info("Environment for this access request is " + env.getAccount() + " ( " + env.getRegion() + " )");
+                List<String> instances = accessRequest.getInstances()
+                        .stream().filter(instance -> instance.getStatus().equals("Online"))
+                        .map(AWSInstance::getInstanceId)
+                        .collect(Collectors.toList());
 
-                linuxNotifications.forEach(notification -> emailServiceWrapper.notifyOfCredentials(accessRequest, notification)); // pass along the key to the user(s)
-                windowsNotifications.forEach(notification -> emailServiceWrapper.notifyOfCancellation(accessRequest, notification)); // pass along any cancelled executions to the user(s)
+                // Do all of this for each user in the request
+                if(instances.size()>0) {
+                    List<GatekeeperLinuxNotification> linuxNotifications = new ArrayList<>();
+                    List<GatekeeperWindowsNotification> windowsNotifications = new ArrayList<>();
+
+                    String platform = accessRequest.getPlatform();
+                    switch(platform){
+                        case "Linux":
+                            linuxNotifications = createLinuxUser(accessRequest, env, instances, platform);
+                            break;
+                        case "Windows":
+                            windowsNotifications = createWindowsUser(accessRequest, env, instances, platform);
+                            break;
+                        default:
+                            throw new GatekeeperException("Unsupported platform " + platform);
+                    }
+
+                    // If an SNS topic is provided run the queries, otherwise lets skip this step.
+                    if(snsService.isTopicSet()) {
+                        snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
+                    } else {
+                        logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+                    }
+
+                    linuxNotifications.forEach(notification -> emailServiceWrapper.notifyOfCredentials(accessRequest, notification)); // pass along the key to the user(s)
+                    windowsNotifications.forEach(notification -> emailServiceWrapper.notifyOfCancellation(accessRequest, notification)); // pass along any cancelled executions to the user(s)
+                }
             }
-
-
         } catch (Exception e) {
             emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
             execution.setVariable("requestStatus", RequestStatus.APPROVAL_ERROR);

@@ -48,7 +48,7 @@ public class AccessRequestTest {
         List<User> users = Arrays.asList(new User("theguy", "thatguy", "thatguy@email.com"));
         List<AWSInstance> instances = Arrays.asList(new AWSInstance("The dude", "TST", "i-tst", "127.0.0.1","Another state", "Platform1"));
 
-        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances, requestReason, approverComments, approverId, approverName, platform);
+        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances, requestReason, approverComments, approverId, approverName, platform, false);
 
         Assert.assertEquals("Test Hours: ", hours, accessRequest.getHours());
         Assert.assertEquals("Test Account:", account, accessRequest.getAccount());
@@ -138,10 +138,10 @@ public class AccessRequestTest {
         List<AWSInstance> instances = Arrays.asList(new AWSInstance("The dude", "TST", "i-tst", "127.0.0.1","Another state","Platform1"));
         List<AWSInstance> instances2 = Arrays.asList(new AWSInstance("The dude2", "TST2", "i2-tst", "127.0.0.2","Different state","Platform2"));
 
-        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,approverId, approverName,platform);
+        AccessRequest accessRequest = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,approverId, approverName,platform, false);
         accessRequest.setId(id);
         AccessRequest accessRequest2 = accessRequest;
-        AccessRequest accessRequest3 = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,approverId, approverName,platform);
+        AccessRequest accessRequest3 = new AccessRequest(hours, account,  region, requestorId, requestorName, requestorEmail, users, instances,requestReason, approverComments,approverId, approverName,platform,false);
         accessRequest3.setId(id);
         Assert.assertEquals("Same address space", accessRequest, accessRequest2);
         Assert.assertEquals("Different Objects same values", accessRequest, accessRequest3);

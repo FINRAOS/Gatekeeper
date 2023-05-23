@@ -49,7 +49,7 @@
                     <input id="gkInputAws" type="text" ng-model="ctrl.forms.awsInstanceForm.searchText" md-maxlength="30" required ng-disabled="ctrl.fetching" md-no-asterisk disallow-spaces>
                 </md-input-container>
             </div>
-            <div layout="column" layout-align="center center">
+            <div layout="column" layout-align="center center" style="padding-bottom:20px">
                 <button md-button type="submit" class="md-raised md-primary"
                         ng-disabled="(!ctrl.forms.awsInstanceForm.selectedType || !ctrl.forms.awsInstanceForm.selectedAccount || !ctrl.forms.awsInstanceForm.selectedRegion && ctrl.forms.awsInstanceForm.$invalid)"
                         ng-click="ctrl.searchRDSInstances()"> Search </button>

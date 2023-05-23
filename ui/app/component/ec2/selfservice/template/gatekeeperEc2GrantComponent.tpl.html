@@ -40,7 +40,7 @@
                 <strong>{{$chip.instanceId}}</strong>
                 <em>({{$chip.name}})</em>
             </md-chip-template>
-        </md-chips>
+        </md-chips>        
         <form name="gkSelfServiceCtrl.forms.grantForm" layout="column">
             <div layout="row">
                 <p  layout-align="end center" layout="column" class="md-title" flex="initial">Grant Access for</p>
@@ -68,6 +68,9 @@
                 </div>
             </div>
         </form>
+        <div class="gk-warning" ng-if="gkSelfServiceCtrl.forms.awsInstanceForm.requestWithoutUser">
+            <span layout="row">This request will not generate a Gatekeeper User through SSM</span>
+        </div>
         <div class="gk-error" ng-if="gkSelfServiceCtrl.error.request">
             <span class="gk-error-text" layout="row">There was an error while trying to Request Access.</span>
         </div>
