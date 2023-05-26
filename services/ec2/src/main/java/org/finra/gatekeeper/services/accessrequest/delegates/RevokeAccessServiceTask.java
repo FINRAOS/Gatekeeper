@@ -82,11 +82,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             try {
                 logger.info("No users were requested with this request. Pushing to SNS Topic.");
                 // If an SNS topic is provided run the queries, otherwise lets skip this step.
-                if(snsService.isTopicSet()) {
-                    snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
-                } else {
-                    logger.info("Skip querying of live request data as SNS topic ARN was not provided");
-                }
+                snsServiceHelper(accessRequest);
             } catch (Exception e) {
                 e.printStackTrace();
                 emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
@@ -138,11 +134,7 @@ public class RevokeAccessServiceTask implements JavaDelegate {
 
                 try {
                     // If an SNS topic is provided run the queries, otherwise lets skip this step.
-                    if(snsService.isTopicSet()) {
-                        snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
-                    } else {
-                        logger.info("Skip querying of live request data as SNS topic ARN was not provided");
-                    }
+                    snsServiceHelper(accessRequest);
                 } catch (Exception e) {
                     e.printStackTrace();
                     emailServiceWrapper.notifyAdminsOfFailure(accessRequest, e);
@@ -164,5 +156,17 @@ public class RevokeAccessServiceTask implements JavaDelegate {
             }
         }
 
+    }
+    /**
+     * Helper function for handling pushing to the SNS Topic
+     * @param accessRequest The access request being handled. Contains the user info
+     * @throws Exception
+     */
+    private void snsServiceHelper(AccessRequest accessRequest) throws Exception {
+        if(snsService.isTopicSet()) {
+            snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.EXPIRATION, accessRequest));
+        } else {
+            logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+        }
     }
 }

@@ -89,11 +89,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
             //Handle No User Creation
             if(accessRequest.isNoUser() != null && accessRequest.isNoUser()){
                 logger.info("No users were requested with this request. Pushing to SNS Topic.");
-                if(snsService.isTopicSet()) {
-                    snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
-                } else {
-                    logger.info("Skip querying of live request data as SNS topic ARN was not provided");
-                }
+                snsServiceHelper(accessRequest);
             } else {
                 // Prepare parameters
                 AWSEnvironment env = new AWSEnvironment(accessRequest.getAccount(), accessRequest.getRegion());
@@ -121,11 +117,7 @@ public class GrantAccessServiceTask implements JavaDelegate {
                     }
 
                     // If an SNS topic is provided run the queries, otherwise lets skip this step.
-                    if(snsService.isTopicSet()) {
-                        snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
-                    } else {
-                        logger.info("Skip querying of live request data as SNS topic ARN was not provided");
-                    }
+                    snsServiceHelper(accessRequest);
 
                     linuxNotifications.forEach(notification -> emailServiceWrapper.notifyOfCredentials(accessRequest, notification)); // pass along the key to the user(s)
                     windowsNotifications.forEach(notification -> emailServiceWrapper.notifyOfCancellation(accessRequest, notification)); // pass along any cancelled executions to the user(s)
@@ -142,7 +134,18 @@ public class GrantAccessServiceTask implements JavaDelegate {
         }
         RequestEventLogger.logEventToJson(org.finra.gatekeeper.common.services.eventlogging.EventType.AccessGranted, accessRequest);
     }
-
+    /**
+     * Helper function for handling pushing to the SNS Topic
+     * @param accessRequest The access request being handled. Contains the user info
+     * @throws Exception
+     */
+    private void snsServiceHelper(AccessRequest accessRequest) throws Exception {
+        if(snsService.isTopicSet()) {
+            snsService.pushToSNSTopic(accessRequestService.getLiveRequestsForUsersInRequest(EventType.APPROVAL, accessRequest));
+        } else {
+            logger.info("Skip querying of live request data as SNS topic ARN was not provided");
+        }
+    }
     /**
      * Grants access to users on Linux instances. Creates a key pair, sends private to user and public key off
      * to SSM along with user and instance
