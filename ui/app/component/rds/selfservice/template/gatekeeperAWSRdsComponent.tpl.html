@@ -22,7 +22,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select a Type</label>
-                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedType" ng-change="ctrl.clearInstances()" required>
+                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedType" ng-change="ctrl.clearInstances()" required ng-disabled="ctrl.fetching">
                         <md-option ng-value="opt" ng-repeat="opt in ctrl.types">{{ opt.name }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -30,7 +30,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select an Account</label>
-                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedAccount" ng-change="ctrl.clearInstances()" required>
+                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedAccount" ng-change="ctrl.clearInstances()" required ng-disabled="ctrl.fetching">
                         <md-option ng-value="opt" ng-repeat="opt in ctrl.awsAccounts | orderBy:['grouping','alias']">{{ opt.alias }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -38,7 +38,7 @@
             <div layout="column">
                 <md-input-container md-no-float>
                     <label>Select a Region</label>
-                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedRegion" ng-change="ctrl.clearInstances()" required>
+                    <md-select ng-model="ctrl.forms.awsInstanceForm.selectedRegion" ng-change="ctrl.clearInstances()" required ng-disabled="ctrl.fetching">
                         <md-option ng-value="opt" ng-repeat="opt in ctrl.forms.awsInstanceForm.selectedAccount.regions">{{ opt.name }}</md-option>
                     </md-select>
                 </md-input-container>
@@ -46,10 +46,10 @@
             <div layout="column">
                 <md-input-container class="md-block" md-no-float>
                     <label>Search RDS</label>
-                    <input id="gkInputAws" type="text" ng-model="ctrl.forms.awsInstanceForm.searchText" md-maxlength="30" required md-no-asterisk disallow-spaces>
+                    <input id="gkInputAws" type="text" ng-model="ctrl.forms.awsInstanceForm.searchText" md-maxlength="30" required ng-disabled="ctrl.fetching" md-no-asterisk disallow-spaces>
                 </md-input-container>
             </div>
-            <div layout="column" layout-align="center center">
+            <div layout="column" layout-align="center center" style="padding-bottom:20px">
                 <button md-button type="submit" class="md-raised md-primary"
                         ng-disabled="(!ctrl.forms.awsInstanceForm.selectedType || !ctrl.forms.awsInstanceForm.selectedAccount || !ctrl.forms.awsInstanceForm.selectedRegion && ctrl.forms.awsInstanceForm.$invalid)"
                         ng-click="ctrl.searchRDSInstances()"> Search </button>

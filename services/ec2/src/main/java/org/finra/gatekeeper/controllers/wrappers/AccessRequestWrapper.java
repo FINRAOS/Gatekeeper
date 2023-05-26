@@ -48,6 +48,7 @@ public class AccessRequestWrapper {
     @JsonAlias("approver_comments")
     private String approverComments;
     private String platform;
+    private Boolean noUser;
     private List<User> users;
     private List<AWSInstance> instances;
 
@@ -179,5 +180,12 @@ public class AccessRequestWrapper {
         return this;
     }
 
+    public Boolean isNoUser() {
+        return noUser;
+    }
 
+    public AccessRequestWrapper setNoUser(Boolean noUser) {
+        this.noUser = noUser;
+        return this;
+    }
 }

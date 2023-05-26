@@ -16,11 +16,15 @@
  */
 
 import GatekeeperRequestHistoryController from '../../shared/request/GatekeeperRequestHistoryController';
-
+import Ec2RequestHistoryAdminController from './Ec2RequestHistoryAdminController';
 
 class Ec2RequestHistoryController extends GatekeeperRequestHistoryController{
-    constructor(gkRequestService){
-        super(gkRequestService)
+    constructor(gkRequestService, $rootScope){
+        super(gkRequestService, $rootScope);
+        let isApprover = $rootScope.userInfo.isApprover;
+        if(isApprover){
+            this.requestTable.templateController = Ec2RequestHistoryAdminController;
+        }
 
         this.requestTable.template = require('./template/request.tpl.html');
 

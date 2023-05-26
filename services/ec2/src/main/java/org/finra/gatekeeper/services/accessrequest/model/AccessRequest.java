@@ -43,6 +43,7 @@ public class AccessRequest {
     private String requestReason;
     private String ticketId;
     private String platform;
+    private Boolean noUser;
     private Integer hours;
     private List<User> users;
     private List<AWSInstance> instances;
@@ -144,6 +145,19 @@ public class AccessRequest {
 
     public AccessRequest setPlatform(String platform){
         this.platform = platform;
+        return this;
+    }
+
+    /**
+     * Getters / Setters for No SSM
+     */
+
+    public Boolean isNoUser() {
+        return noUser;
+    }
+
+    public AccessRequest setNoUser(Boolean noUser) {
+        this.noUser = noUser;
         return this;
     }
 
@@ -299,7 +313,8 @@ public class AccessRequest {
                          String approverComments,
                          String actionedByUserId,
                          String actionedByUserName,
-                         String platform) {
+                         String platform,
+                         boolean noUser) {
         this.hours = hours;
         this.region = region;
         this.account = account;
@@ -313,6 +328,7 @@ public class AccessRequest {
         this.actionedByUserId = actionedByUserId;
         this.actionedByUserName = actionedByUserName;
         this.platform = platform;
+        this.noUser = noUser;
     }
 
 

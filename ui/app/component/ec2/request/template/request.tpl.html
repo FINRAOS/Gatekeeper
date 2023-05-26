@@ -159,6 +159,18 @@
         </table>
     </md-dialog-content>
     <md-dialog-actions>
-        <md-button ng-repeat="action in dialogCtrl.actions" ng-click="action.action()" class="{{::action.style}}">{{::action.label}}</md-button>
+        <ng-template ng-repeat="action in dialogCtrl.actions">
+            <ng-template ng-switch on="action.label">
+                <ng-template ng-switch-when="Approve">
+                    <md-button ng-disabled="dialogCtrl.checkForApproverComment()" ng-click="action.action()" class="{{::action.style}}">{{::action.label}}</md-button>                
+                </ng-template>
+                <ng-template ng-switch-when="Update">
+                    <md-button ng-disabled="dialogCtrl.checkForUpdatedApproverComment()" ng-click="action.action()" class="{{::action.style}}">{{::action.label}}</md-button>                
+                </ng-template>
+                <ng-template ng-switch-default>
+                    <md-button ng-click="action.action()" class="{{::action.style}}">{{::action.label}}</md-button>
+                </ng-template>    
+            </ng-template>
+        </ng-template>
     </md-dialog-actions>
 </md-dialog>
