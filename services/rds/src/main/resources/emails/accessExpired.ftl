@@ -8,7 +8,12 @@
             <li><b>${db.getInstanceId()}</b> -- ${db.getName()?has_content?string(db.getName(), 'Unknown')} -- ${db.getEngine()}</li>
         </#list>
     </ul>
-
+    <div><p>For the following roles</p></div>
+    <ul>
+        <#list expiredRoles as role>
+            <li><b>${role}</b></li>
+        </#list>
+    </ul>
     <div>
         <p>If you need more time on the box please go to Gatekeeper and request more access.</p>
     </div>
