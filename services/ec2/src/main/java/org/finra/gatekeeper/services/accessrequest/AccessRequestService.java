@@ -92,6 +92,7 @@ public class AccessRequestService {
             .append("       access_request.requestor_email,\n")
             .append("       access_request.requestor_id,\n")
             .append("       access_request.request_reason,\n")
+            .append("       access_request.ticket_id,\n")
             .append("       access_request.approver_comments,\n")
             .append("       access_request.actioned_by_user_name,\n")
             .append("       access_request.actioned_by_user_id,\n")
