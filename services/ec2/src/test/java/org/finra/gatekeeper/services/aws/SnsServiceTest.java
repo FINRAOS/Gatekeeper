@@ -68,7 +68,8 @@ public class SnsServiceTest {
                 "Sure",
                 "00001",
                 "Test Approver",
-                "Linux"
+                "Linux",
+                false
         );
         mockRequestEventDTO = new RequestEventDTO();
         Mockito.when(gatekeeperSnsProperties.getSns()).thenReturn(new GatekeeperSnsProperties.SnsProperties().setApprovalTopicARN(MOCK_EMAIL_SNS_TOPIC_ARN).setRetryCount(RETRY_COUNT).setRetryIntervalMillis(RETRY_INTERVAL_IN_MILLIS).setRetryIntervalMultiplier(RETRY_INTERVAL_MULTIPLIER).setTopicARN(MOCK_SNS_TOPIC_ARN));

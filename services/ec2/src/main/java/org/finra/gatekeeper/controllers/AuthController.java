@@ -64,7 +64,12 @@ public class AuthController {
         logger.info("Retrieving override policy for user: " + user.getUserId());
         result.put("overridePolicy", overridePolicy.getOverrides(gatekeeperRoleService.getRole()).getOverridePolicy());
         logger.info("User " + user.getUserId() + "'s override policy: " + result.get("overridePolicy"));
-
+        result.put("approver", gatekeeperRoleService.isApprover());
+        if(gatekeeperRoleService.isApprover()) {
+            logger.info("User " + user.getUserId() + " is an approver.");
+        } else {
+            logger.info("User " + user.getUserId() + " is not an approver.");
+        }
         switch(gatekeeperRoleService.getRole()){
             case APPROVER:
             case SUPPORT:

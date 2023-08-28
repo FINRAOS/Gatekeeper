@@ -36,9 +36,16 @@ class Ec2RequestDialogAdminController extends GatekeeperRequestDialogAdminContro
             style: 'md-raised md-primary'
         };
 
-        this.isBadRequest = row.instances.every((item) => {
-            return item.status !== "Online";
-        });
+        if(row.noUser){
+            this.isBadRequest = false
+        }
+        else{
+            this.isBadRequest = row.instances.every((item) => {
+                return item.status !== "Online";
+            });
+        }
+       
+        
 
         if(this.isBadRequest){
             this.actions.unshift(this.cancel);

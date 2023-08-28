@@ -24,6 +24,8 @@ import org.finra.gatekeeper.rds.exception.GKUnsupportedDBException;
 import org.finra.gatekeeper.rds.interfaces.DBConnection;
 import org.finra.gatekeeper.rds.interfaces.GKUserCredentialsProvider;
 import org.finra.gatekeeper.rds.model.*;
+import org.finra.gatekeeper.services.aws.RdsIamAuthService;
+import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,12 +48,15 @@ public class MySQLDBConnection implements DBConnection {
     private final Logger logger = LoggerFactory.getLogger(MySQLDBConnection.class);
 
     private final GKUserCredentialsProvider gkUserCredentialsProvider;
+    private RdsIamAuthService rdsIamAuthService;
     private final String gkUserName;
     private final String ssl;
 
     @Autowired
     public MySQLDBConnection(GatekeeperProperties gatekeeperProperties,
+                             RdsIamAuthService rdsIamAuthService,
                              @Qualifier("credentialsProvider") GKUserCredentialsProvider gkUserCredentialsProvider){
+        this.rdsIamAuthService = rdsIamAuthService;
         this.gkUserCredentialsProvider = gkUserCredentialsProvider;
         this.gkUserName = gatekeeperProperties.getDb().getGkUser();
         this.ssl = gatekeeperProperties.getDb().getMysql().getSsl();
@@ -75,7 +80,7 @@ public class MySQLDBConnection implements DBConnection {
         String userRole = getGkUserName(user, rdsRevokeAccessQuery.getRole());
 
         try{
-            JdbcTemplate conn = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery));
+            JdbcTemplate conn = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsRevokeAccessQuery), rdsRevokeAccessQuery);
             logger.info("Deleting User " + user + " if they already exist on DB " + address);
             conn.execute("GRANT USAGE ON *.* to " + userRole);
             conn.execute("DROP USER '" + userRole + "'");
@@ -95,7 +100,7 @@ public class MySQLDBConnection implements DBConnection {
 
         try{
             logger.info("Checking the gatekeeper setup for " + address);
-            JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+            JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
             String roleCheckResult = template.queryForObject(checkGrants, String.class);
             if (roleCheckResult != null && !roleCheckResult.contains("CREATE USER")) {
                 issues.add("gatekeeper is missing CREATE USER");
@@ -119,7 +124,7 @@ public class MySQLDBConnection implements DBConnection {
         String getUsers = "select user from mysql.user";
         List<DbUser> users = new ArrayList<>();
         try {
-            JdbcTemplate template = connect(rdsQuery.getAddress(), gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+            JdbcTemplate template = connect(rdsQuery.getAddress(), gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
             users = template.query(getUsers, new MySqlDbUserMapper());
         }catch(SQLException e){
             logger.error("Error retrieving users from DB", e);
@@ -157,7 +162,7 @@ public class MySQLDBConnection implements DBConnection {
     public Map<RoleType, List<String>> getAvailableTables(RdsQuery rdsQuery) throws SQLException{
         String address = rdsQuery.getAddress();
         Map<RoleType, List<String>> results = new HashMap<>();
-        JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery));
+        JdbcTemplate template = connect(address, gkUserCredentialsProvider.getGatekeeperSecret(rdsQuery), rdsQuery);
         String schemaQuery = "select concat(table_schema,'.',table_name) from information_schema.tables where table_schema not in ('information_schema', 'mysql', 'sys', 'performance_schema')";
         for(RoleType roleType : RoleType.values()) {
             try {
@@ -174,10 +179,34 @@ public class MySQLDBConnection implements DBConnection {
         return "GRANT "+roles+" ON " + schema + ".* TO " + user + " REQUIRE SSL";
     }
 
-    private JdbcTemplate connect(String url, String gkUserPassword) throws SQLException {
-        String dbUrl = "jdbc:mysql://" + url;
+    private JdbcTemplate connect(String url, String gkUserPassword, RdsQuery rdsQuery) throws SQLException {
+        String dbUrl = url.split("/")[0];
+        logger.info("Getting connection for " + dbUrl);
+        logger.info("Creating Datasource connection for " + dbUrl);
+        //RDS IAM AUTH SECTION
+        if(rdsQuery.isRdsIAMAuth()) {
+            //Address is 0  Port is 1
+            String[] splitUrl = dbUrl.split(":");
+            AWSEnvironment environment = new AWSEnvironment(rdsQuery.getAccount(), rdsQuery.getRegion(), rdsQuery.getSdlc());
+            String iamToken = rdsIamAuthService.fetchIamAuthToken(environment, splitUrl[0], splitUrl[1], gkUserName);
+            try {
+                return new JdbcTemplate(connectHelper(url, iamToken));
+            } catch (Exception e) {
+                if (e.getCause().toString().contains("Access denied for user 'gatekeeper")) {
+                    logger.info("Failed to connect with IAM Auth. Attempting to connect with stored password.");
+                } else {
+                    //Throw error if it is non password related
+                    throw e;
+                }
+            }
+        }
+        // DEFAULT TO REGULAR PASSWORD IF RDS IAM AUTH FAILS OR IS NOT ENABLED
+        return new JdbcTemplate(connectHelper(url, gkUserPassword));
+    }
 
+    private BasicDataSource connectHelper(String address, String gkUserPassword) throws SQLException {
         BasicDataSource dataSource = new BasicDataSource();
+        String dbUrl = "jdbc:mysql://" + address;
 
         dataSource.setDriverClassName("org.mariadb.jdbc.Driver");
         dataSource.setUrl(dbUrl+"?"+ssl);
@@ -185,8 +214,18 @@ public class MySQLDBConnection implements DBConnection {
         dataSource.setPassword(gkUserPassword);
         dataSource.setMinIdle(0);
         dataSource.setMaxIdle(0);
+        //Do not want to keep the connection after execution
 
-        return new JdbcTemplate(dataSource);
+        try {
+            new JdbcTemplate(dataSource).queryForList("select 1"); // Tests the connection
+        } catch (Exception e) {
+            logger.error("Failed to connect to " + address);
+            dataSource.close(); // close the datasource
+            throw e;
+        }
+        logger.info("Using the following properties with the connection: " + ssl);
+        return dataSource;
+
     }
 
     private void createUser(RdsGrantAccessQuery rdsGrantAccessQuery) throws Exception{
@@ -196,12 +235,12 @@ public class MySQLDBConnection implements DBConnection {
         RoleType role = rdsGrantAccessQuery.getRole();
 
         String gkuserPassword = gkUserCredentialsProvider.getGatekeeperSecret(rdsGrantAccessQuery);
-        JdbcTemplate conn = connect(address, gkuserPassword);
+        JdbcTemplate conn = connect(address, gkuserPassword, rdsGrantAccessQuery);
 
         String userRole = getGkUserName(user, role); //16 is the maximum length for a user in MySQL, if there's a user hitting this limit, a shorter suffix shall be used
         //revoke the user if they exist
         revokeAccess(new RdsRevokeAccessQuery(rdsGrantAccessQuery.getAccount(), rdsGrantAccessQuery.getAccountId(), rdsGrantAccessQuery.getRegion(), rdsGrantAccessQuery.getSdlc(),
-                rdsGrantAccessQuery.getAddress(), rdsGrantAccessQuery.getDbInstanceName(), rdsGrantAccessQuery.getDbEngine())
+                rdsGrantAccessQuery.getAddress(), rdsGrantAccessQuery.getDbInstanceName(), rdsGrantAccessQuery.getDbEngine(), rdsGrantAccessQuery.isRdsIAMAuth())
                     .withUser(user)
                     .withRole(role));
 

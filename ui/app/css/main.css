@@ -61,6 +61,13 @@ a {
 .gk-error-text {
     color: red;
 }
+.gk-warning {
+    color: orange;
+}
+
+.gk-warning-text {
+    color: orange;
+}
 
 .gk-error-top-padding {
     padding-top: 20px;

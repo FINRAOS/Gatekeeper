@@ -17,14 +17,15 @@
 
 package org.finra.gatekeeper.services.email;
 
+import com.amazonaws.services.rds.model.DBCluster;
 import org.finra.gatekeeper.common.properties.GatekeeperEmailProperties;
 import org.finra.gatekeeper.configuration.GatekeeperProperties;
 import org.finra.gatekeeper.rds.model.RoleType;
-import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
-import org.finra.gatekeeper.services.accessrequest.model.AccessRequest;
-import org.finra.gatekeeper.services.accessrequest.model.User;
+import org.finra.gatekeeper.services.accessrequest.AccessRequestService;
+import org.finra.gatekeeper.services.accessrequest.model.*;
 import org.finra.gatekeeper.common.services.email.AWSEmailService;
 import org.finra.gatekeeper.common.services.email.JavaEmailService;
+import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ public class EmailServiceWrapper {
 
     private JavaEmailService javaEmailService;
     private AWSEmailService awsEmailService;
+    private final AccessRequestRepository accessRequestRepository;
 
     private String approverEmails;
     private String opsEmails;
@@ -55,9 +58,10 @@ public class EmailServiceWrapper {
     private boolean useSES;
 
     @Autowired
-    public EmailServiceWrapper(JavaEmailService javaEmailService, AWSEmailService awsEmailService, GatekeeperEmailProperties gatekeeperProperties){
+    public EmailServiceWrapper(JavaEmailService javaEmailService, AWSEmailService awsEmailService,AccessRequestRepository accessRequestRepository, GatekeeperEmailProperties gatekeeperProperties){
         this.javaEmailService = javaEmailService;
         this.awsEmailService = awsEmailService;
+        this.accessRequestRepository = accessRequestRepository;
         this.approverEmails = gatekeeperProperties.getApproverEmails();
         this.opsEmails = gatekeeperProperties.getOpsEmails();
         this.teamEmail = gatekeeperProperties.getTeam();
@@ -120,8 +124,21 @@ public class EmailServiceWrapper {
 
     public void notifyExpired(AccessRequest request){
         logger.info("notify users that their time is up " + request.getUsers());
+        AWSRdsDatabase database = request.getAwsRdsInstances().get(0);
         request.getUsers().forEach(user -> {
-            emailHelper(user.getEmail(), null, "Gatekeeper: Access Request " + request.getId() + " has expired", "accessExpired", request);
+            List<String> expiredRoles = new ArrayList<>();
+            for (UserRole role : request.getRoles()) {
+                if (accessRequestRepository.getLiveAccessRequestsForUserAccountDbNameAndRole(user.getUserId(), request.getAccount(), database.getName(), role.getRole()).isEmpty()) {
+                    expiredRoles.add(role.getRole());
+                }
+            }
+            if(!expiredRoles.isEmpty()){
+                Map<String, List> other = new HashMap<>();
+                other.put("expiredRoles", expiredRoles);
+                emailHelper(user.getEmail(), null, "Gatekeeper: Access Request " + request.getId() + " has expired", "accessExpired", request, other);
+            } else {
+                logger.info("Skipping email for user " + user.getUserId() + " as they have another active access request for all roles within this request.");
+            }
         });
     }
 

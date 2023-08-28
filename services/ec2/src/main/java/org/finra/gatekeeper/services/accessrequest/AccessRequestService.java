@@ -92,6 +92,7 @@ public class AccessRequestService {
             .append("       access_request.requestor_email,\n")
             .append("       access_request.requestor_id,\n")
             .append("       access_request.request_reason,\n")
+            .append("       access_request.ticket_id,\n")
             .append("       access_request.approver_comments,\n")
             .append("       access_request.actioned_by_user_name,\n")
             .append("       access_request.actioned_by_user_id,\n")
@@ -210,7 +211,8 @@ public class AccessRequestService {
                 .setInstances(request.getInstances())
                 .setTicketId(request.getTicketId())
                 .setRequestReason(request.getRequestReason())
-                .setPlatform(request.getPlatform());
+                .setPlatform(request.getPlatform())
+                .setNoUser(request.isNoUser());
 
         logger.info("Storing Access Request");
         accessRequestRepository.save(accessRequest);
@@ -583,6 +585,23 @@ public class AccessRequestService {
         handleRequest(gatekeeperRoleService.getUserProfile().getUserId(), taskId, RequestStatus.CANCELED);
         return getActiveRequests();
     }
+    /**
+     * Updates the approver comment of the Request
+     * @param requestId - the AccessRequest object id
+     * @param approverComments - The comments from the approver
+     * @return - The updated list of Active Access Requests
+     */
+    public List<ActiveAccessRequestWrapper> updateRequest(Long requestId, String approverComments ) {
+        AccessRequest accessRequest = accessRequestRepository.getAccessRequestById(requestId);
+        accessRequest.setApproverComments(approverComments);
+        GatekeeperUserEntry user = gatekeeperRoleService.getUserProfile();
+        accessRequest.setActionedByUserId(user.getUserId());
+        accessRequest.setActionedByUserName(user.getName());
+        accessRequestRepository.save(accessRequest);
+        logger.info("Access Request " + accessRequest.getId() + " had its approver comment updated by " + user.getName() + " (" + user.getUserId() +"). ");
+        return getActiveRequests();
+    }
+
 
     private List<? extends AccessRequestWrapper> filterResults(List<? extends AccessRequestWrapper> results) {
         return results.stream().filter(AccessRequestWrapper -> gatekeeperRoleService.getRole().equals(GatekeeperRole.APPROVER)

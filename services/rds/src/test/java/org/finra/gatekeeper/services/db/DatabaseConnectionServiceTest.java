@@ -28,6 +28,7 @@ import org.finra.gatekeeper.rds.model.*;
 import org.finra.gatekeeper.services.accessrequest.model.AWSRdsDatabase;
 import org.finra.gatekeeper.services.accessrequest.model.User;
 import org.finra.gatekeeper.services.accessrequest.model.UserRole;
+import org.finra.gatekeeper.services.aws.RdsIamAuthService;
 import org.finra.gatekeeper.services.aws.model.AWSEnvironment;
 import org.finra.gatekeeper.services.aws.model.DatabaseType;
 import org.finra.gatekeeper.services.aws.model.GatekeeperRDSInstance;
@@ -54,6 +55,9 @@ public class DatabaseConnectionServiceTest {
 
     @Mock
     private AccountInformationService accountInformationService;
+
+    @Mock
+    private RdsIamAuthService rdsIamAuthService;
 
     @Spy
     private MockDBConnection mockDBConnection;
@@ -90,12 +94,13 @@ public class DatabaseConnectionServiceTest {
                 .setName("test-db-name")
                 .setEndpoint(endpoint)
                 .setStatus("Available")
-                .setArn("testArn");
+                .setArn("testArn")
+                .setDatabaseType(DatabaseType.RDS);
 
         supportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), database.getEngine(), database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS, new HashSet<>());
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS, new HashSet<>(), false);
         unsupportedGatekeeperRDSInstance = new GatekeeperRDSInstance(database.getInstanceId(), database.getName(), database.getDbName(), TEST_UNSUPPORTED_ENGINE, database.getStatus(), database.getArn(),
-                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS, new HashSet<>());
+                database.getEndpoint(), database.getApplication(), Arrays.asList("READONLY", "DBA", "DATAFIX"), true, DatabaseType.RDS, new HashSet<>(), false);
         rdsInstance = new DBInstance()
                 .withDBInstanceIdentifier(database.getName())
                 .withEngine(database.getEngine())
@@ -103,7 +108,8 @@ public class DatabaseConnectionServiceTest {
                 .withDbiResourceId(database.getInstanceId())
                 .withEndpoint(new Endpoint().withAddress(database.getEndpoint()).withPort(5432))
                 .withDBInstanceStatus(database.getStatus())
-                .withDBInstanceArn(database.getArn());
+                .withDBInstanceArn(database.getArn())
+                .withIAMDatabaseAuthenticationEnabled(false);
 
         auroraCluster = new DBCluster()
                 .withDBClusterIdentifier(database.getName())
@@ -113,7 +119,8 @@ public class DatabaseConnectionServiceTest {
                 .withEndpoint(database.getEndpoint())
                 .withPort(5432)
                 .withStatus(database.getStatus())
-                .withDBClusterArn(database.getArn());
+                .withDBClusterArn(database.getArn())
+                .withIAMDatabaseAuthenticationEnabled(false);
 
         environment = new AWSEnvironment("test", "us-east-1", "DEV");
 
@@ -151,14 +158,15 @@ public class DatabaseConnectionServiceTest {
                 .withSdlc(environment.getSdlc())
                 .withAddress(endpoint)
                 .withDbInstanceName(database.getName());
-        expectedRevokeRequest = new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine());
-        expectedGrantRequest = new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine());
-        expectedCheckUsersRequest = new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine());
+        expectedRevokeRequest = new RdsRevokeAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine(), false);
+        expectedGrantRequest = new RdsGrantAccessQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine(), false);
+        expectedCheckUsersRequest = new RdsCheckUsersTableQuery(account.getAlias(), account.getAccountId(), environment.getRegion(), environment.getSdlc(), endpoint, database.getName(), database.getEngine(), false);
 
         Mockito.when(databaseConnectionFactory.getConnection(TEST_ENGINE)).thenReturn(mockDBConnection);
         Mockito.when(databaseConnectionFactory.getConnection(TEST_UNSUPPORTED_ENGINE)).thenThrow(new GKUnsupportedDBException("UnsupportedDB"));
         Mockito.when(accountInformationService.getAccountByAlias("test")).thenReturn(account);
-        databaseConnectionService = new DatabaseConnectionService(databaseConnectionFactory, accountInformationService);
+        Mockito.when(rdsIamAuthService.isRdsIamAuthEnabled(environment, database.getInstanceId(), database.getName(), database.getDatabaseType().toString())).thenReturn(false);
+        databaseConnectionService = new DatabaseConnectionService(databaseConnectionFactory, accountInformationService, rdsIamAuthService);
     }
 
     /*

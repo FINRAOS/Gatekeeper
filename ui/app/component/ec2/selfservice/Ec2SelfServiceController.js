@@ -47,11 +47,11 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
         this.platforms = ['Linux', 'Windows'];
         this.awsAccounts = [];
-
+        this.requestWithoutUser = false;
         this.fetching.aws = false;
 
         this.disableRow = (row) => {
-            return row.ssmStatus !== 'Online';
+            return (row.ssmStatus !== 'Online' && !vm.forms.awsInstanceForm.requestWithoutUser);
         };
 
         //aws stuff
@@ -120,6 +120,13 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
     
     /**
+     *  Check if user has access to support functions
+     */
+    isSupport(){
+        return vm.global.userInfo.role === 'SUPPORT' || vm.global.userInfo.role === 'APPROVER'    
+    }
+
+    /**
      * Called from the UI to clear out the AWS Instances if a change in region or account is made.
      */
     clearInstances(){
@@ -145,6 +152,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                     vm.forms.awsInstanceForm.selectedAccount = vm.lastSelectedAccount;
                     vm.forms.awsInstanceForm.selectedRegion = vm.lastSelectedRegion;
                     vm.forms.awsInstanceForm.selectedPlatform = vm.lastSelectedPlatform;
+                    vm.forms.awsInstanceForm.requestWithoutUser = vm.lastSelectedSSM;
                 }).finally(() => {
                     vm.dialogOpened = false;
                 })
@@ -152,6 +160,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
             vm.lastSelectedAccount = vm.forms.awsInstanceForm.selectedAccount;
             vm.lastSelectedRegion = vm.forms.awsInstanceForm.selectedRegion;
             vm.lastSelectedPlatform = vm.forms.awsInstanceForm.selectedPlatform;
+            vm.lastSelectedSSM = vm.forms.awsInstanceForm.requestWithoutUser;
             vm.awsTable.data = [];
             vm.checkIfApprovalNeeded();
         }
@@ -253,7 +262,8 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
                         vm.awsTable.selected,
                         justification.ticketId,
                         justification.explanation,
-                        vm.forms.awsInstanceForm.selectedPlatform)
+                        vm.forms.awsInstanceForm.selectedPlatform,
+                        vm.forms.awsInstanceForm.requestWithoutUser)
                         .then((response) => {
                             this.fetching.grant = false;
                             let msg = 'Access was requested for ' + vm.forms.grantForm.grantValue + ' hours. If your request required approval,'

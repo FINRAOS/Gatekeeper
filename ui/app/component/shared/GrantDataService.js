@@ -28,7 +28,8 @@ class GrantDataService extends DataService{
         this.resource = 'grantAccess';
     }
 
-    post(hours, users, account, accountSdlc, region, instances, ticketId, requestReason, platform){
+    post(hours, users, account, accountSdlc, region, instances, ticketId, requestReason, platform, noUser){
+
         var bundle = {
             account: account,
             accountSdlc: accountSdlc,
@@ -38,7 +39,8 @@ class GrantDataService extends DataService{
             instances: instances,
             ticketId: ticketId,
             requestReason: requestReason,
-            platform: platform
+            platform: platform,
+            noUser: noUser
         };
 
         return this.http.post(this.getApi()+'/'+this.resource, bundle);
