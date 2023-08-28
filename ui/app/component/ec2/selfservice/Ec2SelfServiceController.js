@@ -118,6 +118,7 @@ class Ec2SelfServiceController extends GatekeeperSelfServiceController {
 
     }
 
+    
     /**
      *  Check if user has access to support functions
      */

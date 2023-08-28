@@ -103,6 +103,7 @@ class GatekeeperEc2Controller extends GatekeeperController{
             vm.global.ec2OverridePolicy = data.overridePolicy;
             vm.global.userInfo.isApprover = data.approver;
 
+
             if([ROLES.approver, ROLES.support, ROLES.auditor].indexOf(data.role) === -1 && data.memberships.length === 0 ){
                 vm.global.userInfo.role = ROLES.unauthorized;
             }else{
