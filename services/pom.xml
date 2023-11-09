@@ -37,7 +37,7 @@
         <logback.version>1.2.3</logback.version>
         <pl.project13.maven.version>2.1.15</pl.project13.maven.version>
         <plexus-resources.version>1.0-alpha-7</plexus-resources.version>
-        <spring.boot.version>2.2.0.RELEASE</spring.boot.version>
+        <spring.boot.version>2.5.12</spring.boot.version>
         <spring.cloud.version>1.0.6.RELEASE</spring.cloud.version>
         <spring.ldap.version>2.3.1.RELEASE</spring.ldap.version>
         <slf4j.version>1.7.25</slf4j.version>
