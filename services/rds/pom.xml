@@ -41,7 +41,7 @@
 		<redshift.version>2.1.0.1</redshift.version>
 		<java.version>11</java.version>
 		<mysql.version>6.0.5</mysql.version>
-		<postgres.version>42.2.1</postgres.version>
+		<postgres.version>42.4.1</postgres.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.12</slf4j.version>
 	</properties>
